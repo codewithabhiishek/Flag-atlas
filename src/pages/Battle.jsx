@@ -26,6 +26,7 @@ import { useProgress } from "@/lib/ProgressContext";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 import { randomRoomCode } from "@/lib/battle/engine";
 import { createPeerHostLink, tryPeerGuestLink } from "@/lib/battle/peerTransport";
+import { FeedbackInvite } from "@/components/FeedbackLauncher";
 
 const MAX_PLAYERS = 5;
 
@@ -390,6 +391,9 @@ export default function Battle() {
             </Link>
           </div>
         </div>
+
+        {/* End-of-battle feedback invitation */}
+        <FeedbackInvite />
       </div>
     );
   }

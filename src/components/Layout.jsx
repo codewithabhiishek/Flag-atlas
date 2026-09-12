@@ -9,6 +9,7 @@ import { masteredCount } from "@/lib/derive";
 import { cn } from "@/lib/utils";
 import { useUiClickSounds } from "@/hooks/use-ui-click-sounds";
 import { useGsapScrollProgress } from "@/lib/gsapScroll";
+import { FeedbackLauncher } from "@/components/FeedbackLauncher";
 
 const NAV = [
   { to: "/", label: "Atlas", icon: Compass },
@@ -166,6 +167,7 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
+      <FeedbackLauncher />
       <footer className="border-t-2 border-foreground bg-background/80 px-5 py-5 text-center backdrop-blur sm:px-8 sm:py-6">
         <div className="mx-auto flex max-w-xl flex-col items-center gap-2 text-muted-foreground">
           <p className="text-xs font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-widest">
