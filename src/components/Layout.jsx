@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Moon, Sun, Compass, BarChart3, Layers, Swords, Flame, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -8,6 +8,7 @@ import { levelProgress, rankFromMastered } from "@/lib/scoring";
 import { masteredCount } from "@/lib/derive";
 import { cn } from "@/lib/utils";
 import { useUiClickSounds } from "@/hooks/use-ui-click-sounds";
+import { useGsapScrollProgress } from "@/lib/gsapScroll";
 
 const NAV = [
   { to: "/", label: "Atlas", icon: Compass },
@@ -18,7 +19,10 @@ const NAV = [
 
 export default function Layout() {
   const { state } = useProgress();
+  const location = useLocation();
+  const scrollProgressRef = useRef(null);
   useUiClickSounds();
+  useGsapScrollProgress(scrollProgressRef, `${location.pathname}${location.search}`);
   const [dark, setDark] = useState(
     () =>
       typeof document !== "undefined" &&
@@ -148,11 +152,11 @@ export default function Layout() {
           </button>
         </div>
 
-        <div className="w-full px-4 sm:px-6 lg:px-8 pb-2 lg:hidden">
+        <div className="w-full px-4 pb-2 sm:px-6 lg:px-8" aria-hidden="true">
           <div className="h-2 border-2 border-foreground bg-background overflow-hidden relative">
             <div
-              className="h-full bg-forest relative overflow-hidden transition-all duration-500"
-              style={{ width: `${lp.pct}%` }}
+              ref={scrollProgressRef}
+              className="h-full w-full bg-forest relative overflow-hidden"
             >
               <div className="absolute inset-0 shimmer-progress" />
             </div>

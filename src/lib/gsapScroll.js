@@ -6,7 +6,7 @@
  * Preserves native Mac trackpad momentum and touch inertia while providing
  * silky-smooth 60/120fps scrolling on mouse wheel without getting stuck.
  */
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -43,6 +43,31 @@ export function initSmoothScroll() {
 
 export function getLenis() {
   return lenisInstance;
+}
+
+/**
+ * Sync a thin header indicator with the document's actual scroll progress.
+ * ScrollTrigger also receives Lenis updates, so wheel, trackpad and touch
+ * scrolling all update the same element without React re-renders.
+ */
+export function useGsapScrollProgress(indicatorRef, routeKey = "") {
+  useLayoutEffect(() => {
+    const indicator = indicatorRef?.current;
+    if (!indicator || typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      gsap.set(indicator, { scaleX: 0, transformOrigin: "left center" });
+      ScrollTrigger.create({
+        start: 0,
+        end: () => Math.max(1, ScrollTrigger.maxScroll(window)),
+        invalidateOnRefresh: true,
+        onUpdate: (trigger) => gsap.set(indicator, { scaleX: trigger.progress }),
+      });
+      ScrollTrigger.refresh();
+    });
+
+    return () => ctx.revert();
+  }, [indicatorRef, routeKey]);
 }
 
 /**
