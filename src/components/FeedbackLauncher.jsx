@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MessageSquareHeart } from "lucide-react";
+import { Mail } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 
 /**
@@ -22,12 +22,12 @@ export function FeedbackLauncher() {
             exit={{ opacity: 0, y: 12 }}
             transition={{ delay: 0.4, type: "spring", stiffness: 320, damping: 26 }}
             onClick={() => setOpen(true)}
-            aria-label="Send feedback to the developer"
-            title="Suggestions, ideas, or bugs — send them straight to Abhishek"
+            aria-label="Send a postcard to the developer"
+            title="Notes, ideas, or map corrections — mail a postcard to Abhishek"
             className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-40 inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-card px-3 h-9 text-[10px] sm:text-[11px] font-bold uppercase tracking-tight text-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0 active:shadow-none transition-all select-none"
           >
-            <MessageSquareHeart className="w-3.5 h-3.5 text-terra" aria-hidden="true" />
-            Feedback
+            <Mail className="w-3.5 h-3.5 text-terra" aria-hidden="true" />
+            Postcard
           </motion.button>
         )}
       </AnimatePresence>
@@ -54,14 +54,14 @@ export function FeedbackInvite() {
       >
         <div className="flex items-center gap-3 text-center sm:text-left">
           <span className="w-9 h-9 rounded-xl border-2 border-foreground bg-gold/25 inline-flex items-center justify-center text-base shrink-0">
-            💡
+            📮
           </span>
           <div>
             <div className="text-xs font-bold text-foreground">
-              Have suggestions, ideas, or spotted a bug?
+              Spotted a beetle on the map, or have an idea?
             </div>
             <div className="text-[10px] text-muted-foreground">
-              Help Abhishek improve FlagAtlas — mode ideas, data fixes & feedback welcome!
+              Mail a postcard to the Cartographer — every note gets read.
             </div>
           </div>
         </div>
@@ -70,8 +70,8 @@ export function FeedbackInvite() {
           onClick={() => setOpen(true)}
           className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border-2 border-foreground bg-gold px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-foreground hover:-translate-y-0.5 active:translate-y-0 transition-all"
         >
-          <span>Share feedback</span>
-          <span aria-hidden="true">↗</span>
+          <span>Write a postcard</span>
+          <Mail aria-hidden="true" className="w-3.5 h-3.5" />
         </button>
       </motion.div>
       <FeedbackModal isOpen={open} onClose={() => setOpen(false)} />
