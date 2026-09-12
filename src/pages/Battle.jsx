@@ -227,6 +227,73 @@ export default function Battle() {
     setCode(nextCode);
   }
 
+  // ---- Invite gate ----
+  // Arriving via QR code / invite link (?room=XXXX) means you are a GUEST.
+  // Show only a join form — never the create option (host tools live on the
+  // device that opened the room).
+  const inviteCode = searchParams.get("room")?.toUpperCase().slice(0, 4) || "";
+  if (!code && inviteCode) {
+    return (
+      <div className="mx-auto max-w-md px-3 sm:px-4 py-6">
+        <div className="flex items-center justify-between mb-5">
+          <Link
+            to="/battle"
+            className="inline-flex items-center gap-1.5 border-2 border-foreground bg-card px-3 h-9 text-sm font-bold uppercase tracking-tight"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Link>
+          <span className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
+            Joining room
+          </span>
+        </div>
+
+        <div className="atlas-card grid-paper p-6 sm:p-8 text-center">
+          <div className="inline-flex w-12 h-12 border-2 border-foreground bg-terra items-center justify-center mb-3 brutal-shadow">
+            <Users className="w-6 h-6 text-foreground" />
+          </div>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
+            Room code
+          </p>
+          <div className="mt-1 font-display text-5xl sm:text-6xl tracking-[0.2em] text-foreground">
+            {inviteCode}
+          </div>
+
+          <div className="mt-6 text-left">
+            <label
+              htmlFor="invite-name"
+              className="text-xs font-bold uppercase tracking-tight text-muted-foreground"
+            >
+              Your name
+            </label>
+            <input
+              id="invite-name"
+              value={name}
+              autoFocus
+              onChange={(e) => setName(e.target.value.slice(0, 20))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && name.trim()) openRoom(inviteCode, "join");
+              }}
+              placeholder="Your name"
+              className="mt-1 mb-4 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
+            />
+            <button
+              onClick={() => name.trim() && openRoom(inviteCode, "join")}
+              disabled={!name.trim()}
+              className="w-full h-11 border-2 border-foreground bg-terra font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
+            >
+              Join room →
+            </button>
+            {connectionError && (
+              <p role="alert" className="mt-3 border-2 border-destructive/60 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+                {connectionError}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ---- Menu ----
   if (!code) {
     return (
