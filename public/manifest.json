@@ -1,0 +1,12 @@
+{
+  "name": "FlagAtlas",
+  "short_name": "FlagAtlas",
+  "description": "Learn every world flag through a gamified world explorer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4ECD8",
+  "theme_color": "#1F3D2E",
+  "icons": [
+    { "src": "https://flagcdn.com/xx.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
