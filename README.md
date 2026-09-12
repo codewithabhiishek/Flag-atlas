@@ -113,25 +113,24 @@ npm run build      # outputs to /dist
 npm run preview    # serve the production build locally
 ```
 
-### Multiplayer deployment
+### Multiplayer (zero backend)
 
-The Vite site can remain on Vercel, but real-time battles need a long-lived
-WebSocket process. This repository includes one in `server/battle-server.mjs`
-and a Render Blueprint in `render.yaml`.
+Battle mode uses the same peer-to-peer architecture as WORDRUSH: the host
+player's browser runs the authoritative game engine and announces the room via
+PeerJS's free signaling broker; the guest connects directly over a WebRTC data
+cchannel. There is **no server to deploy** — the static Vercel site is all you
+need, and it costs nothing.
 
-1. Create a new Render Blueprint from this repository; it runs `npm run server:start`.
-2. Copy the service's public HTTPS URL and change its scheme from `https` to
-   `wss` (for example, `wss://flag-atlas-battle.onrender.com`).
-3. In the Vercel project, add `VITE_BATTLE_WS_URL` with that `wss://` value to
-   Production, Preview, and Development, then redeploy the frontend.
+- No environment variables required.
+- Rooms hold up to five players and live in the host's browser: if the host
+closes the tab, the room ends.
+- On very restrictive networks (symmetric NAT / some corporate firewalls)
+direct P2P can fail to connect, since no TURN relay is configured.
+- If someone disconnects during a battle, the remaining player is allowed to
+finish instead of being left in a stuck room.
 
-For local development, run `npm run server:start` in one terminal and
-`npm run dev` in another. The frontend automatically connects to
-`ws://localhost:8787` when no environment variable is set.
-
-Rooms are intentionally in-memory and hold exactly two players. A room ends
-when both players finish; if someone disconnects during a battle, the remaining
-player is allowed to finish instead of being left in a stuck room.
+Local development is unchanged: `npm run dev`, open the site in two browser
+windows, create a room in one and join with the code in the other.
 
 ---
 
@@ -156,7 +155,10 @@ Flag-Atlas/
 │   │   ├── ProgressContext.jsx # XP / streak / flags state
 │   │   ├── spacedRepetition.js # SM-2 algorithm
 │   │   ├── scoring.js          # XP → level math
-│   │   └── derive.js           # Mastery / accuracy helpers
+│   │   ├── derive.js           # Mastery / accuracy helpers
+│   │   └── battle/             # P2P multiplayer (Word Rush architecture)
+│   │       ├── engine.js       #   authoritative room engine (browser-run)
+│   │       └── peerTransport.js#   PeerJS WebRTC host bridge + guest link
 │   ├── pages/
 │   │   ├── Home.jsx         # Dashboard + world map
 │   │   ├── FlagFragments.jsx
@@ -164,7 +166,7 @@ Flag-Atlas/
 │   │   ├── Recall.jsx
 │   │   ├── FlagBuilder.jsx
 │   │   ├── ReviewDeck.jsx
-│   │   ├── Battle.jsx       # Multiplayer (requires WebSocket server)
+│   │   ├── Battle.jsx       # Multiplayer (peer-to-peer via WebRTC, no server)
 │   │   └── Dashboard.jsx
 │   ├── App.jsx
 │   └── main.jsx
@@ -212,7 +214,8 @@ The **Battle** mode lets two players race through the same set of flag questions
 2. The second player joins with the code.
 3. Both players answer flags independently — the one with more correct answers wins; ties go to the fastest finisher.
 
-> **Note:** Multiplayer requires a WebSocket server to be deployed separately. The frontend logic is ready — see `src/pages/Battle.jsx` for the room actor code.
+> **Note:** Multiplayer is fully peer-to-peer (WebRTC via PeerJS) — no server
+> needed. See "Multiplayer (zero backend)" above and `src/lib/battle/`.
 
 ---
 
