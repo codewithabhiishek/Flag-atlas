@@ -122,6 +122,11 @@
       linear-gradient(hsl(var(--muted) / 0.7) 1px, transparent 1px),
       linear-gradient(90deg, hsl(var(--muted) / 0.7) 1px, transparent 1px);
     background-size: 28px 28px;
+    /* Offset by half a cell (14px) so grid lines fall between content
+       blocks rather than cutting through typography and UI elements.
+       This works at all viewport sizes — it's a uniform shift, not
+       a hardcoded desktop-only value. */
+    background-position: 14px 14px;
   }
   .shimmer-progress {
     background-image: linear-gradient(

@@ -42,7 +42,6 @@ export function useGsapScrollReveal(containerRef, deps = []) {
     }, containerRef);
 
     return () => ctx.revert();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }
 
