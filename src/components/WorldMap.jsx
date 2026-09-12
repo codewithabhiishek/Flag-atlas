@@ -24,10 +24,10 @@ const FILL = {
 
 function statusLabel(s) {
   return s === "mastered"
-    ? "Mastered ✓"
+    ? "Mastered"
     : s === "learning"
-      ? "In progress"
-      : "Not yet learned";
+      ? "Learning"
+      : "Not studied";
 }
 
 function statusColor(s) {

@@ -89,11 +89,16 @@ const MODES = [
   },
 ];
 
-function LegendDot({ className, label }) {
+function AtlasLegendItem({ markerClassName, label, description }) {
   return (
-    <span className="inline-flex items-center gap-1.5 font-bold uppercase tracking-tight text-[11px]">
-      <span className={cn("w-3 h-3 border-2 border-foreground rounded-sm", className)} />
-      {label}
+    <span
+      className="inline-flex items-center gap-2 border-l-2 border-foreground/20 pl-2 text-left"
+      title={description}
+    >
+      <span aria-hidden="true" className={cn("h-3 w-3 shrink-0 border-2 border-foreground", markerClassName)} />
+      <span className="text-[10px] font-bold uppercase leading-none tracking-[0.12em] text-foreground sm:text-[11px]">
+        {label}
+      </span>
     </span>
   );
 }
@@ -573,10 +578,10 @@ export default function Home() {
               Tap a country to play that region
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
-            <LegendDot className="bg-land" label="Locked" />
-            <LegendDot className="bg-terra" label="Learning" />
-            <LegendDot className="bg-forest" label="Mastered" />
+          <div aria-label="Map progress legend" className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:justify-end">
+            <AtlasLegendItem markerClassName="bg-land" label="Not studied" description="No answers recorded yet" />
+            <AtlasLegendItem markerClassName="rounded-full bg-terra" label="Learning" description="Studied, but not mastered yet" />
+            <AtlasLegendItem markerClassName="bg-forest rotate-45" label="Mastered" description="Three consecutive correct reviews" />
           </div>
         </div>
         <div className="bg-ocean relative">
