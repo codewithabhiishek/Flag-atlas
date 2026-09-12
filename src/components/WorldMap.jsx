@@ -42,7 +42,7 @@ function isTouchDevice() {
   return window.matchMedia("(pointer: coarse)").matches;
 }
 
-export default function WorldMap({ flags }) {
+export default function WorldMap({ flags, onSelectRegion }) {
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const containerSize = useSize(containerRef);
@@ -129,6 +129,10 @@ export default function WorldMap({ flags }) {
       const country = byCode(code);
       if (!country) return;
       playUiSound("navigate");
+      if (onSelectRegion) {
+        onSelectRegion(country.region);
+        return;
+      }
       navigate(`/play/fragments?region=${encodeURIComponent(country.region)}`);
     },
     [navigate],

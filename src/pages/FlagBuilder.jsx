@@ -31,8 +31,9 @@ export default function FlagBuilder() {
   const { touchStreak, record } = useProgress();
   const [seed, setSeed] = useState(0);
   const queue = useMemo(() => {
-    let list = BUILDABLE.filter((b) => byCode(b.code)?.region === region);
-    if (list.length < 3) list = BUILDABLE.slice();
+    const list = region
+      ? BUILDABLE.filter((b) => byCode(b.code)?.region === region)
+      : BUILDABLE;
     return shuffle(list).slice(0, ROUND);
   }, [region, seed]);
   const [idx, setIdx] = useState(0);
@@ -70,7 +71,18 @@ export default function FlagBuilder() {
     );
   }
 
-  if (!item) return null;
+  if (!item) {
+    return (
+      <ModeShell title="Flag Builder" region={region || "World"}>
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
+          <h2 className="font-display text-2xl text-foreground">No buildable flags yet</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Flag Builder only includes countries with stripe-pattern data. Choose another game mode for {region || "this selection"}.
+          </p>
+        </div>
+      </ModeShell>
+    );
+  }
 
   function place(color) {
     if (outcome || slots.length >= target.length) return;
