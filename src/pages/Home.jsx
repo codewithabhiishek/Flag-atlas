@@ -5,9 +5,7 @@ import {
   Zap,
   Eye,
   Palette,
-  Layers,
   ArrowRight,
-  Star,
   Swords,
   Flame,
   CheckCircle2,
@@ -15,6 +13,7 @@ import {
   RotateCcw,
   Trophy,
   Compass,
+  BarChart2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -39,33 +38,37 @@ const MODES = [
     key: "fragments",
     path: "/play/fragments",
     label: "Fragments",
-    desc: "Reassemble flag puzzle parts",
+    desc: "Guess the blurred flag",
     icon: Sparkles,
-    color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-600/30",
+    accent: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
+    iconBg: "bg-emerald-500/15",
   },
   {
     key: "speed",
     path: "/play/speed",
     label: "Speed Run",
-    desc: "60-second reflex blitz",
+    desc: "45-second reflex blitz",
     icon: Zap,
-    color: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-600/30",
+    accent: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
+    iconBg: "bg-amber-500/15",
   },
   {
     key: "recall",
     path: "/play/recall",
     label: "Recall",
-    desc: "Test pure visual memory",
+    desc: "Pure visual memory",
     icon: Eye,
-    color: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-600/30",
+    accent: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30",
+    iconBg: "bg-sky-500/15",
   },
   {
     key: "builder",
     path: "/play/builder",
     label: "Builder",
-    desc: "Craft and design flags",
+    desc: "Design your own flag",
     icon: Palette,
-    color: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-600/30",
+    accent: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30",
+    iconBg: "bg-rose-500/15",
   },
 ];
 
@@ -78,7 +81,7 @@ function LegendDot({ className, label }) {
   );
 }
 
-// Interactive Instant Flag Challenge Widget
+// ── Quick-fire quiz widget ──────────────────────────────────────────────────
 function QuickFlagSpotlight({ onCorrectAnswer }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * COUNTRIES.length));
   const [selected, setSelected] = useState(null);
@@ -86,7 +89,6 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
 
   const currentCountry = COUNTRIES[index];
 
-  // Generate 1 correct + 3 distractor choices
   const choices = useMemo(() => {
     const distractors = COUNTRIES.filter((c) => c.code !== currentCountry.code)
       .sort(() => 0.5 - Math.random())
@@ -98,15 +100,8 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
     if (answered) return;
     setSelected(c.code);
     setAnswered(true);
-
-    const isCorrect = c.code === currentCountry.code;
-    if (isCorrect) {
-      confetti({
-        particleCount: 50,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#10B981", "#F59E0B", "#3B82F6", "#EC4899"],
-      });
+    if (c.code === currentCountry.code) {
+      confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 }, colors: ["#10B981", "#F59E0B", "#3B82F6", "#EC4899"] });
       if (onCorrectAnswer) onCorrectAnswer(currentCountry.code);
     }
   };
@@ -118,59 +113,48 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
   };
 
   return (
-    <div className="atlas-card p-5 sm:p-6 bg-gradient-to-br from-card via-card to-muted/40 border-2 border-foreground relative overflow-hidden">
-      <div className="flex items-center justify-between gap-2 mb-4 border-b border-border/70 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gold/20 text-gold border border-gold/40">
-            <Zap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-          </span>
-          <div>
-            <h3 className="font-display font-bold text-base sm:text-lg text-foreground leading-tight">
-              Rapid Flag Radar
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Instant challenge · guess the flag for bonus XP
-            </p>
-          </div>
+    <div className="atlas-card p-5 sm:p-6 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)]">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div>
+          <h2 className="font-display font-bold text-base sm:text-lg text-foreground leading-tight">
+            Daily Challenge
+          </h2>
+          <p className="text-xs text-muted-foreground">Guess the flag · earn bonus XP</p>
         </div>
         <motion.button
           whileHover={{ rotate: 180 }}
           transition={{ duration: 0.3 }}
           onClick={nextQuestion}
           className="p-1.5 border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded"
-          title="New Flag"
+          title="New flag"
         >
           <RotateCcw className="w-4 h-4" />
         </motion.button>
       </div>
 
+      {/* Flag + choices */}
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
         <motion.div
           key={currentCountry.code}
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="w-28 h-20 sm:w-36 sm:h-24 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] overflow-hidden shrink-0 bg-muted/30 rounded flex items-center justify-center p-1"
+          className="w-28 h-20 sm:w-36 sm:h-24 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] overflow-hidden shrink-0 bg-muted/30 rounded"
         >
           <FlagImage code={currentCountry.code} className="w-full h-full object-contain" fittingType="contain" />
         </motion.div>
 
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
           {choices.map((c) => {
             const isTarget = c.code === currentCountry.code;
             const isUserChoice = selected === c.code;
-
-            let buttonStyle = "border-2 border-foreground bg-card hover:bg-muted/70 text-foreground";
+            let style = "border-2 border-foreground bg-card hover:bg-muted/70 text-foreground";
             if (answered) {
-              if (isTarget) {
-                buttonStyle = "border-2 border-emerald-600 bg-emerald-500/20 text-emerald-900 dark:text-emerald-200 font-bold shadow-[0_0_12px_rgba(16,185,129,0.4)]";
-              } else if (isUserChoice) {
-                buttonStyle = "border-2 border-destructive bg-destructive/20 text-destructive line-through";
-              } else {
-                buttonStyle = "border-2 border-border/50 opacity-40";
-              }
+              if (isTarget) style = "border-2 border-emerald-600 bg-emerald-500/20 text-emerald-900 dark:text-emerald-200 font-bold";
+              else if (isUserChoice) style = "border-2 border-destructive bg-destructive/20 text-destructive line-through opacity-70";
+              else style = "border-2 border-border/50 opacity-40";
             }
-
             return (
               <motion.button
                 key={c.code}
@@ -178,45 +162,44 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
                 whileTap={!answered ? { scale: 0.98 } : {}}
                 onClick={() => handleChoice(c)}
                 disabled={answered}
-                className={cn(
-                  "px-3.5 py-2.5 text-left text-sm font-semibold tracking-tight transition-all flex items-center justify-between rounded-lg",
-                  buttonStyle,
-                )}
+                className={cn("px-3.5 py-2.5 text-left text-sm font-semibold tracking-tight transition-all flex items-center justify-between rounded-lg", style)}
               >
                 <span className="truncate">{c.name}</span>
-                {answered && isTarget && (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-1.5" />
-                )}
-                {answered && isUserChoice && !isTarget && (
-                  <XCircle className="w-4 h-4 text-destructive shrink-0 ml-1.5" />
-                )}
+                {answered && isTarget && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-1.5" />}
+                {answered && isUserChoice && !isTarget && <XCircle className="w-4 h-4 text-destructive shrink-0 ml-1.5" />}
               </motion.button>
             );
           })}
         </div>
       </div>
 
-      {answered && (
-        <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs"
-        >
-          <span className="text-muted-foreground">
-            Region: <strong className="text-foreground">{currentCountry.region}</strong> · Capital: <strong className="text-foreground">{currentCountry.capital}</strong>
-          </span>
-          <button
-            onClick={nextQuestion}
-            className="px-3 py-1 font-bold uppercase tracking-wider bg-foreground text-background border border-foreground rounded hover:opacity-90"
+      {/* After-answer reveal */}
+      <AnimatePresence>
+        {answered && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs"
           >
-            Next flag →
-          </button>
-        </motion.div>
-      )}
+            <span className="text-muted-foreground">
+              Region: <strong className="text-foreground">{currentCountry.region}</strong>
+              {" · "}Capital: <strong className="text-foreground">{currentCountry.capital}</strong>
+            </span>
+            <button
+              onClick={nextQuestion}
+              className="px-3 py-1 font-bold uppercase tracking-wider bg-foreground text-background border border-foreground rounded hover:opacity-90 text-xs"
+            >
+              Next →
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
+// ── Main Home ───────────────────────────────────────────────────────────────
 export default function Home() {
   const { state, record } = useProgress();
   const lp = levelProgress(state.xp);
@@ -226,36 +209,33 @@ export default function Home() {
     ? Math.round((state.stats.correct / state.stats.answered) * 100)
     : 0;
 
-  const triggerCelebration = () => {
-    confetti({
-      particleCount: 60,
-      spread: 80,
-      origin: { y: 0.3 },
-      colors: ["#F59E0B", "#10B981", "#3B82F6", "#EF4444"],
-    });
-  };
-
   const handleQuickQuizCorrect = (code) => {
     record(code, { correct: true, quality: 5, xpGain: 15 });
   };
 
+  const triggerCelebration = () => {
+    confetti({ particleCount: 60, spread: 80, origin: { y: 0.3 }, colors: ["#F59E0B", "#10B981", "#3B82F6", "#EF4444"] });
+  };
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      {/* 1. Hero Explorer Section */}
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-8">
+
+      {/* ── 1. Hero: rank + XP + quick stats ── */}
       <motion.section
-        initial={{ opacity: 0, y: 15 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.35 }}
         className="atlas-card grid-paper p-5 sm:p-7 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.4)]"
       >
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          {/* Rank + stats */}
+          <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-foreground/30 bg-muted/70 text-xs uppercase tracking-[0.2em] font-bold text-foreground">
               <Compass className="w-3.5 h-3.5 text-terra" />
               Explorer Rank
             </div>
             <div className="flex items-center gap-3">
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-foreground font-extrabold tracking-tight">
+              <h1 className="font-display text-4xl sm:text-5xl text-foreground font-extrabold tracking-tight">
                 {rank.title}
               </h1>
               <motion.button
@@ -263,14 +243,14 @@ export default function Home() {
                 whileTap={{ scale: 0.9 }}
                 onClick={triggerCelebration}
                 className="p-2 border-2 border-foreground bg-gold rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-foreground"
-                title="Celebrate your rank!"
+                title="Celebrate!"
               >
-                <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Trophy className="w-5 h-5" />
               </motion.button>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-muted-foreground text-sm font-semibold">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border rounded-md">
-                🎯 <strong className="text-foreground">{mastered}</strong> flags mastered
+                🎯 <strong className="text-foreground">{mastered}</strong> mastered
               </span>
               <span
                 onClick={triggerCelebration}
@@ -285,49 +265,53 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="w-full lg:max-w-md p-4 sm:p-5 bg-card/80 backdrop-blur-sm border-2 border-foreground rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)]">
-            <div className="flex justify-between text-xs mb-2 font-bold uppercase">
-              <span className="text-foreground flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-gold" />
-                Level {lp.level}
-              </span>
-              <span className="text-muted-foreground">
-                {lp.into} / {lp.span} XP ({lp.pct}%)
-              </span>
+          {/* XP progress + CTAs */}
+          <div className="w-full sm:max-w-xs space-y-3">
+            <div className="p-4 bg-card/80 backdrop-blur-sm border-2 border-foreground rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]">
+              <div className="flex justify-between text-xs mb-2 font-bold uppercase">
+                <span className="text-foreground flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-gold" />
+                  Level {lp.level}
+                </span>
+                <span className="text-muted-foreground">{lp.into}/{lp.span} XP · {lp.pct}%</span>
+              </div>
+              <div className="h-3 border-2 border-foreground bg-background rounded-sm overflow-hidden relative">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${lp.pct}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="h-full bg-forest relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 shimmer-progress" />
+                </motion.div>
+              </div>
             </div>
-            <div className="h-4 border-2 border-foreground bg-background rounded-sm overflow-hidden relative shadow-inner">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${lp.pct}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="h-full bg-forest relative overflow-hidden"
-              >
-                <div className="absolute inset-0 shimmer-progress" />
+            {/* Primary CTAs */}
+            <div className="flex gap-2">
+              <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }} className="flex-1">
+                <Link
+                  to="/play/fragments"
+                  className="flex items-center justify-center gap-1.5 border-2 border-foreground bg-foreground text-background h-10 font-bold uppercase text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:opacity-90 transition-opacity rounded w-full"
+                >
+                  Play Now <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </motion.div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
+              <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }}>
+                <Link
+                  to="/dashboard"
+                  className="flex items-center justify-center gap-1.5 border-2 border-foreground bg-card text-foreground h-10 px-3 font-bold uppercase text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-muted transition-colors rounded"
+                  title="Stats"
+                >
+                  <BarChart2 className="w-4 h-4" />
+                </Link>
+              </motion.div>
               <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }}>
                 <Link
                   to="/battle"
-                  className="inline-flex items-center gap-2 border-2 border-foreground bg-gold text-foreground px-4 h-10 font-bold uppercase text-xs sm:text-sm tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-400 transition-colors rounded"
+                  className="flex items-center justify-center gap-1.5 border-2 border-foreground bg-gold text-foreground h-10 px-3 font-bold uppercase text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-400 transition-colors rounded"
+                  title="Battle"
                 >
-                  <Swords className="w-4 h-4" /> Battle a friend →
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }}>
-                <Link
-                  to="/play/fragments?region=Europe"
-                  className="inline-flex items-center gap-2 border-2 border-foreground bg-foreground text-background px-4 h-10 font-bold uppercase text-xs sm:text-sm tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:opacity-90 transition-opacity rounded"
-                >
-                  Start Europe →
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }}>
-                <Link
-                  to="/review"
-                  className="inline-flex items-center gap-2 border-2 border-foreground bg-card text-foreground px-4 h-10 font-bold uppercase text-xs sm:text-sm tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-muted transition-colors rounded"
-                >
-                  <Layers className="w-4 h-4" /> Review deck
+                  <Swords className="w-4 h-4" />
                 </Link>
               </motion.div>
             </div>
@@ -335,19 +319,29 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* 2. Interactive Spotlight Quick Quiz */}
-      <QuickFlagSpotlight onCorrectAnswer={handleQuickQuizCorrect} />
+      {/* ── 2. Daily Challenge (quick quiz) ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.07 }}
+      >
+        <QuickFlagSpotlight onCorrectAnswer={handleQuickQuizCorrect} />
+      </motion.div>
 
-      {/* 3. The Interactive Atlas Map */}
-      <section className="atlas-card border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] overflow-hidden">
+      {/* ── 3. The World Atlas Map ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.12 }}
+        className="atlas-card border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] overflow-hidden"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b-2 border-foreground bg-card/60 backdrop-blur">
           <div>
-            <h2 className="font-display font-bold text-2xl text-foreground flex items-center gap-2">
-              <Compass className="w-5 h-5 text-terra" />
-              The World Atlas
+            <h2 className="font-display font-bold text-xl text-foreground flex items-center gap-2">
+              <Compass className="w-5 h-5 text-terra" /> World Atlas
             </h2>
             <p className="text-xs text-muted-foreground font-medium mt-0.5">
-              Territories dynamically illuminate as you master their flags · hover to inspect
+              Tap a country to play that region
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
@@ -359,170 +353,107 @@ export default function Home() {
         <div className="bg-ocean relative">
           <WorldMap flags={state.flags} />
         </div>
-      </section>
+      </motion.section>
 
-      {/* 4. Game Modes Showcase Cards */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-2xl font-bold text-foreground">
-            Training & Game Modes
-          </h2>
-          <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
-            Select your discipline
-          </span>
+      {/* ── 4. Game Modes — single clean row, no per-region duplication ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.17 }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-xl font-bold text-foreground">Game Modes</h2>
+          <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Pick your style</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {MODES.map((md) => (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {MODES.map((md, i) => (
             <motion.div
               key={md.key}
-              whileHover={{ y: -4, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.18 + i * 0.05 }}
+              whileHover={{ y: -3, scale: 1.02 }}
             >
               <Link
                 to={md.path}
                 className={cn(
-                  "atlas-card p-5 border-2 border-foreground block h-full shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] transition-colors group",
-                  md.color,
+                  "atlas-card p-4 border-2 border-foreground flex flex-col gap-2 h-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] group transition-colors",
+                  md.accent,
                 )}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 border-2 border-foreground bg-card rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
-                    <md.icon className="w-5 h-5 text-foreground" />
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-foreground opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center border-2 border-foreground group-hover:rotate-6 transition-transform", md.iconBg)}>
+                  <md.icon className="w-4.5 h-4.5 text-foreground" />
                 </div>
-                <h3 className="font-display text-xl font-bold text-foreground">
-                  {md.label}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 font-medium leading-relaxed">
-                  {md.desc}
-                </p>
+                <div>
+                  <p className="font-display text-base font-bold text-foreground leading-tight">{md.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{md.desc}</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-foreground opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all mt-auto self-end" />
               </Link>
             </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      {/* 5. Regional Mastery Cards */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-2xl font-bold text-foreground">
-            Regional Sectors
-          </h2>
-          <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
-            Continent breakdown
-          </span>
+      {/* ── 5. Regional Progress — compact, no repeated mode buttons ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.22 }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-xl font-bold text-foreground">Progress by Region</h2>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-          {REGIONS.map((r) => {
-            const m = regionMastery(state.flags, r.id);
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {REGIONS.filter((r) => r.id !== "Antarctica").map((r) => {
             const done = masteredInRegion(state.flags, r.id);
             const tot = regionTotal(r.id);
+            const pct = regionMastery(state.flags, r.id);
             return (
               <motion.div
                 key={r.id}
-                whileHover={{ y: -3 }}
-                className="atlas-card p-5 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] flex flex-col justify-between"
+                whileHover={{ y: -2 }}
+                className="atlas-card px-4 py-3.5 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] flex items-center gap-4 group cursor-pointer"
+                onClick={() => {}}
               >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-display text-xl font-bold text-foreground">
-                      {r.id}
-                    </h3>
-                    <span className="text-xs text-muted-foreground font-bold px-2 py-0.5 bg-muted rounded">
-                      {tot === 0 ? "—" : `${done}/${tot} · ${m}%`}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-display text-sm font-bold text-foreground truncate">{r.id}</span>
+                    <span className="text-xs text-muted-foreground font-bold ml-2 shrink-0">
+                      {done}/{tot}
                     </span>
                   </div>
-                  <MasteryMeter value={m} />
+                  <MasteryMeter value={pct} />
                 </div>
-
-                {tot === 0 ? (
-                  <p className="text-xs text-muted-foreground mt-4 italic">
-                    Frozen continent — no sovereign flags.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 mt-4">
-                    {MODES.map((md) => (
-                      <Link
-                        key={md.key}
-                        to={`${md.path}?region=${encodeURIComponent(r.id)}`}
-                        className="group border-2 border-foreground bg-card px-2.5 py-1.5 hover:bg-terra hover:text-white transition-all rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <md.icon className="w-3.5 h-3.5" />
-                          <span className="text-xs font-bold uppercase tracking-tight">
-                            {md.label}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <Link
+                  to={`/play/fragments?region=${encodeURIComponent(r.id)}`}
+                  className="shrink-0 border-2 border-foreground bg-card px-2.5 py-1.5 text-xs font-bold uppercase tracking-tight hover:bg-terra hover:text-white transition-all rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Play →
+                </Link>
               </motion.div>
             );
           })}
         </div>
-      </section>
+      </motion.section>
 
-      {/* 6. Battle & Dashboard Highlights */}
-      <section className="grid sm:grid-cols-2 gap-4 sm:gap-5">
-        <motion.div whileHover={{ y: -4, scale: 1.01 }}>
-          <Link
-            to="/battle"
-            className="atlas-card p-6 border-2 border-foreground bg-gold text-foreground block shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.4)] transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-foreground text-gold flex items-center justify-center border-2 border-foreground group-hover:rotate-12 transition-transform">
-                <Swords className="w-6 h-6 text-gold" />
-              </div>
-              <div className="flex-1">
-                <div className="font-display font-extrabold text-xl uppercase tracking-tight">
-                  Multiplayer Battle
-                </div>
-                <div className="text-xs text-foreground/80 font-semibold mt-0.5">
-                  Real-time speed showdown · outsmart your rival
-                </div>
-              </div>
-              <ArrowRight className="w-6 h-6 text-foreground group-hover:translate-x-1.5 transition-transform" />
-            </div>
-          </Link>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -4, scale: 1.01 }}>
-          <Link
-            to="/dashboard"
-            className="atlas-card p-6 border-2 border-foreground bg-card text-foreground block shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.4)] transition-all group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-terra text-white flex items-center justify-center border-2 border-foreground group-hover:rotate-12 transition-transform">
-                <Star className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="font-display font-extrabold text-xl uppercase tracking-tight">
-                  Stats & Stamps
-                </div>
-                <div className="text-xs text-muted-foreground font-semibold mt-0.5">
-                  Detailed analytics, accuracy charts, passport progress
-                </div>
-              </div>
-              <ArrowRight className="w-6 h-6 text-foreground group-hover:translate-x-1.5 transition-transform" />
-            </div>
-          </Link>
-        </motion.div>
-      </section>
-
-      {/* 7. Passport Stamps */}
-      <section className="atlas-card p-6 border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)]">
+      {/* ── 6. Passport Stamps ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.27 }}
+        className="atlas-card p-5 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)]"
+      >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-2xl font-bold text-foreground">
-            Explorer Passport
-          </h3>
+          <h2 className="font-display text-xl font-bold text-foreground">Explorer Passport</h2>
           <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-            Stamps earned as flags reach mastery
+            Earned at mastery
           </span>
         </div>
         <PassportStamps flags={state.flags} />
-      </section>
+      </motion.section>
+
     </div>
   );
 }
