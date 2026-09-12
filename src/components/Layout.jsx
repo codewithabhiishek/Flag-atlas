@@ -9,7 +9,7 @@ import { masteredCount } from "@/lib/derive";
 import { cn } from "@/lib/utils";
 import { useUiClickSounds } from "@/hooks/use-ui-click-sounds";
 import { useGsapScrollProgress } from "@/lib/gsapScroll";
-import { FeedbackLauncher } from "@/components/FeedbackLauncher";
+import { FeedbackButton } from "@/components/FeedbackLauncher";
 
 const NAV = [
   { to: "/", label: "Atlas", icon: Compass },
@@ -144,6 +144,8 @@ export default function Layout() {
             </motion.button>
           </div>
 
+          <FeedbackButton className="h-9 px-2.5 sm:px-3 inline-flex items-center gap-1.5 border-2 border-transparent text-foreground hover:border-foreground hover:bg-muted/80 transition-all text-sm font-bold uppercase tracking-tight" />
+
           <button
             onClick={() => setDark((d) => !d)}
             className="lg:hidden w-9 h-9 border-2 border-foreground inline-flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)]"
@@ -167,7 +169,6 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <FeedbackLauncher />
       <footer className="border-t-2 border-foreground bg-background/80 px-5 py-5 text-center backdrop-blur sm:px-8 sm:py-6">
         <div className="mx-auto flex max-w-xl flex-col items-center gap-2 text-muted-foreground">
           <p className="text-xs font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-widest">
