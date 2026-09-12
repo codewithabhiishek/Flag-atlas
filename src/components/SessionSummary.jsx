@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Trophy } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
+import { FeedbackInvite } from "@/components/FeedbackLauncher";
 import { formatElapsedTime } from "@/hooks/use-elapsed-timer";
 
 export default function SessionSummary({ correct, total, xp, timeMs, onAgain, extra }) {
@@ -34,6 +35,11 @@ export default function SessionSummary({ correct, total, xp, timeMs, onAgain, ex
             Play again
           </button>
         </div>
+      </div>
+
+      {/* End-of-session feedback invitation — same pattern as Word Rush */}
+      <div className="mt-4 max-w-md mx-auto">
+        <FeedbackInvite />
       </div>
     </ModeShell>
   );

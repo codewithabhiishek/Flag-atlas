@@ -1,30 +1,97 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { HelpCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 /**
  * InfoTip — a small, theme-matched help tooltip.
  *
- * Works on both desktop (hover) and touch (tap to toggle). Content renders in
- * a paper card that aligns to the right edge so it never overflows the screen
- * on mobile. Keep copy short — 1–3 sentences.
+ * Renders through a portal into document.body with `position: fixed`
+ * coordinates measured from the button, so parent `overflow-hidden` cards
+ * can never clip it (that clipping is exactly what broke v1). The panel
+ * clamps to the viewport edges and flips above the button when there is
+ * more room above. Works on desktop (hover) and touch (tap to toggle).
  */
-export default function InfoTip({ label = "More info", children, className }) {
+export default function InfoTip({ label = "More info", children, className = "" }) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null); // { top, left, maxWidth } in px
+  const btnRef = useRef(null);
+
+  const measure = () => {
+    const btn = btnRef.current;
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const MARGIN = 12;
+    const GAP = 10;
+    const viewportW = window.innerWidth;
+
+    // Panel width: min(288px, viewport minus margins)
+    const maxWidth = Math.min(288, viewportW - MARGIN * 2);
+    // Prefer opening BELOW the button; flip above if not enough room.
+    const spaceBelow = window.innerHeight - r.bottom;
+    const openUp = spaceBelow < 180 && r.top > spaceBelow;
+    const top = openUp ? r.top - GAP : r.bottom + GAP;
+
+    // Horizontal: align panel's right edge to the button's right edge,
+    // then clamp inside the viewport.
+    let left = r.right - maxWidth;
+    left = Math.max(MARGIN, Math.min(left, viewportW - MARGIN - maxWidth));
+
+    setPos({ top, left, maxWidth });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    measure();
+    const onReflow = () => measure();
+    window.addEventListener("resize", onReflow);
+    window.addEventListener("scroll", onReflow, true);
+    return () => {
+      window.removeEventListener("resize", onReflow);
+      window.removeEventListener("scroll", onReflow, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const panel = (
+    <AnimatePresence>
+      {open && pos && (
+        <motion.span
+          role="tooltip"
+          initial={{ opacity: 0, y: -4, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -4, scale: 0.97 }}
+          transition={{ duration: 0.15 }}
+          style={{
+            position: "fixed",
+            top: pos.top,
+            left: pos.left,
+            width: pos.maxWidth,
+            zIndex: 60,
+          }}
+          className="block rounded-xl border-2 border-foreground bg-card px-3.5 py-2.5 text-left text-xs font-medium leading-relaxed text-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {children}
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <span
-      className={cn("relative inline-flex items-center", className)}
+      className={`relative inline-flex items-center ${className}`}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
       <button
+        ref={btnRef}
         type="button"
         aria-label={label}
         aria-expanded={open}
         onClick={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           setOpen((o) => !o);
         }}
         onBlur={() => setOpen(false)}
@@ -32,21 +99,7 @@ export default function InfoTip({ label = "More info", children, className }) {
       >
         <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
       </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.span
-            role="tooltip"
-            initial={{ opacity: 0, y: -4, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-7 z-50 w-64 max-w-[calc(100vw-3rem)] rounded-lg border-2 border-foreground bg-card px-3 py-2.5 text-left text-xs font-medium leading-relaxed text-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)]"
-          >
-            {children}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {typeof document !== "undefined" && createPortal(panel, document.body)}
     </span>
   );
 }
