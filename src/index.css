@@ -106,8 +106,11 @@
 
 @layer components {
   .atlas-card {
-    @apply border border-border bg-card rounded-2xl;
+    @apply border border-border bg-card rounded-2xl transition-all duration-300;
     box-shadow: 0 1px 2px rgba(20, 40, 30, 0.05), 0 14px 30px -18px rgba(20, 40, 30, 0.28);
+  }
+  .atlas-card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-gold/60;
   }
   .grid-paper {
     background-image:
@@ -115,11 +118,77 @@
       linear-gradient(90deg, hsl(var(--muted) / 0.7) 1px, transparent 1px);
     background-size: 28px 28px;
   }
+  .shimmer-progress {
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.2s infinite;
+  }
 }
 
 .brutal-shadow {
   box-shadow: 0 6px 18px rgba(20, 40, 30, 0.18);
 }
+.brutal-shadow-hover:hover {
+  box-shadow: 0 10px 24px rgba(20, 40, 30, 0.28);
+}
 .bg-card {
   box-shadow: 0 1px 2px rgba(20, 40, 30, 0.05);
+}
+
+/* Custom Smooth Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border) / 0.7);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--forest));
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes floatSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-float-soft {
+  animation: floatSoft 3s ease-in-out infinite;
 }

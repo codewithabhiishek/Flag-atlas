@@ -5,6 +5,7 @@ import ModeShell from "@/components/ModeShell";
 import FlagImage from "@/components/FlagImage";
 import { flagsByRegion, shuffle, pickOptions } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
+import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 
 const DURATION = 45;
@@ -67,6 +68,14 @@ export default function SpeedRun() {
   useEffect(() => {
     if (!running) {
       recordLeaderboard(region || "World", finalScoreRef.current);
+      if (finalScoreRef.current > 0) {
+        confetti({
+          particleCount: 75,
+          spread: 80,
+          origin: { y: 0.55 },
+          colors: ["#F59E0B", "#10B981", "#3B82F6", "#EF4444"],
+        });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
