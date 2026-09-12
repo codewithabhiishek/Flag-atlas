@@ -224,15 +224,18 @@ export default function SpeedRun() {
         <p className="text-center text-sm text-muted-foreground mt-3">
           Tap the matching country
         </p>
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          {options.map((opt) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
+          {options.map((opt, idx) => (
             <button
               key={opt.code}
               onClick={() => pick(opt)}
               aria-label={opt.name}
-              className="h-11 rounded-lg border border-border px-3 text-sm font-medium hover:border-terra transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group min-h-[44px] rounded-lg border-2 border-foreground bg-card px-3 py-2 text-sm font-semibold flex items-center gap-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-left select-none"
             >
-              {opt.name}
+              <span className="w-6 h-6 rounded-md bg-muted text-foreground/80 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-foreground/20 group-hover:bg-foreground group-hover:text-background transition-colors">
+                {["A", "B", "C", "D"][idx] || idx + 1}
+              </span>
+              <span className="truncate flex-1 font-semibold text-sm sm:text-base leading-snug">{opt.name}</span>
             </button>
           ))}
         </div>

@@ -100,7 +100,7 @@ export function HomeSkeleton() {
         <Skeleton className="h-5 w-36 rounded" />
         <div className="flex flex-col sm:flex-row gap-4">
           <Skeleton className="w-32 rounded-lg shrink-0" style={{ height: "5.5rem" }} />
-          <div className="flex-1 grid grid-cols-2 gap-2">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-11 rounded-lg" />
             ))}

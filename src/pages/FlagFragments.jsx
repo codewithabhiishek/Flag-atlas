@@ -115,10 +115,11 @@ export default function FlagFragments() {
         <p className="text-center text-sm text-muted-foreground mt-3">
           Which country does this flag belong to?
         </p>
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          {options.map((opt) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
+          {options.map((opt, idx) => {
             const wrong = chosen.includes(opt.code);
             const showAns = outcome && opt.code === flag.code;
+            const keyLetter = ["A", "B", "C", "D"][idx] || idx + 1;
             return (
               <button
                 key={opt.code}
@@ -127,17 +128,27 @@ export default function FlagFragments() {
                 aria-pressed={showAns ? true : wrong ? false : undefined}
                 aria-label={`${opt.name}${showAns ? " — correct answer" : wrong ? " — wrong answer" : ""}`}
                 className={cn(
-                  "h-11 rounded-lg border px-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors",
+                  "group min-h-[44px] rounded-lg border-2 px-3 py-2 text-sm font-semibold flex items-center gap-2.5 transition-all text-left select-none",
                   showAns
-                    ? "border-gold text-gold bg-gold/10"
+                    ? "border-emerald-600 dark:border-emerald-400 bg-emerald-500/15 text-emerald-950 dark:text-emerald-100 shadow-[2px_2px_0px_0px_rgba(16,185,129,0.9)]"
                     : wrong
-                      ? "border-destructive text-destructive bg-destructive/10 line-through"
-                      : "border-border hover:border-terra focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      ? "border-destructive bg-destructive/15 text-destructive line-through shadow-[1px_1px_0px_0px_rgba(239,68,68,0.7)]"
+                      : "border-foreground bg-card text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
                 )}
               >
-                {showAns && <Check className="w-4 h-4" aria-hidden="true" />}
-                {wrong && <X className="w-4 h-4" aria-hidden="true" />}
-                {opt.name}
+                <span
+                  className={cn(
+                    "w-6 h-6 rounded-md font-mono font-bold text-xs flex items-center justify-center shrink-0 border transition-all duration-150",
+                    showAns
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                      : wrong
+                        ? "bg-destructive text-white border-destructive shadow-sm"
+                        : "bg-muted text-foreground/80 border-foreground/20 group-hover:bg-foreground group-hover:text-background",
+                  )}
+                >
+                  {showAns ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : wrong ? <X className="w-3.5 h-3.5 stroke-[3]" /> : keyLetter}
+                </span>
+                <span className="truncate flex-1 font-semibold text-sm sm:text-base leading-snug">{opt.name}</span>
               </button>
             );
           })}

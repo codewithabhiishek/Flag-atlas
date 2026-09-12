@@ -10,6 +10,8 @@ import {
   ArrowRight,
   Swords,
   Flame,
+  Check,
+  X,
   CheckCircle2,
   XCircle,
   RotateCcw,
@@ -164,34 +166,75 @@ function QuickFlagSpotlight({ onAnswer }) {
         </motion.div>
 
         {/* 4 choices */}
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {choices.map((c) => {
+        <div className="w-full flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {choices.map((c, idx) => {
             const isTarget = c.code === currentCountry.code;
             const isUserChoice = selected === c.code;
-            let style = "border-2 border-foreground bg-card hover:bg-muted/80 text-foreground cursor-pointer";
+            const keyLetter = ["A", "B", "C", "D"][idx] || idx + 1;
+
+            let btnStyle = "border-2 border-foreground bg-card text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.4)] hover:bg-muted/50 cursor-pointer";
+            let badgeStyle = "bg-muted text-foreground/80 border-foreground/20 group-hover:border-foreground group-hover:bg-foreground group-hover:text-background";
+
             if (answered) {
-              if (isTarget)
-                style = "border-2 border-emerald-500 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 font-bold shadow-[0_0_12px_rgba(16,185,129,0.3)]";
-              else if (isUserChoice)
-                style = "border-2 border-destructive bg-destructive/15 text-destructive line-through opacity-70";
-              else
-                style = "border-2 border-border/40 opacity-35 cursor-default";
+              if (isTarget) {
+                btnStyle = "border-2 border-emerald-600 dark:border-emerald-400 bg-emerald-500/15 dark:bg-emerald-500/25 text-emerald-950 dark:text-emerald-100 font-bold shadow-[2px_2px_0px_0px_rgba(16,185,129,0.9)] cursor-default";
+                badgeStyle = "bg-emerald-600 text-white border-emerald-600 shadow-sm";
+              } else if (isUserChoice) {
+                btnStyle = "border-2 border-destructive bg-destructive/15 text-destructive line-through opacity-75 shadow-[1px_1px_0px_0px_rgba(239,68,68,0.7)] cursor-default";
+                badgeStyle = "bg-destructive text-white border-destructive shadow-sm";
+              } else {
+                btnStyle = "border-2 border-border/40 bg-muted/10 text-muted-foreground/40 opacity-35 shadow-none cursor-default";
+                badgeStyle = "bg-transparent text-muted-foreground/40 border-border/40";
+              }
             }
+
             return (
               <motion.button
                 key={c.code}
-                whileHover={!answered ? { scale: 1.02, y: -1 } : {}}
-                whileTap={!answered ? { scale: 0.97 } : {}}
+                whileHover={!answered ? { y: -1 } : {}}
+                whileTap={!answered ? { scale: 0.98, y: 1 } : {}}
                 onClick={() => handleChoice(c)}
                 disabled={answered}
                 className={cn(
-                  "px-3.5 py-2.5 text-left text-sm font-semibold tracking-tight transition-all flex items-center justify-between rounded-lg",
-                  style,
+                  "group relative min-h-[44px] px-3 py-2 sm:px-3.5 sm:py-2.5 text-left transition-all duration-150 flex items-center gap-2.5 rounded-lg select-none",
+                  btnStyle,
                 )}
               >
-                <span className="truncate">{c.name}</span>
-                {answered && isTarget && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 ml-1.5" />}
-                {answered && isUserChoice && !isTarget && <XCircle className="w-4 h-4 text-destructive shrink-0 ml-1.5" />}
+                <span
+                  className={cn(
+                    "w-6 h-6 rounded-md text-xs font-mono font-bold flex items-center justify-center shrink-0 border transition-all duration-150",
+                    badgeStyle,
+                  )}
+                >
+                  {answered && isTarget ? (
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  ) : answered && isUserChoice && !isTarget ? (
+                    <X className="w-3.5 h-3.5 stroke-[3]" />
+                  ) : (
+                    keyLetter
+                  )}
+                </span>
+                <span className="truncate flex-1 font-semibold text-sm sm:text-base tracking-tight leading-snug">
+                  {c.name}
+                </span>
+                {answered && isTarget && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                  >
+                    <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  </motion.div>
+                )}
+                {answered && isUserChoice && !isTarget && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                  >
+                    <XCircle className="w-4.5 h-4.5 text-destructive shrink-0" />
+                  </motion.div>
+                )}
               </motion.button>
             );
           })}
