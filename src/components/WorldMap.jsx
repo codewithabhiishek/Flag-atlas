@@ -85,17 +85,24 @@ export default function WorldMap({ flags, onSelectRegion }) {
   }, [containerSize?.width, geoData]);
 
   function tooltipTransform(x, y) {
-    const ttW = 260,
-      ttH = 70,
-      pad = 14;
-    let tx = x + pad;
-    let ty = y + pad;
-    if (typeof window !== "undefined") {
-      if (tx + ttW > window.innerWidth - pad) tx = x - ttW - pad;
-      if (ty + ttH > window.innerHeight - pad) ty = y - ttH - pad;
-      if (tx < pad) tx = pad;
-      if (ty < pad) ty = pad;
-    }
+    const ttW = 244;
+    const ttH = 68;
+    const pad = 12;
+    const map = containerRef.current?.getBoundingClientRect();
+    const safeTop = Math.max(pad, map?.top || pad);
+    const safeBottom = Math.min(window.innerHeight - pad, map?.bottom || window.innerHeight - pad);
+    const candidates = y < safeTop + ttH + pad
+      ? [[x - ttW / 2, y + 20], [x + 20, y - ttH / 2], [x - ttW - 20, y - ttH / 2]]
+      : y > safeBottom - ttH - pad
+        ? [[x - ttW / 2, y - ttH - 20], [x + 20, y - ttH / 2], [x - ttW - 20, y - ttH / 2]]
+        : x > window.innerWidth / 2
+          ? [[x - ttW - 20, y - ttH / 2], [x + 20, y - ttH / 2], [x - ttW / 2, y + 20]]
+          : [[x + 20, y - ttH / 2], [x - ttW - 20, y - ttH / 2], [x - ttW / 2, y + 20]];
+    const [candidateX, candidateY] = candidates.find(([cx, cy]) =>
+      cx >= pad && cx + ttW <= window.innerWidth - pad && cy >= safeTop && cy + ttH <= safeBottom,
+    ) || candidates[0];
+    const tx = Math.min(Math.max(pad, candidateX), window.innerWidth - ttW - pad);
+    const ty = Math.min(Math.max(safeTop, candidateY), safeBottom - ttH);
     return `translate(${tx}px, ${ty}px)`;
   }
 
@@ -139,12 +146,6 @@ export default function WorldMap({ flags, onSelectRegion }) {
   );
 
   function handleTap(geo, code, name) {
-    if (tapInfo && tapInfo.code === code) {
-      navigateToCountry(code);
-      setTapInfo(null);
-      setTapGeo(null);
-      return;
-    }
     playUiSound("tap");
     setTapGeo(geo);
     setTapInfo({ code, name });
@@ -208,6 +209,8 @@ export default function WorldMap({ flags, onSelectRegion }) {
                         },
                       }}
                       className="cursor-pointer"
+                      tabIndex={code ? 0 : -1}
+                      aria-label={code ? `${name}, ${statusLabel(flagStatus(flags, code))}` : name}
                       onMouseEnter={(e) => {
                         if (isTouch.current) return;
                         setHoverGeo(geo);
@@ -222,6 +225,25 @@ export default function WorldMap({ flags, onSelectRegion }) {
                         if (isTouch.current) return;
                         setHoverGeo(null);
                         setHoverInfo(null);
+                      }}
+                      onFocus={(e) => {
+                        if (isTouch.current) return;
+                        const bounds = e.currentTarget.getBoundingClientRect();
+                        setHoverGeo(geo);
+                        setHoverInfo({ code, name });
+                        place(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+                      }}
+                      onBlur={() => {
+                        if (!isTouch.current) {
+                          setHoverGeo(null);
+                          setHoverInfo(null);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if ((e.key === "Enter" || e.key === " ") && code) {
+                          e.preventDefault();
+                          navigateToCountry(code);
+                        }
                       }}
                       onClick={() => {
                         if (isTouch.current) return;
@@ -353,7 +375,7 @@ export default function WorldMap({ flags, onSelectRegion }) {
               </button>
             </div>
             <p className="text-center text-[10px] text-muted-foreground mt-1 opacity-70">
-              Tap again on the map or press Play to start this region
+              Tap another country to inspect it, or press Play to start this region
             </p>
           </motion.div>
         )}
