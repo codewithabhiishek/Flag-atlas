@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Check, X, Layers } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 export default function ReviewDeck() {
   const { state, touchStreak, record } = useProgress();
+  const readyAtRef = useRef(0);
 
   // A card enters the review deck when it is due for spaced-repetition review
   // OR when its accuracy is weak (correct < 60% of seen, minimum 2 attempts).
@@ -24,13 +25,7 @@ export default function ReviewDeck() {
       const isDueForReview = isDue(r.sr);
       const isWeak = r.seen >= 2 && r.correct / r.seen < 0.6;
       return isDueForReview || isWeak;
-    })
-      .sort(
-        (a, b) =>
-          (state.flags[a.code]?.sr?.due || 0) -
-          (state.flags[b.code]?.sr?.due || 0),
-      )
-      .slice(0, 20);
+    });
   }, [state.flags]);
 
   const [idx, setIdx] = useState(0);
@@ -39,41 +34,48 @@ export default function ReviewDeck() {
   const [correct, setCorrect] = useState(0);
   const [seed, setSeed] = useState(0);
 
-  useEffect(() => {
-    touchStreak();
-  }, [touchStreak]);
-
   const flag = deck[idx];
+
+  // Guarantee clean state reset and cooldown whenever question/card changes
+  useEffect(() => {
+    setChosen(null);
+    readyAtRef.current = Date.now() + 220;
+  }, [flag?.code, seed]);
 
   // Deps keyed on flag?.code so options update whenever the flag changes.
   // Using deck.length would fail when deck re-builds but idx stays at 0.
   const options = useMemo(
-    () => (flag ? pickOptions(flag.code, "", 4) : []),
+    () => (flag ? pickOptions(flag.code, flag.region, 4) : []),
+    // flag.code changes whenever the current card changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [flag?.code, seed],
   );
 
+  useEffect(() => {
+    touchStreak();
+  }, [touchStreak]);
+
   if (deck.length === 0) {
     return (
-      <ModeShell title="Review">
-        <div className="text-center py-16">
-          <Layers className="w-10 h-10 mx-auto text-terra mb-3" aria-hidden="true" />
-          <h2 className="font-display text-2xl text-forest">No weak flags</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Play a round to build your review deck.
+      <ModeShell title="Review Deck" region="Weak flags">
+        <div className="atlas-card p-8 text-center max-w-md mx-auto">
+          <Layers className="w-12 h-12 mx-auto text-forest mb-3" />
+          <h2 className="font-display text-xl mb-2">No flags need review!</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Cards appear here when they're due for spaced repetition or if your accuracy on them is below 60%.
           </p>
           <Link
             to="/"
-            className="mt-5 inline-block px-4 h-10 leading-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-block px-4 py-2 rounded-md bg-forest text-primary-foreground text-sm font-medium"
           >
-            Back to map
+            Back to Map
           </Link>
         </div>
       </ModeShell>
     );
   }
 
-  if (idx >= deck.length) {
+  if (done >= deck.length || !flag) {
     return (
       <SessionSummary
         correct={correct}
@@ -92,6 +94,7 @@ export default function ReviewDeck() {
 
   function pick(opt) {
     if (chosen) return;
+    if (Date.now() < readyAtRef.current) return;
     setChosen(opt.code);
     const ok = opt.code === flag.code;
     record(flag.code, {
@@ -103,7 +106,12 @@ export default function ReviewDeck() {
     setDone((d) => d + 1);
   }
 
-  function next() {
+  function next(e) {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
     setChosen(null);
     setIdx((i) => i + 1);
     setSeed((s) => s + 1);
@@ -119,7 +127,7 @@ export default function ReviewDeck() {
           {correct} correct · +{correct * 10} XP
         </span>
       </div>
-      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+      <div key={flag.code} className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted">
           <FlagImage code={flag.code} className="w-full h-full" />
         </div>
@@ -135,6 +143,7 @@ export default function ReviewDeck() {
             return (
               <button
                 key={opt.code}
+                type="button"
                 disabled={!!chosen}
                 onClick={() => pick(opt)}
                 aria-label={`${opt.name}${reveal && isAns ? " — correct answer" : reveal && picked ? " — wrong answer" : ""}`}
@@ -173,6 +182,7 @@ export default function ReviewDeck() {
               : <span className="text-destructive">Answer: {flag.name}</span>}
           </p>
           <button
+            type="button"
             onClick={next}
             className="px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >

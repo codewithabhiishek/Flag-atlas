@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Check, X } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
@@ -25,7 +25,15 @@ export default function FlagFragments() {
   // Store earned XP at answer time so the display doesn't recalculate on re-render
   const [earnedXp, setEarnedXp] = useState(0);
   const [session, setSession] = useState({ correct: 0, wrong: 0, xp: 0 });
+  const readyAtRef = useRef(0);
   const flag = queue[idx];
+
+  // Guarantee clean state reset and cooldown whenever question/flag changes
+  useEffect(() => {
+    setChosen([]);
+    setOutcome(null);
+    readyAtRef.current = Date.now() + 220;
+  }, [flag?.code, seed]);
 
   // Deps keyed on flag.code + region so options always match the current flag.
   // Using idx/seed would fail when seed changes and idx stays at 0.
@@ -64,6 +72,7 @@ export default function FlagFragments() {
 
   function pick(opt) {
     if (outcome) return;
+    if (Date.now() < readyAtRef.current) return;
     if (opt.code === flag.code) {
       const xp = 12 + (3 - chosen.length) * 4;
       const quality = chosen.length === 0 ? 5 : chosen.length <= 1 ? 4 : 3;
@@ -82,7 +91,12 @@ export default function FlagFragments() {
     }
   }
 
-  function next() {
+  function next(e) {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
     if (idx + 1 >= queue.length) {
       setOutcome("done");
     } else {
@@ -103,7 +117,7 @@ export default function FlagFragments() {
           Score {session.correct} · +{session.xp} XP
         </span>
       </div>
-      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+      <div key={flag.code} className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted relative">
           <div style={{ filter: `blur(${blur}px)` }} className="w-full h-full">
             <FlagImage code={flag.code} className="w-full h-full" />
@@ -123,6 +137,7 @@ export default function FlagFragments() {
             return (
               <button
                 key={opt.code}
+                type="button"
                 disabled={!!outcome}
                 onClick={() => pick(opt)}
                 aria-pressed={showAns ? true : wrong ? false : undefined}
@@ -169,6 +184,7 @@ export default function FlagFragments() {
               : `Answer: ${flag.name}`}
           </p>
           <button
+            type="button"
             onClick={next}
             className="mt-3 px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >

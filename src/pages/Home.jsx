@@ -31,7 +31,7 @@ import {
   regionTotal,
 } from "@/lib/derive";
 import { REGIONS } from "@/data/regions";
-import { COUNTRIES } from "@/data/countries";
+import { COUNTRIES, pickOptions } from "@/data/countries";
 import WorldMap from "@/components/WorldMap";
 import MasteryMeter from "@/components/MasteryMeter";
 import PassportStamps from "@/components/PassportStamps";
@@ -91,18 +91,24 @@ function QuickFlagSpotlight({ onAnswer }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * COUNTRIES.length));
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
+  const readyAtRef = useRef(0);
 
   const currentCountry = COUNTRIES[index];
 
+  // Guarantee clean state reset and cooldown whenever question changes
+  useEffect(() => {
+    setSelected(null);
+    setAnswered(false);
+    readyAtRef.current = Date.now() + 220; // Ignore accidental click-bleed
+  }, [currentCountry.code]);
+
   const choices = useMemo(() => {
-    const distractors = COUNTRIES.filter((c) => c.code !== currentCountry.code)
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 3);
-    return [currentCountry, ...distractors].sort(() => 0.5 - Math.random());
-  }, [currentCountry]);
+    return pickOptions(currentCountry.code, null, 4);
+  }, [currentCountry.code]);
 
   const handleChoice = useCallback((c) => {
     if (answered) return;
+    if (Date.now() < readyAtRef.current) return;
     const isCorrect = c.code === currentCountry.code;
     setSelected(c.code);
     setAnswered(true);
@@ -120,7 +126,12 @@ function QuickFlagSpotlight({ onAnswer }) {
     }
   }, [answered, currentCountry, onAnswer]);
 
-  const nextQuestion = () => {
+  const nextQuestion = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
     setSelected(null);
     setAnswered(false);
     // Jump by a prime to get good distribution across 195 countries
@@ -147,7 +158,7 @@ function QuickFlagSpotlight({ onAnswer }) {
         </motion.button>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+      <div key={currentCountry.code} className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
         {/* Flag image */}
         <motion.div
           key={currentCountry.code}
@@ -190,6 +201,7 @@ function QuickFlagSpotlight({ onAnswer }) {
             return (
               <motion.button
                 key={c.code}
+                type="button"
                 whileHover={!answered ? { y: -1 } : {}}
                 whileTap={!answered ? { scale: 0.98, y: 1 } : {}}
                 onClick={() => handleChoice(c)}
@@ -256,6 +268,7 @@ function QuickFlagSpotlight({ onAnswer }) {
               <strong className="text-foreground">{currentCountry.capital}</strong>
             </span>
             <button
+              type="button"
               onClick={nextQuestion}
               className="shrink-0 px-3 py-1 font-bold uppercase tracking-wider bg-foreground text-background border border-foreground rounded hover:opacity-90 text-xs"
             >
