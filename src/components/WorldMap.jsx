@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { byCode } from "@/data/countries";
@@ -42,6 +43,31 @@ function isTouchDevice() {
   return window.matchMedia("(pointer: coarse)").matches;
 }
 
+function positionTooltip(anchorRect, tooltipRect) {
+  const pad = 12;
+  const gap = 14;
+  const width = tooltipRect.width;
+  const height = tooltipRect.height;
+  const centerX = anchorRect.left + anchorRect.width / 2;
+  const centerY = anchorRect.top + anchorRect.height / 2;
+  const candidates = [
+    { left: anchorRect.right + gap, top: centerY - height / 2 },
+    { left: anchorRect.left - width - gap, top: centerY - height / 2 },
+    { left: centerX - width / 2, top: anchorRect.bottom + gap },
+    { left: centerX - width / 2, top: anchorRect.top - height - gap },
+  ];
+  const fits = (candidate) =>
+    candidate.left >= pad &&
+    candidate.top >= pad &&
+    candidate.left + width <= window.innerWidth - pad &&
+    candidate.top + height <= window.innerHeight - pad;
+  const candidate = candidates.find(fits) || candidates[0];
+  return {
+    left: Math.min(Math.max(pad, candidate.left), window.innerWidth - width - pad),
+    top: Math.min(Math.max(pad, candidate.top), window.innerHeight - height - pad),
+  };
+}
+
 export default function WorldMap({ flags, onSelectRegion }) {
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -53,9 +79,10 @@ export default function WorldMap({ flags, onSelectRegion }) {
   const [hoverGeo, setHoverGeo] = useState(null);
   const [tapInfo, setTapInfo] = useState(null);
   const [tapGeo, setTapGeo] = useState(null);
+  const [hoverAnchor, setHoverAnchor] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState(null);
 
   const tooltipRef = useRef(null);
-  const pos = useRef({ x: 0, y: 0 });
   const isTouch = useRef(isTouchDevice());
 
   useEffect(() => {
@@ -84,43 +111,15 @@ export default function WorldMap({ flags, onSelectRegion }) {
     return computeWorldMapLayout(width, geoData, padding);
   }, [containerSize?.width, geoData]);
 
-  function tooltipTransform(x, y) {
-    const ttW = 244;
-    const ttH = 68;
-    const pad = 12;
-    const map = containerRef.current?.getBoundingClientRect();
-    const safeTop = Math.max(pad, map?.top || pad);
-    const safeBottom = Math.min(window.innerHeight - pad, map?.bottom || window.innerHeight - pad);
-    const candidates = y < safeTop + ttH + pad
-      ? [[x - ttW / 2, y + 20], [x + 20, y - ttH / 2], [x - ttW - 20, y - ttH / 2]]
-      : y > safeBottom - ttH - pad
-        ? [[x - ttW / 2, y - ttH - 20], [x + 20, y - ttH / 2], [x - ttW - 20, y - ttH / 2]]
-        : x > window.innerWidth / 2
-          ? [[x - ttW - 20, y - ttH / 2], [x + 20, y - ttH / 2], [x - ttW / 2, y + 20]]
-          : [[x + 20, y - ttH / 2], [x - ttW - 20, y - ttH / 2], [x - ttW / 2, y + 20]];
-    const [candidateX, candidateY] = candidates.find(([cx, cy]) =>
-      cx >= pad && cx + ttW <= window.innerWidth - pad && cy >= safeTop && cy + ttH <= safeBottom,
-    ) || candidates[0];
-    const tx = Math.min(Math.max(pad, candidateX), window.innerWidth - ttW - pad);
-    const ty = Math.min(Math.max(safeTop, candidateY), safeBottom - ttH);
-    return `translate(${tx}px, ${ty}px)`;
-  }
-
-  function place(x, y) {
-    pos.current = { x, y };
-    if (tooltipRef.current) {
-      tooltipRef.current.style.transform = tooltipTransform(x, y);
-    }
-  }
-
-  useEffect(() => {
-    if (hoverInfo && tooltipRef.current) {
-      tooltipRef.current.style.transform = tooltipTransform(
-        pos.current.x,
-        pos.current.y,
-      );
-    }
-  }, [hoverInfo]);
+  useLayoutEffect(() => {
+    if (!hoverInfo || !hoverAnchor || !tooltipRef.current) return;
+    const updatePosition = () => {
+      setTooltipPosition(positionTooltip(hoverAnchor, tooltipRef.current.getBoundingClientRect()));
+    };
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [hoverInfo, hoverAnchor]);
 
   function fillFor(geo) {
     const code = codeForGeo(geo);
@@ -213,30 +212,31 @@ export default function WorldMap({ flags, onSelectRegion }) {
                       aria-label={code ? `${name}, ${statusLabel(flagStatus(flags, code))}` : name}
                       onMouseEnter={(e) => {
                         if (isTouch.current) return;
+                        const bounds = e.currentTarget.getBoundingClientRect();
                         setHoverGeo(geo);
                         setHoverInfo({ code, name });
-                        place(e.clientX, e.clientY);
-                      }}
-                      onMouseMove={(e) => {
-                        if (isTouch.current) return;
-                        place(e.clientX, e.clientY);
+                        setHoverAnchor(bounds);
+                        setTooltipPosition(null);
                       }}
                       onMouseLeave={() => {
                         if (isTouch.current) return;
                         setHoverGeo(null);
                         setHoverInfo(null);
+                        setHoverAnchor(null);
                       }}
                       onFocus={(e) => {
                         if (isTouch.current) return;
                         const bounds = e.currentTarget.getBoundingClientRect();
                         setHoverGeo(geo);
                         setHoverInfo({ code, name });
-                        place(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+                        setHoverAnchor(bounds);
+                        setTooltipPosition(null);
                       }}
                       onBlur={() => {
                         if (!isTouch.current) {
                           setHoverGeo(null);
                           setHoverInfo(null);
+                          setHoverAnchor(null);
                         }
                       }}
                       onKeyDown={(e) => {
@@ -292,11 +292,11 @@ export default function WorldMap({ flags, onSelectRegion }) {
         </div>
       )}
 
-      {hoverInfo && (
+      {hoverInfo && typeof document !== "undefined" && createPortal(
         <div
           ref={tooltipRef}
-          className="fixed top-0 left-0 z-50 pointer-events-none"
-          style={{ transform: "translate(0,0)" }}
+          className="fixed z-[100] pointer-events-none"
+          style={{ left: tooltipPosition?.left ?? -9999, top: tooltipPosition?.top ?? -9999, visibility: tooltipPosition ? "visible" : "hidden" }}
         >
           <div className="flex items-center gap-2.5 border-2 border-foreground bg-popover px-3 py-2 brutal-shadow">
             {hoverInfo.code && (
@@ -315,7 +315,8 @@ export default function WorldMap({ flags, onSelectRegion }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       <AnimatePresence>
