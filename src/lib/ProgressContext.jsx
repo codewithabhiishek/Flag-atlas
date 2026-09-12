@@ -7,8 +7,12 @@ import React, {
 } from "react";
 import { reviewCard, newCard } from "@/lib/spacedRepetition";
 
-const KEY = "flagatlas.progress.v1";
+// today() as a function so it's evaluated at call-time, not module load-time.
+// A module-level `const today = new Date()...` would be stale if the app runs
+// past midnight without a refresh.
 const today = () => new Date().toISOString().slice(0, 10);
+
+const KEY = "flagatlas.progress.v1";
 
 function initial() {
   return {

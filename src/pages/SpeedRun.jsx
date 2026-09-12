@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Zap, Timer } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
@@ -17,6 +17,9 @@ export default function SpeedRun() {
   const pool = useMemo(() => shuffle(flagsByRegion(region)), [region, seed]);
   const [pos, setPos] = useState(0);
   const [score, setScore] = useState(0);
+  // Use a ref for combo so the pick() closure always reads the latest value
+  // without needing to nest setState calls.
+  const comboRef = useRef(0);
   const [combo, setCombo] = useState(0);
   const [best, setBest] = useState(0);
   const [time, setTime] = useState(DURATION);
@@ -24,15 +27,24 @@ export default function SpeedRun() {
   const [flash, setFlash] = useState(null);
   const [count, setCount] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
-  const [finished, setFinished] = useState(false);
+  // Track final score in a ref so the leaderboard effect always sees the
+  // committed value — React batches state updates so reading `score` inside
+  // the effect immediately after setScore may give a stale value.
+  const finalScoreRef = useRef(0);
 
   const flag = pool[pos];
-  const options = useMemo(() => pickOptions(flag.code, region, 4), [pos, seed]);
+  const options = useMemo(
+    () => (flag ? pickOptions(flag.code, region, 4) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [flag?.code, region],
+  );
 
   useEffect(() => {
     touchStreak();
   }, [touchStreak]);
 
+  // Timer — restarts cleanly whenever `seed` changes (restart) because the
+  // effect re-runs when `seed` is in the deps via `running` reset in restart().
   useEffect(() => {
     if (!running) return;
     const t = setInterval(() => {
@@ -46,14 +58,18 @@ export default function SpeedRun() {
       });
     }, 1000);
     return () => clearInterval(t);
+    // `seed` is intentionally in deps: restarting bumps seed → running becomes
+    // true again → effect re-fires with a fresh interval.
   }, [running, seed]);
 
+  // Record leaderboard exactly once when the game ends.
+  // We use a ref for the final score to avoid stale closure issues.
   useEffect(() => {
-    if (!running && count > 0 && !finished) {
-      setFinished(true);
-      recordLeaderboard(region || "World", score);
+    if (!running) {
+      recordLeaderboard(region || "World", finalScoreRef.current);
     }
-  }, [running, count, score, region, recordLeaderboard, finished]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running]);
 
   function nextFlag() {
     setPos((p) => (p + 1) % pool.length);
@@ -63,39 +79,53 @@ export default function SpeedRun() {
     if (!running) return;
     setCount((c) => c + 1);
     if (opt.code === flag.code) {
-      const gain = Math.round(10 * (1 + combo * 0.2));
-      setScore((s) => s + gain);
-      setCombo((c) => {
-        const n = c + 1;
-        setBest((b) => Math.max(b, n));
-        return n;
+      const currentCombo = comboRef.current;
+      const gain = Math.round(10 * (1 + currentCombo * 0.2));
+      const newCombo = currentCombo + 1;
+      comboRef.current = newCombo;
+      setCombo(newCombo);
+      setBest((b) => Math.max(b, newCombo));
+      setScore((s) => {
+        const next = s + gain;
+        finalScoreRef.current = next;
+        return next;
       });
       setCorrectCount((c) => c + 1);
       setFlash("ok");
       record(flag.code, { correct: true, quality: 5, xpGain: 5 });
       nextFlag();
     } else {
+      comboRef.current = 0;
       setCombo(0);
       setFlash("no");
       record(flag.code, { correct: false, quality: 2, xpGain: 0 });
-      setTime((s) => Math.max(0, s - 2));
+      setTime((s) => {
+        const next = Math.max(0, s - 2);
+        if (next === 0) setRunning(false);
+        return next;
+      });
       nextFlag();
     }
-    setTimeout(() => setFlash(null), 250);
+    const tid = setTimeout(() => setFlash(null), 250);
+    // No cleanup needed — 250 ms is short and the component handles unmount
+    // through the running→false guard; but we return a noop to be tidy.
+    return () => clearTimeout(tid);
   }
 
   function restart() {
-    setSeed((s) => s + 1);
+    comboRef.current = 0;
+    finalScoreRef.current = 0;
     setPos(0);
     setScore(0);
     setCombo(0);
     setBest(0);
     setTime(DURATION);
-    setRunning(true);
     setCount(0);
     setCorrectCount(0);
-    setFinished(false);
     setFlash(null);
+    // Set running before bumping seed so the timer effect fires correctly.
+    setRunning(true);
+    setSeed((s) => s + 1);
   }
 
   if (!running) {
@@ -103,9 +133,9 @@ export default function SpeedRun() {
     return (
       <ModeShell title="Speed Run" region={region || "World"}>
         <div className="text-center py-10">
-          <Zap className="w-10 h-10 mx-auto text-terra mb-3" />
+          <Zap className="w-10 h-10 mx-auto text-terra mb-3" aria-hidden="true" />
           <h2 className="font-display text-3xl text-forest">Time!</h2>
-          <p className="text-2xl font-display text-forest mt-2">{score} pts</p>
+          <p className="text-2xl font-display text-forest mt-2">{finalScoreRef.current} pts</p>
           <p className="text-sm text-muted-foreground">
             {correctCount} correct · best combo {best}x
           </p>
@@ -134,13 +164,13 @@ export default function SpeedRun() {
           <div className="flex gap-2 justify-center mt-6">
             <Link
               to="/"
-              className="px-4 h-10 inline-flex items-center rounded-md border border-border text-sm"
+              className="px-4 h-10 inline-flex items-center rounded-md border border-border text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Map
             </Link>
             <button
               onClick={restart}
-              className="px-4 h-10 inline-flex items-center rounded-md bg-forest text-primary-foreground text-sm"
+              className="px-4 h-10 inline-flex items-center rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Again
             </button>
@@ -150,12 +180,19 @@ export default function SpeedRun() {
     );
   }
 
+  if (!flag) return null;
+
   return (
     <ModeShell title="Speed Run" region={region || "World"}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-sm">
-          <Timer className="w-4 h-4 text-terra" />
-          <span className={cn(time <= 10 && "text-destructive font-medium")}>
+          <Timer className="w-4 h-4 text-terra" aria-hidden="true" />
+          <span
+            className={cn(time <= 10 && "text-destructive font-medium")}
+            aria-label={`${time} seconds remaining`}
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {time}s
           </span>
         </div>
@@ -163,13 +200,15 @@ export default function SpeedRun() {
           Score <b className="text-forest">{score}</b> · Combo {combo}x
         </div>
       </div>
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div
           className={cn(
-            "mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted transition",
+            "mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted transition-shadow",
             flash === "ok" && "ring-2 ring-forest",
             flash === "no" && "ring-2 ring-destructive",
           )}
+          aria-live="polite"
+          aria-atomic="true"
         >
           <FlagImage code={flag.code} className="w-full h-full" />
         </div>
@@ -181,7 +220,8 @@ export default function SpeedRun() {
             <button
               key={opt.code}
               onClick={() => pick(opt)}
-              className="h-11 rounded-lg border border-border px-3 text-sm font-medium hover:border-terra transition-colors"
+              aria-label={opt.name}
+              className="h-11 rounded-lg border border-border px-3 text-sm font-medium hover:border-terra transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {opt.name}
             </button>

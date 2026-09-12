@@ -9,28 +9,20 @@ import {
   RotateCcw,
   ArrowLeft,
 } from "lucide-react";
-// NOTE: Multiplayer Battle used base44.actors.FlagBattle(code).connect()
-// which is a real-time WebSocket room backed by the Base44 cloud actor runtime.
-// The Base44 SDK has been removed. The room object below is a no-op stub —
-// the Battle page renders its UI normally but rooms cannot be established
-// without a replacement WebSocket/actor server.
-const base44 = {
-  actors: new Proxy({}, {
-    get: (_, actorName) => (roomCode) => ({
-      connect: () => {
-        console.warn(
-          `[Flag-Atlas] Multiplayer Battle (${actorName}/${roomCode}) is unavailable: ` +
-          'the Base44 actor runtime has been removed. Deploy a replacement WebSocket server to enable this feature.'
-        );
-        return {
-          send: () => {},
-          subscribe: () => ({ unsubscribe: () => {} }),
-          close: () => {},
-        };
-      },
-    }),
-  }),
+// ---------------------------------------------------------------------------
+// MULTIPLAYER NOTICE
+// The original Battle implementation used a real-time WebSocket room backed
+// by a cloud actor runtime, which has been removed. The stub below keeps the 
+// page renderable and displays an informative banner, but rooms cannot actually 
+// be established without a replacement WebSocket server.
+// ---------------------------------------------------------------------------
+const _noopRoom = {
+  send: () => {},
+  subscribe: () => ({ unsubscribe: () => {} }),
+  close: () => {},
 };
+
+const MULTIPLAYER_AVAILABLE = false; // flip to true once a WS server is wired up
 import { byCode } from "@/data/countries";
 import { REGIONS } from "@/data/regions";
 const PLAYABLE_REGIONS = REGIONS.filter((r) => r.id !== "Antarctica");
@@ -87,30 +79,12 @@ export default function Battle() {
 
   useEffect(() => {
     if (!code) return;
-    const room = base44.actors.FlagBattle(code).connect({ id: getConnId() });
-    roomRef.current = room;
-    room.send({ type: "set_name", name });
-    const sub = room.subscribe((msg) => {
-      if (!msg || typeof msg !== "object") return;
-      if (msg.type === "you") setMySeat(msg.seat);
-      else if (msg.type === "state") {
-        setStatus(msg.status);
-        setRoomRegion(msg.region);
-        setRoomRounds(msg.rounds);
-        setQuestions(msg.questions || []);
-        setPlayers(msg.players || []);
-        if (msg.status === "playing") setMyIndex(0);
-        if (msg.status === "lobby") setResults(null);
-      } else if (msg.type === "presence") {
-        setPlayers(msg.players || []);
-      } else if (msg.type === "result") {
-        setResults(msg.results || []);
-        setStatus("finished");
-      }
-    });
+    // Multiplayer backend unavailable — use the no-op room so the rest of the
+    // component doesn't crash on roomRef.current calls.
+    roomRef.current = _noopRoom;
+    _noopRoom.send({ type: "set_name", name });
+    // No real subscription; cleanup is a noop.
     return () => {
-      sub.unsubscribe();
-      room.close();
       roomRef.current = null;
     };
   }, [code]);
@@ -329,6 +303,14 @@ export default function Battle() {
               Players ({players.length})
             </h2>
           </div>
+          {!MULTIPLAYER_AVAILABLE && (
+            <div className="mb-3 border-2 border-terra bg-terra/10 px-4 py-3 text-sm font-medium text-foreground">
+              <span className="font-bold">Multiplayer offline.</span> The
+              real-time battle server is not available in this deployment. Room
+              codes cannot be shared across devices until a WebSocket backend is
+              configured.
+            </div>
+          )}
           <ul className="space-y-2">
             {players.map((p) => (
               <li

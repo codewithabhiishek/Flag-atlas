@@ -1,31 +1,22 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 // ---------------------------------------------------------------------------
-// AuthContext — independent implementation (Base44 SDK removed)
+// AuthContext — standalone implementation
 //
-// The original implementation used the Base44 SDK for:
-//   1. base44.app.getPublicSettings() — platform app settings gate
-//   2. base44.auth.me()              — fetch current user from Base44 backend
-//   3. base44.auth.logout()          — clear token + redirect via Base44
-//   4. base44.auth.redirectToLogin() — redirect to Base44 login page
+// Reads the stored session token from localStorage to determine auth state.
+// Decodes a minimal user object from the stored JWT (if present).
+// Navigates to /login for logout and unauthenticated redirects.
 //
-// This version:
-//   - Skips the platform app-settings gate (sets appPublicSettings to {})
-//   - Reads the stored token from localStorage to determine auth state
-//   - Decodes a minimal user object from the stored JWT (if present)
-//   - Navigates to /login for logout and redirectToLogin
-//
-// NOTE: The app's Login/Register/ForgotPassword/ResetPassword pages call the
-// Base44 auth backend which is no longer available. Those pages will render
-// their UI but display an informative error when the user submits. This is
-// expected behavior for an independent deployment without a custom auth server.
+// NOTE: The Login/Register/ForgotPassword/ResetPassword pages display an
+// informative error when submitted because no auth backend is configured for
+// this standalone deployment. Plug in a custom auth server to enable them.
 // ---------------------------------------------------------------------------
 
-const TOKEN_KEY = 'base44_access_token';
+const SESSION_TOKEN_KEY = 'flagatlas_session_token';
 
 function readStoredToken() {
   try {
-    return localStorage.getItem(TOKEN_KEY) || localStorage.getItem('token') || null;
+    return localStorage.getItem(SESSION_TOKEN_KEY) || localStorage.getItem('token') || null;
   } catch {
     return null;
   }
@@ -33,7 +24,7 @@ function readStoredToken() {
 
 function clearStoredToken() {
   try {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(SESSION_TOKEN_KEY);
     localStorage.removeItem('token');
   } catch {}
 }
@@ -79,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
 
-      // No platform app-settings endpoint — resolve immediately
+      // No remote app-settings endpoint in standalone mode — resolve immediately
       setAppPublicSettings({});
       setIsLoadingPublicSettings(false);
 

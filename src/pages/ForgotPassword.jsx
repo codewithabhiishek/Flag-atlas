@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 
-// NOTE: The Base44 auth backend has been removed. Password reset requires a
+// NOTE: The auth backend has been removed. Password reset requires a
 // replacement auth server. The handler displays an informative error until
 // one is configured.
 const AUTH_NOT_AVAILABLE =

@@ -13,12 +13,11 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
-// NOTE: The Base44 auth backend has been removed. Registration requires a
-// replacement auth server. These handlers display an informative error until
-// one is configured.
+// Auth is not available in this standalone deployment.
+// Connect a custom auth backend to enable registration.
 const AUTH_NOT_AVAILABLE =
   "Registration is not available in this standalone deployment. " +
-  "A custom auth backend is required to enable account creation.";
+  "A custom auth backend is required to enable this feature.";
 
 export default function Register() {
   const [email, setEmail] = useState("");

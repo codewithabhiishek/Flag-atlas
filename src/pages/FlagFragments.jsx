@@ -22,9 +22,19 @@ export default function FlagFragments() {
   const [idx, setIdx] = useState(0);
   const [chosen, setChosen] = useState([]);
   const [outcome, setOutcome] = useState(null);
+  // Store earned XP at answer time so the display doesn't recalculate on re-render
+  const [earnedXp, setEarnedXp] = useState(0);
   const [session, setSession] = useState({ correct: 0, wrong: 0, xp: 0 });
   const flag = queue[idx];
-  const options = useMemo(() => pickOptions(flag.code, region, 4), [idx, seed]);
+
+  // Deps keyed on flag.code + region so options always match the current flag.
+  // Using idx/seed would fail when seed changes and idx stays at 0.
+  const options = useMemo(
+    () => (flag ? pickOptions(flag.code, region, 4) : []),
+    // flag.code changes whenever the current flag changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [flag?.code, region],
+  );
 
   useEffect(() => {
     touchStreak();
@@ -41,6 +51,7 @@ export default function FlagFragments() {
           setIdx(0);
           setChosen([]);
           setOutcome(null);
+          setEarnedXp(0);
           setSession({ correct: 0, wrong: 0, xp: 0 });
         }}
       />
@@ -57,6 +68,7 @@ export default function FlagFragments() {
       const xp = 12 + (3 - chosen.length) * 4;
       const quality = chosen.length === 0 ? 5 : chosen.length <= 1 ? 4 : 3;
       record(flag.code, { correct: true, quality, xpGain: xp });
+      setEarnedXp(xp);
       setOutcome("win");
       setSession((s) => ({ ...s, correct: s.correct + 1, xp: s.xp + xp }));
     } else {
@@ -71,11 +83,13 @@ export default function FlagFragments() {
   }
 
   function next() {
-    if (idx + 1 >= queue.length) setOutcome("done");
-    else {
+    if (idx + 1 >= queue.length) {
+      setOutcome("done");
+    } else {
       setIdx((i) => i + 1);
       setChosen([]);
       setOutcome(null);
+      setEarnedXp(0);
     }
   }
 
@@ -89,7 +103,7 @@ export default function FlagFragments() {
           Score {session.correct} · +{session.xp} XP
         </span>
       </div>
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted relative">
           <div style={{ filter: `blur(${blur}px)` }} className="w-full h-full">
             <FlagImage code={flag.code} className="w-full h-full" />
@@ -110,17 +124,19 @@ export default function FlagFragments() {
                 key={opt.code}
                 disabled={!!outcome}
                 onClick={() => pick(opt)}
+                aria-pressed={showAns ? true : wrong ? false : undefined}
+                aria-label={`${opt.name}${showAns ? " — correct answer" : wrong ? " — wrong answer" : ""}`}
                 className={cn(
                   "h-11 rounded-lg border px-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors",
                   showAns
                     ? "border-gold text-gold bg-gold/10"
                     : wrong
                       ? "border-destructive text-destructive bg-destructive/10 line-through"
-                      : "border-border hover:border-terra",
+                      : "border-border hover:border-terra focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 )}
               >
-                {showAns && <Check className="w-4 h-4" />}
-                {wrong && <X className="w-4 h-4" />}
+                {showAns && <Check className="w-4 h-4" aria-hidden="true" />}
+                {wrong && <X className="w-4 h-4" aria-hidden="true" />}
                 {opt.name}
               </button>
             );
@@ -134,14 +150,16 @@ export default function FlagFragments() {
               "text-sm font-medium",
               outcome === "win" ? "text-forest" : "text-destructive",
             )}
+            role="status"
+            aria-live="polite"
           >
             {outcome === "win"
-              ? `Correct! +${12 + (3 - chosen.length) * 4} XP`
+              ? `Correct! +${earnedXp} XP`
               : `Answer: ${flag.name}`}
           </p>
           <button
             onClick={next}
-            className="mt-3 px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm"
+            className="mt-3 px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {idx + 1 >= queue.length ? "Finish" : "Next flag"}
           </button>

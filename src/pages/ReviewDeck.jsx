@@ -11,16 +11,24 @@ import { cn } from "@/lib/utils";
 
 export default function ReviewDeck() {
   const { state, touchStreak, record } = useProgress();
+
+  // A card enters the review deck when it is due for spaced-repetition review
+  // OR when its accuracy is weak (correct < 60% of seen, minimum 2 attempts).
+  // Filtering on `r.wrong > 0` alone would trap every card that was ever
+  // missed once — including well-learned cards — so we use a proper weakness
+  // threshold instead.
   const deck = useMemo(() => {
     return COUNTRIES.filter((c) => {
       const r = state.flags[c.code];
       if (!r || r.seen === 0) return false;
-      return isDue(r.sr) || r.wrong > 0;
+      const isDueForReview = isDue(r.sr);
+      const isWeak = r.seen >= 2 && r.correct / r.seen < 0.6;
+      return isDueForReview || isWeak;
     })
       .sort(
         (a, b) =>
-          (state.flags[a.code].sr?.due || 0) -
-          (state.flags[b.code].sr?.due || 0),
+          (state.flags[a.code]?.sr?.due || 0) -
+          (state.flags[b.code]?.sr?.due || 0),
       )
       .slice(0, 20);
   }, [state.flags]);
@@ -36,23 +44,27 @@ export default function ReviewDeck() {
   }, [touchStreak]);
 
   const flag = deck[idx];
+
+  // Deps keyed on flag?.code so options update whenever the flag changes.
+  // Using deck.length would fail when deck re-builds but idx stays at 0.
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, "", 4) : []),
-    [idx, seed, deck.length],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [flag?.code, seed],
   );
 
   if (deck.length === 0) {
     return (
       <ModeShell title="Review">
         <div className="text-center py-16">
-          <Layers className="w-10 h-10 mx-auto text-terra mb-3" />
+          <Layers className="w-10 h-10 mx-auto text-terra mb-3" aria-hidden="true" />
           <h2 className="font-display text-2xl text-forest">No weak flags</h2>
           <p className="text-sm text-muted-foreground mt-1">
             Play a round to build your review deck.
           </p>
           <Link
             to="/"
-            className="mt-5 inline-block px-4 h-10 leading-10 rounded-md bg-forest text-primary-foreground text-sm"
+            className="mt-5 inline-block px-4 h-10 leading-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Back to map
           </Link>
@@ -90,6 +102,7 @@ export default function ReviewDeck() {
     if (ok) setCorrect((c) => c + 1);
     setDone((d) => d + 1);
   }
+
   function next() {
     setChosen(null);
     setIdx((i) => i + 1);
@@ -106,7 +119,7 @@ export default function ReviewDeck() {
           {correct} correct · +{correct * 10} XP
         </span>
       </div>
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted">
           <FlagImage code={flag.code} className="w-full h-full" />
         </div>
@@ -123,17 +136,18 @@ export default function ReviewDeck() {
                 key={opt.code}
                 disabled={!!chosen}
                 onClick={() => pick(opt)}
+                aria-label={`${opt.name}${reveal && isAns ? " — correct answer" : reveal && picked ? " — wrong answer" : ""}`}
                 className={cn(
-                  "h-11 rounded-lg border px-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors",
+                  "h-11 rounded-lg border px-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   reveal && isAns
                     ? "border-gold text-gold bg-gold/10"
                     : reveal && picked
                       ? "border-destructive text-destructive bg-destructive/10"
-                      : "border-border",
+                      : "border-border hover:border-terra",
                 )}
               >
-                {reveal && isAns && <Check className="w-4 h-4" />}
-                {reveal && picked && !isAns && <X className="w-4 h-4" />}
+                {reveal && isAns && <Check className="w-4 h-4" aria-hidden="true" />}
+                {reveal && picked && !isAns && <X className="w-4 h-4" aria-hidden="true" />}
                 {opt.name}
               </button>
             );
@@ -141,10 +155,15 @@ export default function ReviewDeck() {
         </div>
       </div>
       {chosen && (
-        <div className="mt-4 text-center">
+        <div className="mt-4 text-center" role="status" aria-live="polite">
+          <p className="text-sm font-medium mb-3">
+            {chosen === flag.code
+              ? <span className="text-forest">Correct! +10 XP</span>
+              : <span className="text-destructive">Answer: {flag.name}</span>}
+          </p>
           <button
             onClick={next}
-            className="px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm"
+            className="px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {idx + 1 >= deck.length ? "Finish" : "Next card"}
           </button>

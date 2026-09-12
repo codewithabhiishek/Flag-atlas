@@ -118,8 +118,10 @@ export default function WorldMap({ flags }) {
                     }}
                     onClick={() => {
                       if (!code) return;
+                      const country = byCode(code);
+                      if (!country) return;
                       navigate(
-                        `/play/fragments?region=${encodeURIComponent(byCode(code).region)}`,
+                        `/play/fragments?region=${encodeURIComponent(country.region)}`,
                       );
                     }}
                   />

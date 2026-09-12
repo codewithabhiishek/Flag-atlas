@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Background circle (ocean) -->
+  <circle cx="32" cy="32" r="32" fill="#2D6A4F"/>
+
+  <!-- Globe grid lines -->
+  <!-- Outer circle rim -->
+  <circle cx="32" cy="32" r="22" stroke="#52B788" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <!-- Equator -->
+  <line x1="10" y1="32" x2="54" y2="32" stroke="#52B788" stroke-width="1" opacity="0.5"/>
+  <!-- Prime meridian -->
+  <line x1="32" y1="10" x2="32" y2="54" stroke="#52B788" stroke-width="1" opacity="0.5"/>
+  <!-- Tropic arcs (simplified as ellipses) -->
+  <ellipse cx="32" cy="32" rx="14" ry="22" stroke="#52B788" stroke-width="1" fill="none" opacity="0.4"/>
+  <ellipse cx="32" cy="32" rx="22" ry="10" stroke="#52B788" stroke-width="1" fill="none" opacity="0.4"/>
+
+  <!-- Land mass (simplified continents as filled shapes) -->
+  <!-- Europe/Africa blob -->
+  <ellipse cx="30" cy="30" rx="5" ry="8" fill="#74C69D" opacity="0.9"/>
+  <!-- Americas blob -->
+  <ellipse cx="22" cy="33" rx="4" ry="7" fill="#74C69D" opacity="0.9"/>
+  <!-- Asia blob -->
+  <ellipse cx="40" cy="27" rx="6" ry="5" fill="#74C69D" opacity="0.9"/>
+
+  <!-- Flag pin on top-right of globe -->
+  <!-- Staff -->
+  <line x1="46" y1="18" x2="46" y2="30" stroke="#D4A017" stroke-width="2" stroke-linecap="round"/>
+  <!-- Flag rectangle -->
+  <rect x="46" y="18" width="10" height="7" rx="1" fill="#D4A017"/>
+  <!-- Flag stripe (makes it look like a flag not just a block) -->
+  <rect x="46" y="21" width="10" height="2" fill="#1F3D2E"/>
+</svg>

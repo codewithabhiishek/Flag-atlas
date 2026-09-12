@@ -8,12 +8,11 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
-// NOTE: The Base44 auth backend has been removed. Login functionality requires
-// a replacement auth server. These handlers display an informative error until
-// one is configured.
+// Auth is not available in this standalone deployment.
+// Connect a custom auth backend to enable login.
 const AUTH_NOT_AVAILABLE =
-  "Authentication is not available in this standalone deployment. " +
-  "A custom auth backend is required to enable login.";
+  "Login is not available in this standalone deployment. " +
+  "A custom auth backend is required to enable this feature.";
 
 export default function Login() {
   const [email, setEmail] = useState("");

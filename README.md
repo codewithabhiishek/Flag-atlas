@@ -192,7 +192,7 @@ The **Battle** mode lets two players race through the same set of flag questions
 2. The second player joins with the code.
 3. Both players answer flags independently — the one with more correct answers wins; ties go to the fastest finisher.
 
-> **Note:** Multiplayer requires a WebSocket server to be deployed separately. The frontend logic is ready — see `src/pages/Battle.jsx` and `base44/actors/FlagBattle/entry.ts` for the room actor code.
+> **Note:** Multiplayer requires a WebSocket server to be deployed separately. The frontend logic is ready — see `src/pages/Battle.jsx` for the room actor code.
 
 ---
 
