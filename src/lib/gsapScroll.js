@@ -1,39 +1,74 @@
 /**
- * useGsapScrollReveal
- * Registers a GSAP ScrollTrigger "fromTo" reveal on every element that has
- * [data-reveal] inside the given container ref. Call once in a useEffect.
+ * GSAP + Lenis Smooth Scroll Integration
  *
- * Usage:
- *   const containerRef = useRef(null);
- *   useGsapScrollReveal(containerRef);
- *   <div ref={containerRef}>
- *     <div data-reveal>…</div>
- *   </div>
+ * Replaces broken wheel-hijacking with Lenis, the industry standard smooth
+ * scroll engine designed specifically for GSAP ScrollTrigger.
+ * Preserves native Mac trackpad momentum and touch inertia while providing
+ * silky-smooth 60/120fps scrolling on mouse wheel without getting stuck.
  */
 import { useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
+import "lenis/dist/lenis.css";
 
 gsap.registerPlugin(ScrollTrigger);
 
+let lenisInstance = null;
+
+export function initSmoothScroll() {
+  if (typeof window === "undefined") return;
+  if (lenisInstance) return lenisInstance;
+
+  // Initialize Lenis with gentle, responsive easing
+  lenisInstance = new Lenis({
+    duration: 0.9,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+    syncTouch: false, // Keep native touch/trackpad feel without sticky lag
+  });
+
+  // Synchronize Lenis scroll positions with GSAP ScrollTrigger
+  lenisInstance.on("scroll", ScrollTrigger.update);
+
+  // Use GSAP's internal ticker for buttery 60/120Hz synchronization
+  gsap.ticker.add((time) => {
+    lenisInstance?.raf(time * 1000);
+  });
+
+  gsap.ticker.lagSmoothing(0);
+
+  return lenisInstance;
+}
+
+export function getLenis() {
+  return lenisInstance;
+}
+
+/**
+ * useGsapScrollReveal
+ * Registers a light GSAP ScrollTrigger reveal on elements with [data-reveal].
+ */
 export function useGsapScrollReveal(containerRef, deps = []) {
   useEffect(() => {
+    if (!containerRef?.current) return;
+
     const ctx = gsap.context(() => {
-      gsap.utils.toArray("[data-reveal]").forEach((el) => {
+      const elements = containerRef.current.querySelectorAll("[data-reveal]");
+      elements.forEach((el) => {
         const delay = parseFloat(el.dataset.revealDelay || "0");
         gsap.fromTo(
           el,
-          { opacity: 0, y: 28, scale: 0.98 },
+          { opacity: 0, y: 16 },
           {
             opacity: 1,
             y: 0,
-            scale: 1,
-            duration: 0.65,
+            duration: 0.5,
             delay,
-            ease: "power3.out",
+            ease: "power2.out",
             scrollTrigger: {
               trigger: el,
-              start: "top 88%",
+              start: "top 90%",
               toggleActions: "play none none none",
             },
           },
@@ -43,46 +78,4 @@ export function useGsapScrollReveal(containerRef, deps = []) {
 
     return () => ctx.revert();
   }, deps);
-}
-
-/**
- * initSmoothScroll
- * Applies GSAP's inertia-style smooth scrolling to the whole page.
- * Call once at app mount (e.g. in main.jsx or a top-level component).
- * Uses native scroll + GSAP ticker for a buttery feel without
- * replacing the scroll model (so anchor links / keyboard still work).
- */
-export function initSmoothScroll() {
-  // Only on desktop — mobile already has momentum scrolling
-  if (typeof window === "undefined") return;
-  if (window.matchMedia("(pointer: coarse)").matches) return;
-
-  let currentY = window.scrollY;
-  let targetY = window.scrollY;
-  const ease = 0.1; // lower = slower / smoother
-
-  function onWheel(e) {
-    e.preventDefault();
-    targetY += e.deltaY;
-    targetY = Math.max(0, Math.min(targetY, document.body.scrollHeight - window.innerHeight));
-  }
-
-  function tick() {
-    const diff = targetY - currentY;
-    if (Math.abs(diff) < 0.5) {
-      currentY = targetY;
-    } else {
-      currentY += diff * ease;
-    }
-    window.scrollTo(0, currentY);
-    ScrollTrigger.update();
-  }
-
-  window.addEventListener("wheel", onWheel, { passive: false });
-  gsap.ticker.add(tick);
-
-  return () => {
-    window.removeEventListener("wheel", onWheel);
-    gsap.ticker.remove(tick);
-  };
 }

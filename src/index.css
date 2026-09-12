@@ -93,12 +93,8 @@
   * {
     @apply border-border outline-ring/50;
   }
-  html {
-    scroll-behavior: smooth;
-  }
   body {
     @apply bg-background text-foreground font-body antialiased;
-    /* Prevent layout shift during GSAP smooth scroll on desktop */
     overflow-x: hidden;
   }
   h1, h2, h3 {
