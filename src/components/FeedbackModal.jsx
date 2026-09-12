@@ -1,317 +1,207 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Copy, X } from "lucide-react";
+import { MailCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playUiSound } from "@/lib/sounds";
 import { loadLS, saveLS } from "@/lib/utils";
 
 /**
- * FeedbackModal — ported from Word Rush's FeedbackModal, restyled to the
- * FlagAtlas paper/brutalist theme. Sends dispatches through Web3Forms
- * (free email relay, no backend) with the same anti-spam defenses:
- * honeypot fields, speed-trap, 60s cooldown, hourly cap, duplicate check.
+ * "Postcard to the Cartographer" — FlagAtlas's feedback system.
+ *
+ * The form IS a postcard: pick a postage stamp (topic), write your note on
+ * ruled paper, fill the From lines, and mail it. Delivered through Web3Forms
+ * so there is no backend; the access key is read from the
+ * VITE_WEB3FORMS_ACCESS_KEY env var (never hardcoded — configure it in your
+ * hosting dashboard). Without a key, the mail button is disabled and the
+ * direct-email fallback is offered instead.
+ *
+ * Anti-spam (invisible to humans): honeypot fields, a sub-1.5s speed trap,
+ * a 60s cooldown between postcards, and duplicate-note detection.
  */
 
-export const FEEDBACK_CATEGORIES = [
+const TOPICS = [
   {
-    id: "suggestion",
-    icon: "💡",
-    label: "Suggestion",
-    badge: "IDEA & FEATURE",
-    hint: "Have an idea for a new game mode, power-up, or visual improvement?",
-    placeholder:
-      "Tell Abhishek your idea! What would make FlagAtlas even better?",
-    subjectPrefix: "💡 Suggestion",
-    templates: [
-      {
-        label: "🚀 New Game Mode",
-        text: "Hey Abhishek, it would be awesome to have a game mode where [e.g. capital-city quiz / timed region duel]!",
-      },
-      {
-        label: "🗺️ Map Feature",
-        text: "Loving the world atlas! One feature idea: [e.g. zoom into a region / territory streak bonuses].",
-      },
-      {
-        label: "🎨 Theme / Visuals",
-        text: "Loving the game aesthetic! One visual improvement idea: [e.g. flag animations / new rank badges].",
-      },
-    ],
+    id: "idea",
+    stamp: "💡",
+    label: "Idea",
+    prompt: "Sketch a new mode, feature, or tweak you'd love to see…",
+    subject: "Idea",
   },
   {
-    id: "bug",
-    icon: "🐛",
-    label: "Bug Report",
-    badge: "GLITCH / ISSUE",
-    hint: "Spotted a freeze, wrong answer counted, sound glitch, or mobile layout bug?",
-    placeholder:
-      "What went wrong? Describe what happened (e.g. answer miscounted, timer froze, multiplayer drop...)",
-    subjectPrefix: "🐛 Bug Report",
-    templates: [
-      {
-        label: "📱 Mobile Layout",
-        text: "On mobile screen, [e.g. buttons overlap / keyboard covers the answer input / UI overflows]. Device: [iPhone / Android].",
-      },
-      {
-        label: "🔌 Multiplayer Drop",
-        text: "During a battle, the game disconnected when [e.g. switching tabs / the host left the room].",
-      },
-      {
-        label: "❌ Wrong Answer",
-        text: "I answered '[COUNTRY]' correctly but the game marked it wrong in [mode name] mode.",
-      },
-    ],
+    id: "beetle",
+    stamp: "🐞",
+    label: "Beetle",
+    prompt: "Something scuttled where it shouldn't? Describe the bug…",
+    subject: "Bug",
   },
   {
-    id: "content",
-    icon: "🌍",
-    label: "Flag / Data",
-    badge: "CONTENT",
-    hint: "Is a flag rendering wrong, a capital misspelled, or a country missing?",
-    placeholder:
-      "Which country/flag is wrong? What did you see vs what should it be?",
-    subjectPrefix: "🌍 Flag / Data Check",
-    templates: [
-      {
-        label: "🏳️ Wrong Flag Image",
-        text: "The flag for '[COUNTRY]' shows the wrong image or fails to load in [mode] mode.",
-      },
-      {
-        label: "🏛️ Capital Wrong",
-        text: "The capital of '[COUNTRY]' is listed as '[X]' but it should be '[Y]'.",
-      },
-      {
-        label: "➕ Missing Country",
-        text: "Please add '[COUNTRY]' — it's missing from the [REGION] region.",
-      },
-    ],
+    id: "carto",
+    stamp: "🗺️",
+    label: "Map data",
+    prompt: "Wrong flag, odd capital, missing country? Mark it on the map…",
+    subject: "Map data",
   },
   {
-    id: "general",
-    icon: "💬",
-    label: "General",
-    badge: "FEEDBACK",
-    hint: "Say hello, share feedback on the game, or drop a note for Abhishek!",
-    placeholder: "Drop a line, share your streak, or say hi to Abhishek...",
-    subjectPrefix: "💬 General Note",
-    templates: [
-      {
-        label: "❤️ Loving the Game",
-        text: "Just hit a [X]-day streak on FlagAtlas — great work on the map and game modes!",
-      },
-      {
-        label: "🤝 Collaboration",
-        text: "Hey Abhishek, loved your work on FlagAtlas! Would love to connect regarding [collaboration / project].",
-      },
-    ],
+    id: "letter",
+    stamp: "✉️",
+    label: "Just writing",
+    prompt: "Say hi, share your streak, or tell me what you think…",
+    subject: "Letter",
   },
 ];
 
 const COOLDOWN_SECONDS = 60;
-const MAX_HOURLY_DISPATCHES = 5;
 const DIRECT_EMAIL = "abhishek.jain.dev@outlook.com";
-const FALLBACK_KEY = "8a1e06e5-be91-4200-8d77-df95f527bcd9";
+const LAST_SENT_KEY = "flagatlas:postcard_last_ts";
+const LAST_MSG_KEY = "flagatlas:postcard_last_msg";
+const FROM_NAME_KEY = "flagatlas:postcard_from_name";
+const FROM_EMAIL_KEY = "flagatlas:postcard_from_email";
 
-function getRecentDispatchesCount() {
-  const raw = loadLS("flagatlas:feedback_history", []);
-  const oneHourAgo = Date.now() - 60 * 60 * 1000;
-  return Array.isArray(raw) ? raw.filter((ts) => ts > oneHourAgo).length : 0;
-}
+const ACCESS_KEY =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_WEB3FORMS_ACCESS_KEY) || "";
 
-function recordDispatchTimestamp() {
-  const raw = loadLS("flagatlas:feedback_history", []);
-  const oneHourAgo = Date.now() - 60 * 60 * 1000;
-  const valid = Array.isArray(raw) ? raw.filter((ts) => ts > oneHourAgo) : [];
-  valid.push(Date.now());
-  saveLS("flagatlas:feedback_history", valid);
+function roughen(text) {
+  return String(text || "").replace(/<[^>]*>?/gm, "").trim();
 }
 
 export function FeedbackModal({ isOpen, onClose }) {
-  const [category, setCategory] = useState(FEEDBACK_CATEGORIES[0].id);
-  const [name, setName] = useState(() => loadLS("flagatlas:feedback_name", ""));
-  const [email, setEmail] = useState(() => loadLS("flagatlas:feedback_email", ""));
-  const [message, setMessage] = useState(FEEDBACK_CATEGORIES[0].templates[0].text);
+  const [topic, setTopic] = useState(TOPICS[0]);
+  const [note, setNote] = useState("");
+  const [fromName, setFromName] = useState(() => loadLS(FROM_NAME_KEY, ""));
+  const [fromEmail, setFromEmail] = useState(() => loadLS(FROM_EMAIL_KEY, ""));
   const [botcheck, setBotcheck] = useState(false);
   const [gotcha, setGotcha] = useState("");
 
-  const [status, setStatus] = useState("idle"); // idle | submitting | success | error
-  const [stepIndex, setStepIndex] = useState(0);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [phase, setPhase] = useState("writing"); // writing | sealing | mailed
+  const [sealStep, setSealStep] = useState(0);
+  const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
 
-  const textareaRef = useRef(null);
-  const isSubmittingRef = useRef(false);
   const openedAtRef = useRef(Date.now());
+  const busyRef = useRef(false);
 
+  // Cooldown while the modal is open
   useEffect(() => {
     if (!isOpen) return;
     openedAtRef.current = Date.now();
-    if (!message.trim()) {
-      const cat = FEEDBACK_CATEGORIES.find((c) => c.id === category) || FEEDBACK_CATEGORIES[0];
-      setMessage(cat.templates[0].text);
-    }
-    const lastSent = Number(loadLS("flagatlas:feedback_last_ts", "0") || 0);
-    const elapsed = Math.floor((Date.now() - lastSent) / 1000);
-    setCooldownRemaining(lastSent && elapsed < COOLDOWN_SECONDS ? COOLDOWN_SECONDS - elapsed : 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setPhase("writing");
+    setError("");
+    const last = Number(loadLS(LAST_SENT_KEY, 0)) || 0;
+    const left = COOLDOWN_SECONDS - Math.floor((Date.now() - last) / 1000);
+    setCooldown(left > 0 ? left : 0);
   }, [isOpen]);
 
   useEffect(() => {
-    if (cooldownRemaining <= 0) return;
-    const timer = setInterval(() => {
-      setCooldownRemaining((prev) => (prev <= 1 ? (clearInterval(timer), 0) : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [cooldownRemaining]);
+    if (cooldown <= 0) return undefined;
+    const t = setInterval(() => setCooldown((c) => (c <= 1 ? (clearInterval(t), 0) : c - 1)), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return undefined;
     const onKey = (e) => {
-      if (e.key === "Escape" && status !== "submitting") onClose();
+      if (e.key === "Escape" && phase !== "sealing") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, status, onClose]);
+  }, [isOpen, phase, onClose]);
 
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(200, Math.max(90, el.scrollHeight))}px`;
-  }, [message, isOpen]);
+  const noteTooShort = useMemo(() => roughen(note).length > 0 && roughen(note).length < 8, [note]);
 
-  const selectedMeta = FEEDBACK_CATEGORIES.find((c) => c.id === category) || FEEDBACK_CATEGORIES[0];
-
-  const handleSelectCategory = (cat) => {
-    playUiSound("tap");
-    setCategory(cat);
-    setErrorMsg("");
-    const meta = FEEDBACK_CATEGORIES.find((c) => c.id === cat);
-    if (meta?.templates?.[0]) setMessage(meta.templates[0].text);
-    textareaRef.current?.focus();
-  };
-
-  const applyTemplate = (text) => {
-    playUiSound("tap");
-    setMessage(text);
-    setErrorMsg("");
-    textareaRef.current?.focus();
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (isSubmittingRef.current || status === "submitting") return;
-
-    // Bot honeypot traps — silently pretend success.
-    if (botcheck || gotcha) {
-      setStatus("success");
-      return;
-    }
-
-    // Speed-trap: a human cannot complete this form in under 1.8s.
-    if (Date.now() - openedAtRef.current < 1800) {
-      setErrorMsg("Dispatch submitted too quickly. Please review your message.");
-      return;
-    }
-
-    if (getRecentDispatchesCount() >= MAX_HOURLY_DISPATCHES) {
-      setErrorMsg(`Hourly dispatch limit reached (${MAX_HOURLY_DISPATCHES}/hour). Please try again later.`);
-      return;
-    }
-    if (cooldownRemaining > 0) {
-      setErrorMsg(`Rate limit: please wait ${cooldownRemaining}s before sending another dispatch.`);
-      return;
-    }
-
-    const cleanName = name.replace(/<[^>]*>?/gm, "").trim().slice(0, 60);
-    const cleanEmail = email.trim().slice(0, 100);
-    const cleanMessage = message.replace(/<[^>]*>?/gm, "").trim().slice(0, 1500);
-
-    if (!cleanName) return setErrorMsg("Please enter your name.");
-    if (!cleanEmail) return setErrorMsg("Please provide your email address.");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))
-      return setErrorMsg("Please enter a valid email address (e.g. name@domain.com).");
-    if (!cleanMessage || cleanMessage.length < 8)
-      return setErrorMsg("Please write at least a few words describing your suggestion or issue.");
-
-    const lastSentMsg = loadLS("flagatlas:feedback_last_msg", "");
-    if (lastSentMsg && lastSentMsg.trim().toLowerCase() === cleanMessage.toLowerCase())
-      return setErrorMsg("Duplicate dispatch detected: you have already sent this exact message recently.");
-
-    isSubmittingRef.current = true;
-    setStatus("submitting");
-    setErrorMsg("");
-    setStepIndex(1);
-    playUiSound("tap");
-    setTimeout(() => setStepIndex(2), 650);
-
-    const contextLines = [
-      `🌍 Game: FlagAtlas (World Flag Learning Game)`,
-      `🏷️ Category: ${selectedMeta.badge}`,
-      `📱 Screen: ${window.innerWidth}x${window.innerHeight} (${
-        /iPhone|iPad|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop"
-      })`,
-      `🕒 Sent At: ${new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })} IST`,
-    ];
-
-    const fullMessage = [cleanMessage, "\n────────────────────────────────────", ...contextLines].join("\n");
-
-    try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          access_key:
-            (typeof import.meta !== "undefined" && import.meta.env?.VITE_WEB3FORMS_ACCESS_KEY) ||
-            FALLBACK_KEY,
-          name: cleanName,
-          email: cleanEmail,
-          subject: `[FlagAtlas] ${selectedMeta.subjectPrefix}: ${cleanMessage.slice(0, 50).replace(/[\r\n]+/g, " ")}…`,
-          message: fullMessage,
-          from_name: "FlagAtlas Dispatch Bot",
-          botcheck: "",
-        }),
-      });
-      const result = await response.json();
-
-      if (result.success) {
-        saveLS("flagatlas:feedback_name", cleanName);
-        saveLS("flagatlas:feedback_email", cleanEmail);
-        saveLS("flagatlas:feedback_last_ts", String(Date.now()));
-        saveLS("flagatlas:feedback_last_msg", cleanMessage);
-        recordDispatchTimestamp();
-        setCooldownRemaining(COOLDOWN_SECONDS);
-        setStepIndex(3);
-        setTimeout(() => {
-          setStatus("success");
-          playUiSound("success");
-        }, 400);
-      } else {
-        setStatus("error");
-        setErrorMsg(result.message || "Failed to deliver dispatch. Please copy the direct email below.");
-      }
-    } catch {
-      setStatus("error");
-      setErrorMsg("Network error. Please check your connection and try again.");
-    } finally {
-      isSubmittingRef.current = false;
-    }
-  };
-
-  const handleCopyEmail = (e) => {
+  const copyEmail = (e) => {
     e.stopPropagation();
     navigator.clipboard?.writeText(DIRECT_EMAIL);
-    playUiSound("tap");
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2200);
   };
 
-  const resetForm = () => {
-    const cat = FEEDBACK_CATEGORIES.find((c) => c.id === category) || FEEDBACK_CATEGORIES[0];
-    setMessage(cat.templates[0].text);
-    setStatus("idle");
-    setStepIndex(0);
-    setErrorMsg("");
+  const mailIt = async (e) => {
+    e.preventDefault();
+    if (busyRef.current || phase === "sealing") return;
+
+    // Honeypots: bots fill hidden fields — pretend success and bail.
+    if (botcheck || gotcha) {
+      setPhase("mailed");
+      return;
+    }
+    if (Date.now() - openedAtRef.current < 1500) {
+      setError("That was fast even for an explorer — take a moment to re-read your note.");
+      return;
+    }
+    if (cooldown > 0) {
+      setError(`The mail plane just left. Next one departs in ${cooldown}s.`);
+      return;
+    }
+
+    const cleanName = roughen(fromName).slice(0, 60);
+    const cleanEmail = fromEmail.trim().slice(0, 100);
+    const cleanNote = roughen(note).slice(0, 1200);
+
+    if (!cleanName) return setError("Every postcard needs a sender — add your name.");
+    if (!cleanEmail) return setError("Add your email so the reply can find you.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))
+      return setError("That email doesn't look deliverable (try name@domain.com).");
+    if (cleanNote.length < 8) return setError("The note is a bit thin — a few more words?");
+    const lastMsg = loadLS(LAST_MSG_KEY, "");
+    if (lastMsg && lastMsg.toLowerCase() === cleanNote.toLowerCase())
+      return setError("You've already mailed this exact note.");
+
+    if (!ACCESS_KEY) {
+      setError("The mail service isn't configured on this deployment — copy the direct email below instead.");
+      return;
+    }
+
+    busyRef.current = true;
+    setPhase("sealing");
+    setError("");
+    setSealStep(0);
+    setTimeout(() => setSealStep(1), 600);
+
+    const body = [
+      cleanNote,
+      "",
+      "— postmarked —",
+      `Topic: ${topic.subject}`,
+      `Screen: ${window.innerWidth}x${window.innerHeight} (${
+        /iPhone|iPad|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop"
+      })`,
+      `Sent: ${new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })} IST`,
+    ].join("\n");
+
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: ACCESS_KEY,
+          name: cleanName,
+          email: cleanEmail,
+          subject: `[FlagAtlas] ${topic.subject}: ${cleanNote.slice(0, 48).replace(/[\r\n]+/g, " ")}…`,
+          message: body,
+          from_name: "FlagAtlas Postcard",
+          botcheck: "",
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        saveLS(FROM_NAME_KEY, cleanName);
+        saveLS(FROM_EMAIL_KEY, cleanEmail);
+        saveLS(LAST_SENT_KEY, String(Date.now()));
+        saveLS(LAST_MSG_KEY, cleanNote);
+        setCooldown(COOLDOWN_SECONDS);
+        playUiSound("success");
+        setPhase("mailed");
+      } else {
+        setError(result.message || "The postcard got lost in the mail — try the direct email below.");
+        setPhase("writing");
+      }
+    } catch {
+      setError("No signal at this outpost — check your connection and try again.");
+      setPhase("writing");
+    } finally {
+      busyRef.current = false;
+    }
   };
 
   return (
@@ -320,293 +210,264 @@ export function FeedbackModal({ isOpen, onClose }) {
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="feedback-title"
-          onClick={() => status !== "submitting" && onClose()}
+          aria-labelledby="postcard-title"
+          onClick={() => phase !== "sealing" && onClose()}
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 14 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            initial={{ opacity: 0, y: 24, rotate: -1 }}
+            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            exit={{ opacity: 0, y: 16, rotate: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[540px] my-auto max-h-[92vh] flex flex-col overflow-hidden rounded-2xl border-2 border-foreground bg-card text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)]"
+            className="relative w-full max-w-[600px] my-auto max-h-[92vh] overflow-y-auto rounded-xl border-2 border-foreground bg-[#f7f1e3] dark:bg-card text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)]"
           >
-            {/* Top accent stripe — theme palette */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-forest via-gold to-terra" />
+            {/* Postmark hint — rotated rubber-stamp */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute right-4 top-14 select-none hidden sm:block"
+            >
+              <div className="rotate-12 border-2 border-terra/60 rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-terra/70">
+                air mail
+              </div>
+            </div>
 
-            {/* Header */}
-            <div className="flex items-center justify-between gap-2.5 border-b border-border pb-3 pt-2 px-4 sm:px-5 shrink-0">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl border-2 border-foreground bg-gold inline-flex items-center justify-center text-lg shrink-0 select-none">
-                  {selectedMeta.icon}
-                </div>
-                <div className="min-w-0">
-                  <h3 id="feedback-title" className="font-display font-bold text-sm sm:text-base tracking-tight truncate">
-                    Feedback &amp; Dispatch
-                  </h3>
-                  <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold tracking-[0.14em] uppercase text-terra">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-forest animate-pulse shrink-0" />
-                    <span className="truncate">Direct to Abhishek // Developer</span>
-                  </div>
-                </div>
+            {/* ── Postcard header ── */}
+            <div className="flex items-start justify-between gap-3 px-5 pt-5">
+              <div>
+                <h3 id="postcard-title" className="font-display text-xl sm:text-2xl text-foreground leading-tight">
+                  Postcard to the Cartographer
+                </h3>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                  Notes, map corrections & ideas — delivered straight to Abhishek.
+                </p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                disabled={status === "submitting"}
+                disabled={phase === "sealing"}
+                aria-label="Close postcard"
                 className="w-8 h-8 rounded-lg border-2 border-foreground bg-card inline-flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors disabled:opacity-40 shrink-0"
-                aria-label="Close feedback modal"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="overflow-y-auto px-4 sm:px-5 py-4 space-y-4">
-              {status === "success" ? (
-                <div className="py-6 sm:py-8 text-center space-y-4">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-forest bg-forest/10 text-3xl text-forest">
-                    ✓
-                  </div>
-                  <div>
-                    <h4 className="font-display text-xl sm:text-2xl font-bold text-foreground">Dispatch delivered!</h4>
-                    <p className="mt-1 text-[10px] font-bold tracking-[0.18em] uppercase text-forest">
-                      Status: transmitted to developer inbox
-                    </p>
-                  </div>
-                  <p className="max-w-sm mx-auto rounded-xl border border-border bg-muted/60 p-3.5 text-xs text-muted-foreground leading-relaxed">
-                    Thank you for helping craft FlagAtlas! Abhishek reviews every bug report and suggestion
-                    directly and will follow up if you included your email.
+            <div className="mx-5 mt-4 border-t-2 border-dashed border-foreground/25" />
+
+            {phase === "mailed" ? (
+              /* ── Mailed state ── */
+              <div className="px-5 py-10 text-center">
+                <motion.div
+                  initial={{ scale: 0.6, rotate: -8 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 16 }}
+                  className="mx-auto w-16 h-16 rounded-full border-2 border-forest bg-forest/10 inline-flex items-center justify-center"
+                >
+                  <MailCheck className="w-8 h-8 text-forest" />
+                </motion.div>
+                <h4 className="mt-4 font-display text-2xl text-foreground">Posted!</h4>
+                <p className="mt-1 text-xs text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">
+                  Your postcard is on its way. Every note gets read — reply
+                  comes to your email if you left one.
+                </p>
+                <div className="mt-6 flex items-center justify-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNote("");
+                      setPhase("writing");
+                    }}
+                    className="h-10 px-4 rounded-lg border-2 border-foreground bg-card text-xs font-bold uppercase tracking-tight hover:bg-muted transition-colors"
+                  >
+                    Write another
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="h-10 px-4 rounded-lg border-2 border-foreground bg-forest text-white text-xs font-bold uppercase tracking-tight hover:opacity-90 transition-opacity"
+                  >
+                    Back to the atlas
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={mailIt} noValidate className="px-5 py-5 space-y-4">
+                {error && (
+                  <p
+                    role="alert"
+                    className="rounded-lg border-2 border-destructive/60 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive"
+                  >
+                    {error}
                   </p>
-                  <div className="pt-1 flex items-center justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="rounded-lg border-2 border-foreground bg-card px-4 py-2.5 text-xs font-bold uppercase tracking-wider hover:bg-muted transition-colors"
-                    >
-                      Send another
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      className="rounded-lg border-2 border-foreground bg-forest text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
-                    >
-                      Back to FlagAtlas 🌍
-                    </button>
+                )}
+
+                {/* ── Stamp corner: pick a topic stamp ── */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground pt-1">
+                    Affix a stamp
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {TOPICS.map((t) => {
+                      const active = topic.id === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => {
+                            playUiSound("tap");
+                            setTopic(t);
+                            setError("");
+                          }}
+                          aria-pressed={active}
+                          title={t.label}
+                          className={cn(
+                            "w-14 sm:w-16 h-14 sm:h-16 border-2 flex flex-col items-center justify-center gap-0.5 transition-all select-none",
+                            active
+                              ? "border-foreground bg-gold/25 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)]"
+                              : "border-dashed border-foreground/40 bg-transparent opacity-70 hover:opacity-100 hover:border-foreground",
+                          )}
+                        >
+                          <span className="text-base leading-none">{t.stamp}</span>
+                          <span className="text-[8px] font-bold uppercase tracking-wide">{t.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} noValidate className="space-y-4">
-                  {errorMsg && (
-                    <div
-                      role="alert"
-                      className="rounded-lg border-2 border-destructive/60 bg-destructive/10 p-2.5 text-xs font-semibold text-destructive flex items-center gap-2"
-                    >
-                      <span>⚠️</span>
-                      <span className="flex-1">{errorMsg}</span>
-                    </div>
-                  )}
 
-                  {/* 1. Category chips */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                        1. Select topic
-                      </label>
-                      <span className="text-[8.5px] font-bold text-terra tracking-wider">{selectedMeta.badge}</span>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                      {FEEDBACK_CATEGORIES.map((c) => {
-                        const active = category === c.id;
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => handleSelectCategory(c.id)}
-                            className={cn(
-                              "flex items-center justify-center gap-1.5 rounded-lg border-2 px-2 py-2 text-[11px] font-bold transition-all select-none",
-                              active
-                                ? "border-foreground bg-gold/25 text-foreground"
-                                : "border-border bg-card text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-                            )}
-                          >
-                            <span className="text-xs shrink-0">{c.icon}</span>
-                            <span className="truncate">{c.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* 2. Quick starters */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[8.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                        ⚡ Quick starters (tap to auto-fill):
-                      </span>
-                      {message && (
-                        <button
-                          type="button"
-                          onClick={() => setMessage("")}
-                          className="text-[8.5px] text-destructive hover:underline"
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {selectedMeta.templates.map((tpl, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => applyTemplate(tpl.text)}
-                          className="rounded-md border border-border bg-muted/50 px-2.5 py-1 text-[9.5px] font-medium text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-all active:scale-95"
-                        >
-                          {tpl.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* 3. Name & email */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-                    <div>
-                      <label className="block text-[9.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">
-                        Your name <span className="text-terra">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        maxLength={80}
-                        placeholder="e.g. FlagMaster"
-                        value={name}
-                        onChange={(e) => {
-                          setName(e.target.value);
-                          if (errorMsg) setErrorMsg("");
-                        }}
-                        className="w-full rounded-lg border-2 border-foreground/70 bg-background px-3 py-2 text-xs font-medium placeholder:text-muted-foreground/60 outline-none focus:border-foreground transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1">
-                        Your email <span className="text-terra">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        maxLength={120}
-                        placeholder="player@example.com"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (errorMsg) setErrorMsg("");
-                        }}
-                        className="w-full rounded-lg border-2 border-foreground/70 bg-background px-3 py-2 text-xs font-medium placeholder:text-muted-foreground/60 outline-none focus:border-foreground transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Honeypot anti-spam (dual trap) */}
-                  <input
-                    type="checkbox"
-                    name="botcheck"
-                    checked={botcheck}
-                    onChange={(e) => setBotcheck(e.target.checked)}
-                    className="hidden"
-                    style={{ display: "none" }}
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                  />
-                  <input
-                    type="text"
-                    name="_gotcha"
-                    value={gotcha}
-                    onChange={(e) => setGotcha(e.target.value)}
-                    className="hidden"
-                    style={{ display: "none" }}
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                  />
-
-                  {/* 4. Message */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                        Message details <span className="text-terra">*</span>
-                      </label>
-                      <span className="text-[10px] text-muted-foreground font-mono">{message.length}/2000</span>
-                    </div>
-                    <textarea
-                      ref={textareaRef}
-                      maxLength={2000}
-                      placeholder={selectedMeta.placeholder}
-                      value={message}
-                      onChange={(e) => {
-                        setMessage(e.target.value);
-                        if (errorMsg) setErrorMsg("");
-                      }}
-                      className="w-full min-h-[90px] resize-none rounded-lg border-2 border-foreground/70 bg-background px-3.5 py-2.5 text-xs font-medium placeholder:text-muted-foreground/60 outline-none focus:border-foreground transition-colors leading-relaxed"
-                    />
-                    {selectedMeta.hint && (
-                      <p className="mt-1 text-[10px] text-muted-foreground">{selectedMeta.hint}</p>
-                    )}
-                  </div>
-
-                  {/* 5. Submit */}
-                  <button
-                    type="submit"
-                    disabled={status === "submitting" || cooldownRemaining > 0}
-                    className="w-full rounded-lg border-2 border-foreground bg-foreground text-background py-3 text-xs font-bold uppercase tracking-[0.14em] hover:opacity-90 active:translate-y-0.5 transition-all disabled:opacity-50 disabled:pointer-events-none select-none"
+                {/* ── Ruled note area ── */}
+                <div>
+                  <label
+                    htmlFor="postcard-note"
+                    className="block text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1"
                   >
-                    <span className="inline-flex items-center justify-center gap-2">
-                      {status === "submitting" ? (
-                        <>
-                          <span className="animate-spin inline-block">⚙️</span>
-                          <span>
-                            {stepIndex === 1
-                              ? "Packing dispatch..."
-                              : stepIndex === 2
-                                ? "Transmitting to inbox..."
-                                : "Delivering..."}
-                          </span>
-                        </>
-                      ) : cooldownRemaining > 0 ? (
-                        <>
-                          <span>⏳</span>
-                          <span>Please wait {cooldownRemaining}s cooldown</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>🚀</span>
-                          <span>Send dispatch to developer</span>
-                        </>
-                      )}
+                    Your note
+                  </label>
+                  <textarea
+                    id="postcard-note"
+                    maxLength={1200}
+                    value={note}
+                    onChange={(e) => {
+                      setNote(e.target.value);
+                      if (error) setError("");
+                    }}
+                    placeholder={topic.prompt}
+                    rows={5}
+                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-[#fffdf5] dark:bg-background px-3.5 py-2.5 text-sm font-medium leading-7 outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/60"
+                    style={{
+                      backgroundImage:
+                        "repeating-linear-gradient(transparent, transparent 27px, rgba(0,0,0,0.07) 27px, rgba(0,0,0,0.07) 28px)",
+                      lineHeight: "28px",
+                    }}
+                  />
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-[10px] text-muted-foreground">
+                      {noteTooShort ? "A few more words…" : " "}
                     </span>
-                  </button>
-
-                  {/* 6. Direct email fallback */}
-                  <div className="pt-2 border-t border-border flex flex-col min-[380px]:flex-row items-center justify-between gap-1.5 text-[11px] text-muted-foreground">
-                    <span className="text-[10px] font-medium">Need direct email?</span>
-                    <button
-                      type="button"
-                      onClick={handleCopyEmail}
-                      className="inline-flex items-center gap-1 text-[10px] font-bold text-terra hover:underline"
-                    >
-                      {copiedEmail ? (
-                        <>
-                          <Check className="w-3 h-3" /> <span>Copied {DIRECT_EMAIL}!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" /> <span>Copy email directly</span>
-                        </>
-                      )}
-                    </button>
+                    <span className="text-[10px] font-mono text-muted-foreground">{note.length}/1200</span>
                   </div>
-                </form>
-              )}
-            </div>
+                </div>
+
+                {/* Honeypots — invisible to humans */}
+                <input
+                  type="checkbox"
+                  name="botcheck"
+                  checked={botcheck}
+                  onChange={(e) => setBotcheck(e.target.checked)}
+                  className="hidden"
+                  style={{ display: "none" }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
+                <input
+                  type="text"
+                  name="_gotcha"
+                  value={gotcha}
+                  onChange={(e) => setGotcha(e.target.value)}
+                  className="hidden"
+                  style={{ display: "none" }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                />
+
+                {/* ── From lines (postcard address style) ── */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      htmlFor="postcard-name"
+                      className="block text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1"
+                    >
+                      From · name
+                    </label>
+                    <input
+                      id="postcard-name"
+                      type="text"
+                      maxLength={60}
+                      value={fromName}
+                      onChange={(e) => {
+                        setFromName(e.target.value);
+                        if (error) setError("");
+                      }}
+                      placeholder="Explorer name"
+                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1.5 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="postcard-email"
+                      className="block text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1"
+                    >
+                      Reply address · email
+                    </label>
+                    <input
+                      id="postcard-email"
+                      type="email"
+                      maxLength={100}
+                      value={fromEmail}
+                      onChange={(e) => {
+                        setFromEmail(e.target.value);
+                        if (error) setError("");
+                      }}
+                      placeholder="you@example.com"
+                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1.5 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* ── Mail button ── */}
+                <button
+                  type="submit"
+                  disabled={phase === "sealing" || cooldown > 0}
+                  className="w-full h-12 rounded-lg border-2 border-foreground bg-terra text-white font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-y-0 transition-transform disabled:opacity-50 disabled:pointer-events-none select-none"
+                >
+                  {phase === "sealing" ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="animate-spin inline-block">📮</span>
+                      {sealStep === 0 ? "Sealing envelope…" : "On its way…"}
+                    </span>
+                  ) : cooldown > 0 ? (
+                    `Next mail plane in ${cooldown}s`
+                  ) : (
+                    "Mail the postcard 📮"
+                  )}
+                </button>
+
+                {/* Direct-email fallback */}
+                <div className="flex flex-col min-[380px]:flex-row items-center justify-between gap-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
+                  <span>Old school?</span>
+                  <button
+                    type="button"
+                    onClick={copyEmail}
+                    className="font-bold text-terra hover:underline"
+                  >
+                    {copiedEmail ? "Copied to clipboard!" : `Copy ${DIRECT_EMAIL}`}
+                  </button>
+                </div>
+              </form>
+            )}
           </motion.div>
         </div>
       )}
