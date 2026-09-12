@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Swords,
   Copy,
@@ -8,6 +9,8 @@ import {
   Play,
   RotateCcw,
   ArrowLeft,
+  UserMinus,
+  QrCode,
 } from "lucide-react";
 import { byCode } from "@/data/countries";
 import { REGIONS } from "@/data/regions";
@@ -48,9 +51,10 @@ function getConnId() {
 }
 
 export default function Battle() {
+  const [searchParams] = useSearchParams();
   const [code, setCode] = useState(null);
   const [name, setName] = useState(() => randomName());
-  const [joinInput, setJoinInput] = useState("");
+  const [joinInput, setJoinInput] = useState(() => (searchParams.get("room") || "").toUpperCase().slice(0, 4));
   const [region, setRegion] = useState("World");
   const [rounds, setRounds] = useState(10);
   const [copied, setCopied] = useState(false);
@@ -68,6 +72,7 @@ export default function Battle() {
   const [roomMode, setRoomMode] = useState(null);
   const [connectionError, setConnectionError] = useState("");
   const [connected, setConnected] = useState(false);
+  const [notice, setNotice] = useState("");
   const roomRef = useRef(null);
 
   useEffect(() => {
@@ -99,6 +104,14 @@ export default function Battle() {
       const message = JSON.parse(event.data);
       if (message.type === "joined") setMySeat(message.seat);
       if (message.type === "error") setConnectionError(message.message);
+      if (message.type === "kicked") {
+        setConnectionError("The host removed you from this room.");
+        setCode(null);
+      }
+      if (message.type === "notice") {
+        setNotice(message.message);
+        window.setTimeout(() => setNotice(""), 4000);
+      }
       if (message.type === "state") {
         setStatus(message.status);
         setPlayers(message.players);
@@ -131,6 +144,16 @@ export default function Battle() {
 
   function copyCode() {
     navigator.clipboard?.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  function inviteUrl() {
+    return `${window.location.origin}/battle?room=${code}`;
+  }
+
+  function copyInviteLink() {
+    navigator.clipboard?.writeText(inviteUrl());
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
@@ -282,6 +305,9 @@ export default function Battle() {
                 <span className="text-sm text-muted-foreground">
                   {r.score} pts
                 </span>
+                <span className="text-xs text-muted-foreground">
+                  {r.averageAnswerMs ? `${(r.averageAnswerMs / 1000).toFixed(1)}s avg` : "—"}
+                </span>
               </div>
             ))}
           </div>
@@ -331,6 +357,17 @@ export default function Battle() {
           <p className="text-xs text-muted-foreground mt-2 font-medium">
             Share this code with a friend to play.
           </p>
+          <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <div className="bg-white p-2 border-2 border-foreground" title="Scan to join this room">
+              <QRCodeSVG value={inviteUrl()} size={88} level="M" includeMargin={false} />
+            </div>
+            <button
+              onClick={copyInviteLink}
+              className="inline-flex items-center justify-center gap-2 border-2 border-foreground bg-card px-3 h-10 text-xs font-bold uppercase tracking-tight"
+            >
+              <QrCode className="w-4 h-4" /> {copied ? "Copied" : "Copy invite link"}
+            </button>
+          </div>
         </div>
 
           <div className="atlas-card p-5 mb-5">
@@ -360,6 +397,15 @@ export default function Battle() {
                 {p.seat === mySeat && (
                   <span className="text-xs text-muted-foreground">(you)</span>
                 )}
+                {isHost && p.seat !== mySeat && (
+                  <button
+                    type="button"
+                    onClick={() => roomRef.current?.send({ type: "kick", seat: p.seat })}
+                    className="ml-auto inline-flex items-center gap-1 border border-destructive px-2 py-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <UserMinus className="w-3 h-3" /> Remove
+                  </button>
+                )}
               </li>
             ))}
             {players.length < 2 && (
@@ -368,6 +414,11 @@ export default function Battle() {
               </li>
             )}
           </ul>
+          {notice && (
+            <p role="status" className="mt-3 border border-foreground/30 bg-muted px-3 py-2 text-sm font-semibold">
+              {notice}
+            </p>
+          )}
         </div>
 
         <div className="atlas-card p-5 mb-5">
@@ -422,14 +473,14 @@ export default function Battle() {
 
         <button
           onClick={() => roomRef.current?.send({ type: "start" })}
-          disabled={players.length !== 2 || !isHost || !connected}
+          disabled={players.length < 2 || !isHost || !connected}
           className="w-full h-12 border-2 border-foreground bg-foreground text-background font-bold uppercase tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
         >
           <span className="inline-flex items-center gap-2">
             <Play className="w-4 h-4" /> Start battle
           </span>
         </button>
-        {!isHost && players.length === 2 && (
+        {!isHost && players.length >= 2 && (
           <p className="text-xs text-muted-foreground text-center mt-2 font-medium">Waiting for the host to start the battle.</p>
         )}
         {players.length < 2 && (
@@ -526,11 +577,21 @@ export default function Battle() {
                   {p.correct} correct ·{" "}
                   {p.finished ? "done" : `${p.index}/${questions.length}`}
                 </div>
+                {p.answerCount > 0 && (
+                  <div className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                    Avg {(p.totalAnswerMs / p.answerCount / 1000).toFixed(1)}s
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         </aside>
       </div>
+      {notice && (
+        <div role="status" className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 border-2 border-foreground bg-card px-4 py-2 text-sm font-semibold shadow-lg">
+          {notice}
+        </div>
+      )}
     </div>
   );
 }

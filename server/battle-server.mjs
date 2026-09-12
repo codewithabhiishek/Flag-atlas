@@ -29,6 +29,10 @@ function broadcast(room) {
   }
 }
 
+function announce(room, message) {
+  for (const participant of room.players.values()) send(participant.socket, { type: "notice", message });
+}
+
 function makeQuestions(region, rounds) {
   const candidates = region === "World"
     ? COUNTRIES
@@ -45,12 +49,13 @@ function finishIfReady(room) {
   if (!players.length || !players.every((player) => player.finished)) return;
   const results = players
     .map((player) => ({ ...player }))
-    .sort((a, b) => b.score - a.score || a.finishedAt - b.finishedAt)
+    .sort((a, b) => b.correct - a.correct || a.totalAnswerMs - b.totalAnswerMs || a.finishedAt - b.finishedAt)
     .map((player, index) => ({
       seat: player.seat,
       name: player.name,
       correct: player.correct,
       score: player.score,
+      averageAnswerMs: player.answerCount ? Math.round(player.totalAnswerMs / player.answerCount) : 0,
       rank: index + 1,
     }));
   room.status = "finished";
@@ -95,12 +100,13 @@ wss.on("connection", (socket) => {
         rooms.set(code, room);
       }
       if (room.status !== "lobby") return fail(socket, "This battle has already started.");
-      if (room.players.size >= 2) return fail(socket, "This room is full.");
-      const seat = room.players.size + 1;
-      player = { socket, seat, name: String(message.name || `Player ${seat}`).slice(0, 20), correct: 0, score: 0, index: 0, finished: false, finishedAt: 0 };
+      if (room.players.size >= 5) return fail(socket, "This room is full (five players maximum).");
+      const seat = [1, 2, 3, 4, 5].find((candidate) => !room.players.has(candidate));
+      player = { socket, seat, name: String(message.name || `Player ${seat}`).slice(0, 20), correct: 0, score: 0, index: 0, finished: false, finishedAt: 0, questionStartedAt: 0, totalAnswerMs: 0, answerCount: 0, lastAnswerMs: 0 };
       room.players.set(seat, player);
       send(socket, { type: "joined", seat });
       broadcast(room);
+      announce(room, `${player.name} joined the room.`);
       return;
     }
 
@@ -118,30 +124,44 @@ wss.on("connection", (socket) => {
       broadcast(room);
     } else if (message.type === "start") {
       if (player.seat !== room.hostSeat) return fail(socket, "Only the room host can start the battle.");
-      if (room.players.size !== 2) return fail(socket, "Two players are required to start.");
+      if (room.players.size < 2) return fail(socket, "At least two players are required to start.");
       room.questions = makeQuestions(room.region, room.rounds);
       room.status = "playing";
-      for (const participant of room.players.values()) Object.assign(participant, { correct: 0, score: 0, index: 0, finished: false, finishedAt: 0 });
+      const now = Date.now();
+      for (const participant of room.players.values()) Object.assign(participant, { correct: 0, score: 0, index: 0, finished: false, finishedAt: 0, questionStartedAt: now, totalAnswerMs: 0, answerCount: 0, lastAnswerMs: 0 });
       broadcast(room);
+      announce(room, "Battle started — good luck!");
     } else if (message.type === "answer" && room.status === "playing" && !player.finished) {
       const question = room.questions[player.index];
       if (!question || !question.options.includes(message.choice)) return;
+      const answerMs = Math.max(0, Date.now() - player.questionStartedAt);
+      player.lastAnswerMs = answerMs;
+      player.totalAnswerMs += answerMs;
+      player.answerCount += 1;
       if (message.choice === question.flag) {
         player.correct += 1;
-        player.score += 100;
+        player.score += 100 + Math.max(0, 100 - Math.floor(answerMs / 50));
       }
       player.index += 1;
       if (player.index >= room.questions.length) {
         player.finished = true;
         player.finishedAt = Date.now();
+      } else {
+        player.questionStartedAt = Date.now();
       }
       broadcast(room);
       finishIfReady(room);
+    } else if (message.type === "kick") {
+      if (player.seat !== room.hostSeat || room.status !== "lobby") return;
+      const target = room.players.get(Number(message.seat));
+      if (!target || target.seat === player.seat) return;
+      send(target.socket, { type: "kicked" });
+      target.socket.close(4000, "Removed by host");
     } else if (message.type === "rematch" && room.status === "finished") {
       room.status = "lobby";
       room.questions = [];
       room.results = [];
-      for (const participant of room.players.values()) Object.assign(participant, { correct: 0, score: 0, index: 0, finished: false, finishedAt: 0 });
+      for (const participant of room.players.values()) Object.assign(participant, { correct: 0, score: 0, index: 0, finished: false, finishedAt: 0, questionStartedAt: 0, totalAnswerMs: 0, answerCount: 0, lastAnswerMs: 0 });
       broadcast(room);
     }
   });
@@ -158,6 +178,7 @@ wss.on("connection", (socket) => {
       }
       finishIfReady(room);
     } else broadcast(room);
+    announce(room, `${player.name} left the room.`);
   });
 });
 
