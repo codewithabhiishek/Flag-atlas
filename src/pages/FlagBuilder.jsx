@@ -8,6 +8,7 @@ import { BUILDABLE } from "@/data/buildableFlags";
 import { byCode, shuffle } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { cn } from "@/lib/utils";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 const DISTRACTORS = [
   "#000000",
@@ -41,6 +42,7 @@ export default function FlagBuilder() {
   const [outcome, setOutcome] = useState(null);
   const [session, setSession] = useState({ correct: 0, xp: 0 });
   const questionStartedAtRef = useRef(Date.now());
+  const elapsedMs = useElapsedTimer(outcome !== "done", seed);
 
   const item = queue[idx];
   const target = item ? item.stripes : [];
@@ -65,6 +67,7 @@ export default function FlagBuilder() {
         correct={session.correct}
         total={queue.length}
         xp={session.xp}
+        timeMs={elapsedMs}
         onAgain={() => {
           setSeed((s) => s + 1);
           setIdx(0);
@@ -130,8 +133,9 @@ export default function FlagBuilder() {
   const horiz = item.orientation !== "vertical";
   return (
     <ModeShell title="Flag Builder" region={region || "World"}>
-      <div className="text-xs text-muted-foreground mb-4">
-        {idx + 1} / {queue.length}
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+        <span>{idx + 1} / {queue.length}</span>
+        <span className="font-semibold">Time · {formatElapsedTime(elapsedMs)}</span>
       </div>
       <div className="rounded-2xl border border-border bg-card p-6">
         <p className="text-sm text-muted-foreground text-center">

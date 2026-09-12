@@ -6,6 +6,7 @@ import FlagImage from "@/components/FlagImage";
 import { COUNTRIES, pickOptions, shuffle } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { cn } from "@/lib/utils";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 // A complete Go Berserk run covers every country once, in a fresh random order.
 const ROUND = COUNTRIES.length;
@@ -19,6 +20,7 @@ export default function WorldQuiz() {
   const [session, setSession] = useState({ correct: 0, xp: 0 });
   const answerLocked = useRef(false);
   const questionStartedAtRef = useRef(Date.now());
+  const elapsedMs = useElapsedTimer(index < queue.length, seed);
   const flag = queue[index];
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, null, 4) : []),
@@ -41,6 +43,7 @@ export default function WorldQuiz() {
         correct={session.correct}
         total={queue.length}
         xp={session.xp}
+        timeMs={elapsedMs}
         onAgain={() => {
           setSeed((value) => value + 1);
           setIndex(0);
@@ -79,7 +82,7 @@ export default function WorldQuiz() {
     <ModeShell title="Go Berserk" region="All countries">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <span className="font-bold">Question {index + 1} / {queue.length}</span>
-        <span className="inline-flex items-center gap-1 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Every country, one full run</span>
+        <span className="inline-flex items-center gap-1 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Time · {formatElapsedTime(elapsedMs)}</span>
       </div>
       <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] overflow-hidden rounded-lg border-2 border-foreground bg-muted">

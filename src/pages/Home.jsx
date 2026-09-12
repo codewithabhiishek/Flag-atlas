@@ -39,6 +39,7 @@ import PassportStamps from "@/components/PassportStamps";
 import FlagImage from "@/components/FlagImage";
 import { cn } from "@/lib/utils";
 import { playUiSound } from "@/lib/sounds";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 const MODES = [
   {
@@ -107,6 +108,7 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
   const shouldReduceMotion = useReducedMotion();
 
   const currentCountry = COUNTRIES[index];
+  const questionElapsedMs = useElapsedTimer(!answered, currentCountry.code);
 
   // Guarantee clean state reset and cooldown whenever question changes
   useEffect(() => {
@@ -156,22 +158,25 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
 
   return (
     <div className="atlas-card p-5 sm:p-6 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)]">
-      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center justify-between gap-2 mb-4">
         <div>
           <h2 className="font-display font-bold text-base sm:text-lg text-foreground leading-tight flex items-center gap-2">
             <Globe className="w-4 h-4 text-terra" /> Daily Challenge
           </h2>
           <p className="text-xs text-muted-foreground">Guess the flag · +15 XP on correct</p>
         </div>
-        <motion.button
-          whileHover={{ rotate: 180 }}
-          transition={{ duration: 0.3 }}
-          onClick={nextQuestion}
-          className="p-1.5 border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded"
-          title="New flag"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-terra">{formatElapsedTime(questionElapsedMs)}</span>
+          <motion.button
+            whileHover={{ rotate: 180 }}
+            transition={{ duration: 0.3 }}
+            onClick={nextQuestion}
+            className="p-1.5 border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded"
+            title="New flag"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </motion.button>
+        </div>
       </div>
 
       <div key={currentCountry.code} className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">

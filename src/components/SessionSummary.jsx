@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Trophy } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
+import { formatElapsedTime } from "@/hooks/use-elapsed-timer";
 
-export default function SessionSummary({ correct, total, xp, onAgain, extra }) {
+export default function SessionSummary({ correct, total, xp, timeMs, onAgain, extra }) {
   return (
     <ModeShell title="Summary">
       <div className="atlas-card grid-paper p-8 text-center">
@@ -15,6 +16,9 @@ export default function SessionSummary({ correct, total, xp, onAgain, extra }) {
         <p className="text-muted-foreground mt-2 font-medium">
           {correct} / {total} correct · +{xp} XP
         </p>
+        {typeof timeMs === "number" && (
+          <p className="mt-1 text-sm font-semibold text-terra">Time · {formatElapsedTime(timeMs)}</p>
+        )}
         {extra}
         <div className="flex flex-wrap gap-2 justify-center mt-6">
           <Link

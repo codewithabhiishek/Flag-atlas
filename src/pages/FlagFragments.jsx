@@ -7,6 +7,7 @@ import FlagImage from "@/components/FlagImage";
 import { flagsByRegion, shuffle, pickOptions } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { cn } from "@/lib/utils";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 const ROUND = 10;
 
@@ -27,6 +28,7 @@ export default function FlagFragments() {
   const [session, setSession] = useState({ correct: 0, wrong: 0, xp: 0 });
   const readyAtRef = useRef(0);
   const questionStartedAtRef = useRef(Date.now());
+  const elapsedMs = useElapsedTimer(outcome !== "done", seed);
   const flag = queue[idx];
 
   // Guarantee clean state reset and cooldown whenever question/flag changes
@@ -56,6 +58,7 @@ export default function FlagFragments() {
         correct={session.correct}
         total={queue.length}
         xp={session.xp}
+        timeMs={elapsedMs}
         onAgain={() => {
           setSeed((s) => s + 1);
           setIdx(0);
@@ -118,6 +121,7 @@ export default function FlagFragments() {
         <span>
           Score {session.correct} · +{session.xp} XP
         </span>
+        <span className="font-semibold">Time · {formatElapsedTime(elapsedMs)}</span>
       </div>
       <div key={flag.code} className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted relative">

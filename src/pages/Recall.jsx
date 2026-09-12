@@ -6,6 +6,7 @@ import SessionSummary from "@/components/SessionSummary";
 import FlagImage from "@/components/FlagImage";
 import { flagsByRegion, shuffle } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 const ROUND = 10;
 
@@ -23,6 +24,7 @@ export default function Recall() {
   const [done, setDone] = useState(false);
   const [session, setSession] = useState({ correct: 0, xp: 0 });
   const questionStartedAtRef = useRef(Date.now());
+  const elapsedMs = useElapsedTimer(!done, seed);
   const flag = queue[idx];
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function Recall() {
         correct={session.correct}
         total={queue.length}
         xp={session.xp}
+        timeMs={elapsedMs}
         onAgain={() => {
           setSeed((s) => s + 1);
           setIdx(0);
@@ -72,8 +75,9 @@ export default function Recall() {
 
   return (
     <ModeShell title="Recall" region={region || "World"}>
-      <div className="text-xs text-muted-foreground mb-4">
-        {idx + 1} / {queue.length}
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+        <span>{idx + 1} / {queue.length}</span>
+        <span className="font-semibold">Time · {formatElapsedTime(elapsedMs)}</span>
       </div>
       <div className="rounded-2xl border border-border bg-card p-6 text-center">
         <p className="text-xs uppercase tracking-widest text-terra">

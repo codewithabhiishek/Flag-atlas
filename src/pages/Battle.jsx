@@ -18,6 +18,7 @@ const PLAYABLE_REGIONS = REGIONS.filter((r) => r.id !== "Antarctica");
 import FlagImage from "@/components/FlagImage";
 import { cn } from "@/lib/utils";
 import { useProgress } from "@/lib/ProgressContext";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 const BATTLE_SOCKET_URL = import.meta.env.VITE_BATTLE_WS_URL ||
   (import.meta.env.DEV ? `ws://${window.location.hostname}:8787` : "");
@@ -78,6 +79,7 @@ export default function Battle() {
   const roomRef = useRef(null);
   const answerLockedRef = useRef(false);
   const questionStartedAtRef = useRef(Date.now());
+  const elapsedMs = useElapsedTimer(status === "playing", `${code || ""}-${status}`);
 
   useEffect(() => {
     if (!code) return;
@@ -305,6 +307,7 @@ export default function Battle() {
           <h1 className="font-display text-3xl sm:text-4xl text-foreground">
             Battle over
           </h1>
+          <p className="mt-2 text-sm font-semibold text-terra">Match time · {formatElapsedTime(elapsedMs)}</p>
           <div className="mt-5 space-y-2 text-left">
             {results.map((r) => (
               <div
@@ -524,6 +527,7 @@ export default function Battle() {
             <span className="text-foreground">
               {me?.correct || 0} correct · {me?.score || 0} pts
             </span>
+            <span className="text-terra">Time · {formatElapsedTime(elapsedMs)}</span>
           </div>
           {done ? (
             <div className="atlas-card grid-paper p-8 text-center">

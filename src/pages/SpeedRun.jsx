@@ -7,6 +7,7 @@ import { flagsByRegion, shuffle, pickOptions } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 const DURATION = 45;
 
@@ -33,6 +34,7 @@ export default function SpeedRun() {
   // the effect immediately after setScore may give a stale value.
   const finalScoreRef = useRef(0);
   const questionStartedAtRef = useRef(Date.now());
+  const elapsedMs = useElapsedTimer(running, seed);
 
   const flag = pool[pos];
   const options = useMemo(
@@ -151,6 +153,7 @@ export default function SpeedRun() {
           <p className="text-sm text-muted-foreground">
             {correctCount} correct · best combo {best}x
           </p>
+          <p className="mt-1 text-sm font-semibold text-terra">Finished in {formatElapsedTime(elapsedMs)}</p>
           <div className="max-w-xs mx-auto mt-6 text-left">
             <h3 className="text-sm font-medium text-forest mb-2">
               Leaderboard · {region || "World"}

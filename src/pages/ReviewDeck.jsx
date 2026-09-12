@@ -8,6 +8,7 @@ import { COUNTRIES, pickOptions } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { isDue } from "@/lib/spacedRepetition";
 import { cn } from "@/lib/utils";
+import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
 export default function ReviewDeck() {
   const { state, touchStreak, record } = useProgress();
@@ -34,8 +35,8 @@ export default function ReviewDeck() {
   const [done, setDone] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [seed, setSeed] = useState(0);
-
   const flag = deck[idx];
+  const elapsedMs = useElapsedTimer(done < deck.length && Boolean(flag), seed);
 
   // Guarantee clean state reset and cooldown whenever question/card changes
   useEffect(() => {
@@ -83,6 +84,7 @@ export default function ReviewDeck() {
         correct={correct}
         total={done}
         xp={correct * 10}
+        timeMs={elapsedMs}
         onAgain={() => {
           setIdx(0);
           setChosen(null);
@@ -129,6 +131,7 @@ export default function ReviewDeck() {
         <span>
           {correct} correct · +{correct * 10} XP
         </span>
+        <span className="font-semibold">Time · {formatElapsedTime(elapsedMs)}</span>
       </div>
       <div key={flag.code} className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted">
