@@ -85,8 +85,9 @@ export default function SpeedRun() {
   // We use a ref for the final score to avoid stale closure issues.
   useEffect(() => {
     if (!running) {
-      recordLeaderboard(region || "World", finalScoreRef.current);
+      // Don't pollute the top-10 with zero-score entries from instant quits.
       if (finalScoreRef.current > 0) {
+        recordLeaderboard(region || "World", finalScoreRef.current);
         confetti({
           particleCount: 75,
           spread: 80,
