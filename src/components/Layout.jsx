@@ -166,8 +166,26 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t-2 border-foreground py-5 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground bg-background/80 backdrop-blur">
-        FlagAtlas · explore the world, master every flag · 🌍 195+ sovereign nations
+      <footer className="border-t-2 border-foreground bg-background/80 px-5 py-5 text-center backdrop-blur sm:px-8 sm:py-6">
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-2 text-muted-foreground">
+          <p className="text-xs font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-widest">
+            FlagAtlas · explore the world, master every flag
+          </p>
+          <p className="text-[11px] font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-widest">
+            🌍 195+ sovereign nations
+          </p>
+          <p className="pt-1 text-xs font-medium normal-case leading-relaxed">
+            <a
+              href="https://abhiishek.is-a.dev/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-foreground underline decoration-terra/70 underline-offset-4 transition-colors hover:text-terra focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              Built by Abhishek
+            </a>{" "}
+            · Still looking for Atlantis.
+          </p>
+        </div>
       </footer>
     </div>
   );
