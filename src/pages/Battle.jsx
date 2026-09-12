@@ -19,9 +19,22 @@ import FlagImage from "@/components/FlagImage";
 import { cn } from "@/lib/utils";
 import { useProgress } from "@/lib/ProgressContext";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
+import { randomRoomCode } from "@/lib/battle/engine";
+import { createPeerHostLink, tryPeerGuestLink } from "@/lib/battle/peerTransport";
 
-const BATTLE_SOCKET_URL = import.meta.env.VITE_BATTLE_WS_URL ||
-  (import.meta.env.DEV ? `ws://${window.location.hostname}:8787` : "");
+const MAX_PLAYERS = 5;
+
+/*
+ * Multiplayer transport — Word Rush architecture, zero backend.
+ *
+ * The host player's browser runs the authoritative BattleEngine and announces
+ * the room over PeerJS's free signaling broker; the guest connects directly to
+ * the host via a WebRTC data channel. All game traffic is peer-to-peer, so
+ * this works on any static host (Vercel) with no server to deploy.
+ *
+ * Trade-off (same as Word Rush): the host tab IS the server — if the host
+ * closes the tab, the room ends.
+ */
 
 const ADJ = [
   "Swift",
@@ -37,19 +50,7 @@ function randomName() {
   return `${ADJ[Math.floor(Math.random() * ADJ.length)]}-${Math.floor(100 + Math.random() * 900)}`;
 }
 function randomCode() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let s = "";
-  for (let i = 0; i < 4; i++)
-    s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
-}
-function getConnId() {
-  let id = sessionStorage.getItem("fa_conn");
-  if (!id) {
-    id = crypto.randomUUID();
-    sessionStorage.setItem("fa_conn", id);
-  }
-  return id;
+  return randomRoomCode();
 }
 
 export default function Battle() {
@@ -83,55 +84,88 @@ export default function Battle() {
 
   useEffect(() => {
     if (!code) return;
-    if (!BATTLE_SOCKET_URL) {
-      setConnectionError("Multiplayer is not configured for this deployment yet.");
-      return;
-    }
-    const socket = new WebSocket(BATTLE_SOCKET_URL);
-    roomRef.current = {
-      send: (message) => {
-        if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
-      },
+    let disposed = false;
+    let link = null;
+    const offMessages = [];
+
+    const bind = (gameLink) => {
+      link = gameLink;
+      roomRef.current = {
+        send: (message) => link.send(message),
+      };
+      offMessages.push(
+        link.onMessage((message) => {
+          if (disposed) return;
+          if (message.type === "joined") {
+            setMySeat(message.seat);
+            setConnected(true);
+            setConnectionError("");
+          }
+          if (message.type === "error") setConnectionError(message.message);
+          if (message.type === "kicked") {
+            setConnectionError("The host removed you from this room.");
+            setCode(null);
+          }
+          if (message.type === "notice") {
+            setNotice(message.message);
+            window.setTimeout(() => setNotice(""), 4000);
+          }
+          if (message.type === "state") {
+            setStatus(message.status);
+            setPlayers(message.players);
+            setQuestions(message.questions);
+            setRoomRegion(message.region);
+            setRoomRounds(message.rounds);
+            setHostSeat(message.hostSeat);
+          }
+          if (message.type === "finished") setResults(message.results);
+        }),
+      );
+      link.onClose = () => {
+        if (!disposed) setConnected(false);
+      };
     };
-    socket.addEventListener("open", () => {
-      setConnected(true);
-      setConnectionError("");
-      socket.send(JSON.stringify({
-        type: "join",
-        code,
-        name,
-        create: roomMode === "create",
-        region,
-        rounds,
-        connectionId: getConnId(),
-      }));
-    });
-    socket.addEventListener("message", (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === "joined") setMySeat(message.seat);
-      if (message.type === "error") setConnectionError(message.message);
-      if (message.type === "kicked") {
-        setConnectionError("The host removed you from this room.");
-        setCode(null);
+
+    const joinMsg = {
+      type: "join",
+      code,
+      name,
+      create: roomMode === "create",
+      region,
+      rounds,
+    };
+
+    async function connect() {
+      if (roomMode === "create") {
+        // Host: engine runs in this tab; peers dial in via PeerJS.
+        bind(createPeerHostLink({ code, name, region, rounds }));
+        return;
       }
-      if (message.type === "notice") {
-        setNotice(message.message);
-        window.setTimeout(() => setNotice(""), 4000);
+      // Guest: dial the host's peer id directly over WebRTC.
+      try {
+        const guestLink = await tryPeerGuestLink(code);
+        if (disposed) {
+          guestLink.close();
+          return;
+        }
+        bind(guestLink);
+        guestLink.send(joinMsg);
+      } catch {
+        if (!disposed) {
+          setConnectionError(
+            "Could not reach the room host. Make sure they still have the room open, then try again.",
+          );
+          setConnected(false);
+        }
       }
-      if (message.type === "state") {
-        setStatus(message.status);
-        setPlayers(message.players);
-        setQuestions(message.questions);
-        setRoomRegion(message.region);
-        setRoomRounds(message.rounds);
-        setHostSeat(message.hostSeat);
-      }
-      if (message.type === "finished") setResults(message.results);
-    });
-    socket.addEventListener("error", () => setConnectionError("Could not reach the multiplayer server."));
-    socket.addEventListener("close", () => setConnected(false));
+    }
+
+    connect();
+
     return () => {
-      socket.close();
+      disposed = true;
+      offMessages.forEach((off) => off());
+      link?.close();
       roomRef.current = null;
     };
   }, [code, name, region, rounds, roomMode]);
@@ -430,9 +464,9 @@ export default function Battle() {
                 )}
               </li>
             ))}
-            {players.length < 2 && (
+            {players.length < MAX_PLAYERS && (
               <li className="text-sm text-muted-foreground font-medium px-1">
-                Waiting for an opponent to join…
+                {MAX_PLAYERS - players.length} more can join this room…
               </li>
             )}
           </ul>
@@ -516,6 +550,7 @@ export default function Battle() {
 
   // ---- Playing ----
   const done = myIndex >= questions.length;
+  const finishedCount = players.filter((p) => p.finished).length;
   return (
     <div className="mx-auto max-w-5xl px-3 sm:px-4 py-5 sm:py-6">
       <div className="grid lg:grid-cols-[1fr_240px] gap-4 sm:gap-5">
@@ -536,7 +571,7 @@ export default function Battle() {
                 You're done!
               </h2>
               <p className="text-muted-foreground mt-1 font-medium">
-                Waiting for the opponent to finish…
+                Waiting for {finishedCount}/{players.length} players to finish…
               </p>
             </div>
           ) : (
