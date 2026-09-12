@@ -151,7 +151,9 @@ export class BattleEngine {
       totalAnswerMs: 0,
       answerCount: 0,
       lastAnswerMs: 0,
-      ready: false,
+      // Word Rush rule: the host is implicitly always ready — a freshly
+      // created room must never be blocked by its own host.
+      ready: Boolean(creating),
       connId,
     };
     room.players.set(seat, player);
@@ -185,10 +187,11 @@ export class BattleEngine {
     const player = room.players.get(conn.seat);
     if (!player) return;
     if (conn.seat === room.hostSeat) {
+      // Hosts cannot unready — readiness is implicit in hosting.
       player.ready = true;
-    } else {
-      player.ready = msg.ready === true;
+      return;
     }
+    player.ready = msg.ready === true;
     this.broadcast(room);
   }
 
