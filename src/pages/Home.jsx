@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useGsapScrollReveal } from "@/lib/gsapScroll";
 import { HomeSkeleton } from "@/components/Skeletons";
 import {
@@ -32,8 +32,7 @@ import {
   regionTotal,
 } from "@/lib/derive";
 import { REGIONS } from "@/data/regions";
-import { COUNTRIES, pickOptions, byCode } from "@/data/countries";
-import { BUILDABLE } from "@/data/buildableFlags";
+import { COUNTRIES, pickOptions } from "@/data/countries";
 import WorldMap from "@/components/WorldMap";
 import MasteryMeter from "@/components/MasteryMeter";
 import PassportStamps from "@/components/PassportStamps";
@@ -334,6 +333,7 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
 // ── Main Home ────────────────────────────────────────────────────────────────
 export default function Home() {
   const { state, record } = useProgress();
+  const navigate = useNavigate();
   const containerRef = useRef(null);
   const [ready, setReady] = useState(false);
 
@@ -356,11 +356,9 @@ export default function Home() {
 
   // Session activity log — tracks answers this page session (not persisted)
   const [activityLog, setActivityLog] = useState([]);
-  const [selectedRegion, setSelectedRegion] = useState(null);
-
   const openModePicker = useCallback((region = "") => {
-    setSelectedRegion(region);
-  }, []);
+    navigate(`/play${region ? `?region=${encodeURIComponent(region)}` : ""}`);
+  }, [navigate]);
 
   const handleAnswer = useCallback((country, isCorrect) => {
     // Record to persistent store (correct + wrong both update stats.answered)
@@ -626,37 +624,6 @@ export default function Home() {
         </div>
         <PassportStamps flags={state.flags} />
       </section>
-
-      {selectedRegion !== null && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="mode-picker-title">
-          <div className="w-full max-w-2xl border-2 border-foreground bg-background p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] sm:p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-terra">Choose a game</p>
-                <h2 id="mode-picker-title" className="mt-1 font-display text-2xl font-bold text-foreground">{selectedRegion || "World"}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Every question will use flags from this selection.</p>
-              </div>
-              <button type="button" onClick={() => setSelectedRegion(null)} className="border-2 border-foreground p-2" aria-label="Close game picker">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {MODES.map((mode) => {
-                const builderUnavailable = mode.key === "builder" && selectedRegion && !BUILDABLE.some((item) => byCode(item.code)?.region === selectedRegion);
-                const destination = `${mode.path}${selectedRegion ? `?region=${encodeURIComponent(selectedRegion)}` : ""}`;
-                if (builderUnavailable) {
-                  return <div key={mode.key} className="border-2 border-border bg-muted p-4 opacity-60"><p className="font-display font-bold">{mode.label}</p><p className="mt-1 text-xs">No stripe-pattern flags for this region yet.</p></div>;
-                }
-                return <Link key={mode.key} to={destination} onClick={() => setSelectedRegion(null)} className={cn("border-2 border-foreground p-4 transition-transform hover:-translate-y-0.5", mode.accent)}>
-                  <mode.icon className="mb-2 h-5 w-5" />
-                  <p className="font-display font-bold text-foreground">{mode.label}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{mode.desc}</p>
-                </Link>;
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

@@ -13,6 +13,7 @@ import FlagFragments from "@/pages/FlagFragments";
 import SpeedRun from "@/pages/SpeedRun";
 import Recall from "@/pages/Recall";
 import FlagBuilder from "@/pages/FlagBuilder";
+import ModePicker from "@/pages/ModePicker";
 import ReviewDeck from "@/pages/ReviewDeck";
 import Dashboard from "@/pages/Dashboard";
 import Battle from "@/pages/Battle";
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
         <Route path="/play/speed" element={<SpeedRun />} />
         <Route path="/play/recall" element={<Recall />} />
         <Route path="/play/builder" element={<FlagBuilder />} />
+        <Route path="/play" element={<ModePicker />} />
         <Route path="/review" element={<ReviewDeck />} />
         <Route path="/battle" element={<Battle />} />
         <Route path="/dashboard" element={<Dashboard />} />
