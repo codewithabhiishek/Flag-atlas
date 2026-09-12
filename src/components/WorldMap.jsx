@@ -43,11 +43,17 @@ function isTouchDevice() {
   return window.matchMedia("(pointer: coarse)").matches;
 }
 
-function positionTooltip(anchorRect, tooltipRect) {
+function positionTooltip(anchorRect, tooltipRect, boundaryRect) {
   const pad = 12;
   const gap = 14;
   const width = tooltipRect.width;
   const height = tooltipRect.height;
+  const boundary = {
+    left: Math.max(pad, boundaryRect.left + pad),
+    top: Math.max(pad, boundaryRect.top + pad),
+    right: Math.min(window.innerWidth - pad, boundaryRect.right - pad),
+    bottom: Math.min(window.innerHeight - pad, boundaryRect.bottom - pad),
+  };
   const centerX = anchorRect.left + anchorRect.width / 2;
   const centerY = anchorRect.top + anchorRect.height / 2;
   const candidates = [
@@ -57,14 +63,14 @@ function positionTooltip(anchorRect, tooltipRect) {
     { left: centerX - width / 2, top: anchorRect.top - height - gap },
   ];
   const fits = (candidate) =>
-    candidate.left >= pad &&
-    candidate.top >= pad &&
-    candidate.left + width <= window.innerWidth - pad &&
-    candidate.top + height <= window.innerHeight - pad;
+    candidate.left >= boundary.left &&
+    candidate.top >= boundary.top &&
+    candidate.left + width <= boundary.right &&
+    candidate.top + height <= boundary.bottom;
   const candidate = candidates.find(fits) || candidates[0];
   return {
-    left: Math.min(Math.max(pad, candidate.left), window.innerWidth - width - pad),
-    top: Math.min(Math.max(pad, candidate.top), window.innerHeight - height - pad),
+    left: Math.min(Math.max(boundary.left, candidate.left), Math.max(boundary.left, boundary.right - width)),
+    top: Math.min(Math.max(boundary.top, candidate.top), Math.max(boundary.top, boundary.bottom - height)),
   };
 }
 
@@ -114,7 +120,10 @@ export default function WorldMap({ flags, onSelectRegion }) {
   useLayoutEffect(() => {
     if (!hoverInfo || !hoverAnchor || !tooltipRef.current) return;
     const updatePosition = () => {
-      setTooltipPosition(positionTooltip(hoverAnchor, tooltipRef.current.getBoundingClientRect()));
+      const boundary = containerRef.current?.getBoundingClientRect();
+      if (boundary) {
+        setTooltipPosition(positionTooltip(hoverAnchor, tooltipRef.current.getBoundingClientRect(), boundary));
+      }
     };
     updatePosition();
     window.addEventListener("resize", updatePosition);
