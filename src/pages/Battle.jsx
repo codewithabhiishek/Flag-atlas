@@ -17,6 +17,7 @@ import { REGIONS } from "@/data/regions";
 const PLAYABLE_REGIONS = REGIONS.filter((r) => r.id !== "Antarctica");
 import FlagImage from "@/components/FlagImage";
 import { cn } from "@/lib/utils";
+import { useProgress } from "@/lib/ProgressContext";
 
 const BATTLE_SOCKET_URL = import.meta.env.VITE_BATTLE_WS_URL ||
   (import.meta.env.DEV ? `ws://${window.location.hostname}:8787` : "");
@@ -51,6 +52,7 @@ function getConnId() {
 }
 
 export default function Battle() {
+  const { record } = useProgress();
   const [searchParams] = useSearchParams();
   const [code, setCode] = useState(null);
   const [name, setName] = useState(() => randomName());
@@ -74,6 +76,8 @@ export default function Battle() {
   const [connected, setConnected] = useState(false);
   const [notice, setNotice] = useState("");
   const roomRef = useRef(null);
+  const answerLockedRef = useRef(false);
+  const questionStartedAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (!code) return;
@@ -135,9 +139,23 @@ export default function Battle() {
     if (player) setMyIndex(player.index);
   }, [players, mySeat]);
 
+  useEffect(() => {
+    if (status !== "playing") return;
+    answerLockedRef.current = false;
+    questionStartedAtRef.current = Date.now();
+  }, [status, myIndex]);
+
   function answer(opt) {
-    if (picked || !roomRef.current) return;
+    if (picked || answerLockedRef.current || !roomRef.current || !q) return;
+    answerLockedRef.current = true;
     setPicked(opt);
+    const correct = opt === q.flag;
+    record(q.flag, {
+      correct,
+      quality: correct ? 5 : 2,
+      xpGain: correct ? 5 : 0,
+      timeMs: Date.now() - questionStartedAtRef.current,
+    });
     roomRef.current.send({ type: "answer", choice: opt });
     setTimeout(() => setPicked(null), 350);
   }

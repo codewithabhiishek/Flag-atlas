@@ -103,6 +103,7 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
   const readyAtRef = useRef(0);
+  const questionStartedAtRef = useRef(Date.now());
   const shouldReduceMotion = useReducedMotion();
 
   const currentCountry = COUNTRIES[index];
@@ -112,6 +113,7 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
     setSelected(null);
     setAnswered(false);
     readyAtRef.current = Date.now() + 220; // Ignore accidental click-bleed
+    questionStartedAtRef.current = Date.now();
   }, [currentCountry.code]);
 
   const choices = useMemo(() => {
@@ -126,7 +128,7 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
     setAnswered(true);
 
     // ✅ Always record — correct OR wrong — so stats.answered stays accurate
-    onAnswer(currentCountry, isCorrect);
+    onAnswer(currentCountry, isCorrect, Date.now() - questionStartedAtRef.current);
 
     playUiSound(isCorrect ? "success" : "error");
 
@@ -400,12 +402,13 @@ export default function Home() {
     navigate(`/play${region ? `?region=${encodeURIComponent(region)}` : ""}`);
   }, [navigate]);
 
-  const handleAnswer = useCallback((country, isCorrect) => {
+  const handleAnswer = useCallback((country, isCorrect, timeMs) => {
     // Record to persistent store (correct + wrong both update stats.answered)
     record(country.code, {
       correct: isCorrect,
       quality: isCorrect ? 5 : 2,
       xpGain: isCorrect ? 15 : 0,
+      timeMs: timeMs,
     });
 
     // Add to session feed

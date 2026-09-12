@@ -10,7 +10,14 @@ import { reviewCard, newCard } from "@/lib/spacedRepetition";
 // today() as a function so it's evaluated at call-time, not module load-time.
 // A module-level `const today = new Date()...` would be stale if the app runs
 // past midnight without a refresh.
-const today = () => new Date().toISOString().slice(0, 10);
+// Use the player's local calendar day. `toISOString()` uses UTC, which can
+// incorrectly change a streak around local midnight in non-UTC time zones.
+const today = () => {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10);
+};
 
 const KEY = "flagatlas.progress.v1";
 
@@ -95,10 +102,11 @@ export function ProgressProvider({ children }) {
             sr,
           },
         };
+        const safeTimeMs = Number.isFinite(timeMs) ? Math.max(0, timeMs) : 0;
         const stats = {
           answered: (s.stats?.answered || 0) + 1,
           correct: (s.stats?.correct || 0) + (correct ? 1 : 0),
-          timePlayedMs: (s.stats?.timePlayedMs || 0) + (timeMs || 0),
+          timePlayedMs: (s.stats?.timePlayedMs || 0) + safeTimeMs,
         };
         return {
           ...s,

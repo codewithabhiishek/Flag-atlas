@@ -26,6 +26,7 @@ export default function FlagFragments() {
   const [earnedXp, setEarnedXp] = useState(0);
   const [session, setSession] = useState({ correct: 0, wrong: 0, xp: 0 });
   const readyAtRef = useRef(0);
+  const questionStartedAtRef = useRef(Date.now());
   const flag = queue[idx];
 
   // Guarantee clean state reset and cooldown whenever question/flag changes
@@ -33,6 +34,7 @@ export default function FlagFragments() {
     setChosen([]);
     setOutcome(null);
     readyAtRef.current = Date.now() + 220;
+    questionStartedAtRef.current = Date.now();
   }, [flag?.code, seed]);
 
   // Deps keyed on flag.code + region so options always match the current flag.
@@ -76,7 +78,7 @@ export default function FlagFragments() {
     if (opt.code === flag.code) {
       const xp = 12 + (3 - chosen.length) * 4;
       const quality = chosen.length === 0 ? 5 : chosen.length <= 1 ? 4 : 3;
-      record(flag.code, { correct: true, quality, xpGain: xp });
+      record(flag.code, { correct: true, quality, xpGain: xp, timeMs: Date.now() - questionStartedAtRef.current });
       setEarnedXp(xp);
       setOutcome("win");
       setSession((s) => ({ ...s, correct: s.correct + 1, xp: s.xp + xp }));
@@ -84,7 +86,7 @@ export default function FlagFragments() {
       const nc = [...chosen, opt.code];
       setChosen(nc);
       if (nc.length >= 3) {
-        record(flag.code, { correct: false, quality: 2, xpGain: 0 });
+        record(flag.code, { correct: false, quality: 2, xpGain: 0, timeMs: Date.now() - questionStartedAtRef.current });
         setOutcome("lose");
         setSession((s) => ({ ...s, wrong: s.wrong + 1 }));
       }

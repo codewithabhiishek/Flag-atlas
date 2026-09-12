@@ -172,7 +172,7 @@ export default function Layout() {
             FlagAtlas · explore the world, master every flag
           </p>
           <p className="text-[11px] font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-widest">
-            🌍 195+ sovereign nations
+            🌍 197 countries to master
           </p>
           <p className="pt-1 text-xs font-medium normal-case leading-relaxed">
             <a

@@ -5,7 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#1F3D2E" />
+    <meta name="theme-color" content="#F4ECD8" />
     <meta name="description" content="FlagAtlas — learn every world flag through a premium, gamified world explorer." />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -16,7 +16,9 @@
     <script>
       try {
         const t = localStorage.getItem('flagatlas.theme');
-        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        // First visits always begin in the light paper theme. Dark mode is
+        // applied only after this person explicitly chooses it.
+        if (t === 'dark') {
           document.documentElement.classList.add('dark');
         }
       } catch (e) {}

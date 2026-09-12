@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 export default function ReviewDeck() {
   const { state, touchStreak, record } = useProgress();
   const readyAtRef = useRef(0);
+  const questionStartedAtRef = useRef(Date.now());
 
   // A card enters the review deck when it is due for spaced-repetition review
   // OR when its accuracy is weak (correct < 60% of seen, minimum 2 attempts).
@@ -40,6 +41,7 @@ export default function ReviewDeck() {
   useEffect(() => {
     setChosen(null);
     readyAtRef.current = Date.now() + 220;
+    questionStartedAtRef.current = Date.now();
   }, [flag?.code, seed]);
 
   // Deps keyed on flag?.code so options update whenever the flag changes.
@@ -101,6 +103,7 @@ export default function ReviewDeck() {
       correct: ok,
       quality: ok ? 5 : 2,
       xpGain: ok ? 10 : 0,
+      timeMs: Date.now() - questionStartedAtRef.current,
     });
     if (ok) setCorrect((c) => c + 1);
     setDone((d) => d + 1);

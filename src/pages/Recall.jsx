@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Eye } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
@@ -22,11 +22,16 @@ export default function Recall() {
   const [revealed, setRevealed] = useState(false);
   const [done, setDone] = useState(false);
   const [session, setSession] = useState({ correct: 0, xp: 0 });
+  const questionStartedAtRef = useRef(Date.now());
   const flag = queue[idx];
 
   useEffect(() => {
     touchStreak();
   }, [touchStreak]);
+
+  useEffect(() => {
+    questionStartedAtRef.current = Date.now();
+  }, [flag?.code]);
 
   if (done) {
     return (
@@ -52,6 +57,7 @@ export default function Recall() {
       correct: remembered,
       quality: remembered ? 5 : 2,
       xpGain: remembered ? 8 : 0,
+      timeMs: Date.now() - questionStartedAtRef.current,
     });
     setSession((s) => ({
       correct: s.correct + (remembered ? 1 : 0),

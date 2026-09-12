@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Undo2 } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
@@ -40,6 +40,7 @@ export default function FlagBuilder() {
   const [slots, setSlots] = useState([]);
   const [outcome, setOutcome] = useState(null);
   const [session, setSession] = useState({ correct: 0, xp: 0 });
+  const questionStartedAtRef = useRef(Date.now());
 
   const item = queue[idx];
   const target = item ? item.stripes : [];
@@ -53,6 +54,10 @@ export default function FlagBuilder() {
   useEffect(() => {
     touchStreak();
   }, [touchStreak]);
+
+  useEffect(() => {
+    questionStartedAtRef.current = Date.now();
+  }, [item?.code]);
 
   if (outcome === "done") {
     return (
@@ -105,6 +110,7 @@ export default function FlagBuilder() {
       // successful recall and therefore must not advance mastery.
       quality: perfect ? 5 : 2,
       xpGain: xp,
+      timeMs: Date.now() - questionStartedAtRef.current,
     });
     setSession((s) => ({
       correct: s.correct + (perfect ? 1 : 0),

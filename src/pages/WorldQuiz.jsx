@@ -18,6 +18,7 @@ export default function WorldQuiz() {
   const [chosen, setChosen] = useState(null);
   const [session, setSession] = useState({ correct: 0, xp: 0 });
   const answerLocked = useRef(false);
+  const questionStartedAtRef = useRef(Date.now());
   const flag = queue[index];
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, null, 4) : []),
@@ -31,6 +32,7 @@ export default function WorldQuiz() {
   useEffect(() => {
     answerLocked.current = false;
     setChosen(null);
+    questionStartedAtRef.current = Date.now();
   }, [flag?.code]);
 
   if (index >= queue.length) {
@@ -57,7 +59,12 @@ export default function WorldQuiz() {
     const correct = option.code === flag.code;
     const xp = correct ? 10 : 0;
     setChosen(option.code);
-    record(flag.code, { correct, quality: correct ? 5 : 2, xpGain: xp });
+    record(flag.code, {
+      correct,
+      quality: correct ? 5 : 2,
+      xpGain: xp,
+      timeMs: Date.now() - questionStartedAtRef.current,
+    });
     setSession((current) => ({
       correct: current.correct + (correct ? 1 : 0),
       xp: current.xp + xp,

@@ -32,6 +32,7 @@ export default function SpeedRun() {
   // committed value — React batches state updates so reading `score` inside
   // the effect immediately after setScore may give a stale value.
   const finalScoreRef = useRef(0);
+  const questionStartedAtRef = useRef(Date.now());
 
   const flag = pool[pos];
   const options = useMemo(
@@ -81,6 +82,7 @@ export default function SpeedRun() {
   }, [running]);
 
   function nextFlag() {
+    questionStartedAtRef.current = Date.now();
     setPos((p) => (p + 1) % pool.length);
   }
 
@@ -101,13 +103,13 @@ export default function SpeedRun() {
       });
       setCorrectCount((c) => c + 1);
       setFlash("ok");
-      record(flag.code, { correct: true, quality: 5, xpGain: 5 });
+      record(flag.code, { correct: true, quality: 5, xpGain: 5, timeMs: Date.now() - questionStartedAtRef.current });
       nextFlag();
     } else {
       comboRef.current = 0;
       setCombo(0);
       setFlash("no");
-      record(flag.code, { correct: false, quality: 2, xpGain: 0 });
+      record(flag.code, { correct: false, quality: 2, xpGain: 0, timeMs: Date.now() - questionStartedAtRef.current });
       setTime((s) => {
         const next = Math.max(0, s - 2);
         if (next === 0) setRunning(false);
@@ -124,6 +126,7 @@ export default function SpeedRun() {
   function restart() {
     comboRef.current = 0;
     finalScoreRef.current = 0;
+    questionStartedAtRef.current = Date.now();
     setPos(0);
     setScore(0);
     setCombo(0);
