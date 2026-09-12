@@ -172,11 +172,10 @@ wss.on("connection", (socket) => {
     if (!room.players.size) return rooms.delete(room.code);
     if (player.seat === room.hostSeat) room.hostSeat = [...room.players.keys()][0];
     if (room.status === "playing") {
-      for (const remaining of room.players.values()) {
-        remaining.finished = true;
-        remaining.finishedAt ||= Date.now();
-      }
-      finishIfReady(room);
+      // A disconnect must not end the match for everyone else: remaining
+      // players are allowed to play out all their questions. The departed
+      // player simply keeps whatever score they had when they left.
+      broadcast(room);
     } else broadcast(room);
     announce(room, `${player.name} left the room.`);
   });

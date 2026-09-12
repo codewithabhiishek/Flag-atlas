@@ -30,12 +30,20 @@ export default function ReviewDeck() {
     });
   }, [state.flags]);
 
+  // Snapshot the deck when a session starts. Deriving the playing deck
+  // directly from `state.flags` would shrink it after every answer (each
+  // recorded answer pushes that card's SR due date forward), which shifts all
+  // later cards up and skips one whenever "Next card" also advances `idx`.
+  // The live memo is still used for the empty-state check and to build a fresh
+  // snapshot when starting a new session.
+  const [sessionDeck, setSessionDeck] = useState(deck);
+
   const [idx, setIdx] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [done, setDone] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [seed, setSeed] = useState(0);
-  const flag = deck[idx];
+  const flag = sessionDeck[idx];
   const elapsedMs = useElapsedTimer(done < deck.length && Boolean(flag), seed);
 
   // Guarantee clean state reset and cooldown whenever question/card changes
@@ -58,7 +66,7 @@ export default function ReviewDeck() {
     touchStreak();
   }, [touchStreak]);
 
-  if (deck.length === 0) {
+  if (sessionDeck.length === 0) {
     return (
       <ModeShell title="Review Deck" region="Weak flags">
         <div className="atlas-card p-8 text-center max-w-md mx-auto">
@@ -78,7 +86,7 @@ export default function ReviewDeck() {
     );
   }
 
-  if (done >= deck.length || !flag) {
+  if (done >= sessionDeck.length || !flag) {
     return (
       <SessionSummary
         correct={correct}
@@ -86,6 +94,9 @@ export default function ReviewDeck() {
         xp={correct * 10}
         timeMs={elapsedMs}
         onAgain={() => {
+          // Rebuild the snapshot from the live deck so the new session reflects
+          // the flags reviewed in the previous one (they are no longer due).
+          setSessionDeck(deck);
           setIdx(0);
           setChosen(null);
           setDone(0);
@@ -126,7 +137,7 @@ export default function ReviewDeck() {
     <ModeShell title="Review Deck" region="Weak flags">
       <div className="flex items-center justify-between mb-4 text-xs text-muted-foreground">
         <span>
-          Card {Math.min(idx + 1, deck.length)} / {deck.length}
+          Card {Math.min(idx + 1, sessionDeck.length)} / {sessionDeck.length}
         </span>
         <span>
           {correct} correct · +{correct * 10} XP
@@ -193,7 +204,7 @@ export default function ReviewDeck() {
             onClick={next}
             className="px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {idx + 1 >= deck.length ? "Finish" : "Next card"}
+            {idx + 1 >= sessionDeck.length ? "Finish" : "Next card"}
           </button>
         </div>
       )}
