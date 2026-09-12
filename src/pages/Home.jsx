@@ -42,6 +42,15 @@ import { playUiSound } from "@/lib/sounds";
 
 const MODES = [
   {
+    key: "world-quiz",
+    path: "/play/world-quiz",
+    label: "World Quiz",
+    desc: "20 random flags from every country",
+    icon: Globe,
+    accent: "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30",
+    iconBg: "bg-violet-500/15",
+  },
+  {
     key: "fragments",
     path: "/play/fragments",
     label: "Fragments",
@@ -542,7 +551,7 @@ export default function Home() {
           <h2 className="font-display text-xl font-bold text-foreground">Game Modes</h2>
           <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Pick your style</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {MODES.map((md, i) => (
             <motion.div
               key={md.key}

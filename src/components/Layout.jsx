@@ -183,7 +183,7 @@ export default function Layout() {
             >
               Built by Abhishek
             </a>{" "}
-            · Still looking for Atlantis.
+            · To humble your geography.
           </p>
         </div>
       </footer>

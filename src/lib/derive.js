@@ -1,6 +1,9 @@
 import { COUNTRIES } from "@/data/countries";
 
 export function isMastered(rec) {
+  // A country is complete only after three consecutive successful reviews.
+  // `reviewCard` resets reps after any incorrect attempt, so this definition
+  // is shared by the map, region totals, passport, rank, and dashboard.
   return !!(rec && rec.sr && rec.sr.reps >= 3);
 }
 

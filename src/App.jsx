@@ -17,6 +17,7 @@ import ModePicker from "@/pages/ModePicker";
 import ReviewDeck from "@/pages/ReviewDeck";
 import Dashboard from "@/pages/Dashboard";
 import Battle from "@/pages/Battle";
+import WorldQuiz from "@/pages/WorldQuiz";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/play/speed" element={<SpeedRun />} />
         <Route path="/play/recall" element={<Recall />} />
         <Route path="/play/builder" element={<FlagBuilder />} />
+        <Route path="/play/world-quiz" element={<WorldQuiz />} />
         <Route path="/play" element={<ModePicker />} />
         <Route path="/review" element={<ReviewDeck />} />
         <Route path="/battle" element={<Battle />} />

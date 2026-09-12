@@ -56,10 +56,10 @@
 | Region | Countries |
 |---|---|
 | 🌍 Africa | 54 |
-| 🌏 Asia | 47 |
+| 🌏 Asia | 48 |
 | 🌎 North America | 23 |
 | 🌎 South America | 12 |
-| 🌍 Europe | 47 |
+| 🌍 Europe | 46 |
 | 🌊 Oceania | 14 |
 | **Total** | **197** |
 

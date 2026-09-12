@@ -214,7 +214,7 @@ export default function Battle() {
               onChange={(e) => setRegion(e.target.value)}
               className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-2 text-sm font-medium focus:outline-none"
             >
-              <option value="World">World</option>
+              <option value="World">World · all 197 countries</option>
               {PLAYABLE_REGIONS.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.id}
@@ -232,6 +232,7 @@ export default function Battle() {
               onChange={(e) => setRounds(Number(e.target.value))}
               className="w-full mt-2 mb-4 accent-foreground"
             />
+            <p className="-mt-2 mb-4 text-xs text-muted-foreground">World uses a random mix from all 197 countries.</p>
             <button
               onClick={() => openRoom(randomCode(), "create")}
               className="w-full h-11 border-2 border-foreground bg-foreground text-background font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform"
@@ -440,7 +441,7 @@ export default function Battle() {
                 }
                 className="mt-1 w-full h-10 border-2 border-foreground bg-card px-2 text-sm font-medium focus:outline-none"
               >
-                <option value="World">World</option>
+                <option value="World">World · all 197 countries</option>
                 {PLAYABLE_REGIONS.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.id}

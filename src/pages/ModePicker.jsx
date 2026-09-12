@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Eye, Palette, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, Eye, Globe2, Palette, Sparkles, Zap } from "lucide-react";
 import { BUILDABLE } from "@/data/buildableFlags";
 import { byCode } from "@/data/countries";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,12 @@ export default function ModePicker() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-terra">Choose a game</p>
         <h1 className="mt-2 font-display text-3xl font-bold text-foreground sm:text-4xl">{title}</h1>
         <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">Every question in the selected game will use flags from {region || "around the world"}.</p>
+        {!region && (
+          <Link to="/play/world-quiz" className="mt-5 flex items-center gap-4 border-2 border-foreground bg-violet-500/10 p-4 transition-transform hover:-translate-y-1">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center border-2 border-foreground bg-violet-500/15"><Globe2 className="h-5 w-5" /></span>
+            <span><span className="block font-display text-xl font-bold text-foreground">World Quiz</span><span className="mt-0.5 block text-sm text-muted-foreground">A dedicated 20-question quiz drawn randomly from all 197 countries.</span></span>
+          </Link>
+        )}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {MODES.map((mode) => {
             const unavailable = mode.label === "Builder" && region && !BUILDABLE.some((item) => byCode(item.code)?.region === region);

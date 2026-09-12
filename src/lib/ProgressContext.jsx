@@ -77,7 +77,15 @@ export function ProgressProvider({ children }) {
           wrong: 0,
           sr: newCard(),
         };
-        const sr = reviewCard(prev.sr, quality);
+        // `correct` is the authoritative result used by the app-wide stats.
+        // Keep the spaced-repetition result aligned with it: a partial or
+        // incorrect attempt must never increase the consecutive-correct
+        // streak that unlocks mastery.
+        const requestedQuality = Number.isFinite(quality) ? quality : correct ? 5 : 2;
+        const reviewQuality = correct
+          ? Math.min(5, Math.max(3, requestedQuality))
+          : Math.min(2, Math.max(0, requestedQuality));
+        const sr = reviewCard(prev.sr, reviewQuality);
         const flags = {
           ...s.flags,
           [code]: {

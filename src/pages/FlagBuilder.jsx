@@ -101,7 +101,9 @@ export default function FlagBuilder() {
     const xp = Math.round((10 * correct) / target.length);
     record(item.code, {
       correct: perfect,
-      quality: perfect ? 5 : correct >= target.length / 2 ? 3 : 2,
+      // A partial reconstruction is useful feedback, but it is not a
+      // successful recall and therefore must not advance mastery.
+      quality: perfect ? 5 : 2,
       xpGain: xp,
     });
     setSession((s) => ({
