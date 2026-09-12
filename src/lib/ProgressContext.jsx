@@ -44,26 +44,33 @@ export function ProgressProvider({ children }) {
     } catch (e) {}
   }, [state]);
 
+  const calculateStreak = (s) => {
+    const t = today();
+    if (s.lastPlayed === t) return { streak: s.streak || 1, lastPlayed: t };
+    let streak = s.streak;
+    if (s.lastPlayed) {
+      const diff = Math.round(
+        (new Date(t) - new Date(s.lastPlayed)) / 86400000,
+      );
+      streak = diff === 1 ? (s.streak || 0) + 1 : 1;
+    } else {
+      streak = 1;
+    }
+    return { streak, lastPlayed: t };
+  };
+
   const touchStreak = useCallback(() => {
     setState((s) => {
-      const t = today();
-      if (s.lastPlayed === t) return s;
-      let streak = s.streak;
-      if (s.lastPlayed) {
-        const diff = Math.round(
-          (new Date(t) - new Date(s.lastPlayed)) / 86400000,
-        );
-        streak = diff === 1 ? (s.streak || 0) + 1 : 1;
-      } else {
-        streak = 1;
-      }
-      return { ...s, streak, lastPlayed: t };
+      const streakInfo = calculateStreak(s);
+      if (s.lastPlayed === streakInfo.lastPlayed && s.streak === streakInfo.streak) return s;
+      return { ...s, ...streakInfo };
     });
   }, []);
 
   const record = useCallback(
     (code, { correct, quality, xpGain = 0, timeMs = 0 }) => {
       setState((s) => {
+        const streakInfo = calculateStreak(s);
         const prev = s.flags[code] || {
           seen: 0,
           correct: 0,
@@ -81,11 +88,17 @@ export function ProgressProvider({ children }) {
           },
         };
         const stats = {
-          answered: s.stats.answered + 1,
-          correct: s.stats.correct + (correct ? 1 : 0),
-          timePlayedMs: s.stats.timePlayedMs + (timeMs || 0),
+          answered: (s.stats?.answered || 0) + 1,
+          correct: (s.stats?.correct || 0) + (correct ? 1 : 0),
+          timePlayedMs: (s.stats?.timePlayedMs || 0) + (timeMs || 0),
         };
-        return { ...s, xp: s.xp + (xpGain || 0), flags, stats };
+        return {
+          ...s,
+          ...streakInfo,
+          xp: Math.max(0, (s.xp || 0) + (xpGain || 0)),
+          flags,
+          stats,
+        };
       });
     },
     [],

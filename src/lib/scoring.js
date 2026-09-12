@@ -9,7 +9,9 @@ export function levelProgress(xp) {
   const cur = (lvl - 1) * (lvl - 1) * 100;
   const next = lvl * lvl * 100;
   const span = next - cur;
-  return { level: lvl, into: xp - cur, span, pct: span ? ((xp - cur) / span) * 100 : 0 };
+  const into = Math.max(0, xp - cur);
+  const pct = span ? Math.min(100, Math.max(0, Math.round((into / span) * 100))) : 0;
+  return { level: lvl, into, span, pct };
 }
 
 export function rankFromMastered(count) {
