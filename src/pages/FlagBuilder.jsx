@@ -193,6 +193,7 @@ export default function FlagBuilder() {
           </button>
           <button
             onClick={submit}
+            data-sound={slots.every((color, index) => color === target[index]) && slots.length === target.length ? "success" : "error"}
             disabled={slots.length !== target.length || !!outcome}
             className="px-4 h-10 rounded-md bg-forest text-primary-foreground text-sm disabled:opacity-50"
           >
@@ -216,6 +217,7 @@ export default function FlagBuilder() {
             </p>
             <button
               onClick={next}
+              data-sound="advance"
               className="mt-3 px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm"
             >
               {idx + 1 >= queue.length ? "Finish" : "Next"}

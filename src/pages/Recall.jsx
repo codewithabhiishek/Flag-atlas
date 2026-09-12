@@ -103,12 +103,14 @@ export default function Recall() {
           <div className="flex gap-2 justify-center mt-5">
             <button
               onClick={() => answer(false)}
+              data-sound="error"
               className="px-4 h-10 rounded-md border border-border text-sm"
             >
               Forgot
             </button>
             <button
               onClick={() => answer(true)}
+              data-sound="success"
               className="px-4 h-10 rounded-md bg-forest text-primary-foreground text-sm"
             >
               Remembered · +8 XP

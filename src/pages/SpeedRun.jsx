@@ -8,6 +8,7 @@ import { useProgress } from "@/lib/ProgressContext";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
+import { playUiSound } from "@/lib/sounds";
 
 const DURATION = 45;
 
@@ -35,6 +36,7 @@ export default function SpeedRun() {
   const finalScoreRef = useRef(0);
   const questionStartedAtRef = useRef(Date.now());
   const elapsedMs = useElapsedTimer(running, seed);
+  const lastTimerCueRef = useRef(null);
 
   const flag = pool[pos];
   const options = useMemo(
@@ -65,6 +67,19 @@ export default function SpeedRun() {
     // `seed` is intentionally in deps: restarting bumps seed → running becomes
     // true again → effect re-fires with a fresh interval.
   }, [running, seed]);
+
+  // The final ten seconds become visually and audibly urgent, but use a
+  // single quiet cue per second instead of a distracting alarm.
+  useEffect(() => {
+    if (time === 0 && lastTimerCueRef.current !== 0) {
+      lastTimerCueRef.current = 0;
+      playUiSound("timerEnd");
+      return;
+    }
+    if (!running || time > 10 || lastTimerCueRef.current === time) return;
+    lastTimerCueRef.current = time;
+    playUiSound("timerWarning");
+  }, [running, time]);
 
   // Record leaderboard exactly once when the game ends.
   // We use a ref for the final score to avoid stale closure issues.
@@ -129,6 +144,7 @@ export default function SpeedRun() {
     comboRef.current = 0;
     finalScoreRef.current = 0;
     questionStartedAtRef.current = Date.now();
+    lastTimerCueRef.current = null;
     setPos(0);
     setScore(0);
     setCombo(0);
@@ -203,7 +219,10 @@ export default function SpeedRun() {
         <div className="flex items-center gap-2 text-sm">
           <Timer className="w-4 h-4 text-terra" aria-hidden="true" />
           <span
-            className={cn(time <= 10 && "text-destructive font-medium")}
+            className={cn(
+              "inline-flex min-w-10 justify-center",
+              time <= 10 && "animate-pulse rounded bg-destructive/15 px-2 py-1 font-bold text-destructive",
+            )}
             aria-label={`${time} seconds remaining`}
             aria-live="polite"
             aria-atomic="true"
@@ -234,6 +253,7 @@ export default function SpeedRun() {
           {options.map((opt, idx) => (
             <button
               key={opt.code}
+              data-sound={opt.code === flag.code ? "success" : "error"}
               onClick={() => pick(opt)}
               aria-label={opt.name}
               className="group min-h-[44px] rounded-lg border-2 border-foreground bg-card px-3 py-2 text-sm font-semibold flex items-center gap-2.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all text-left select-none"

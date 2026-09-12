@@ -151,6 +151,7 @@ export default function ReviewDeck() {
                 key={opt.code}
                 type="button"
                 disabled={!!chosen}
+                data-sound={opt.code === flag.code ? "success" : "error"}
                 onClick={() => pick(opt)}
                 aria-label={`${opt.name}${reveal && isAns ? " — correct answer" : reveal && picked ? " — wrong answer" : ""}`}
                 className={cn(

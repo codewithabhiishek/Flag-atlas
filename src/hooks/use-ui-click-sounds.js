@@ -9,7 +9,7 @@ export function useUiClickSounds() {
       if (!el) return;
       if (el.disabled || el.getAttribute("aria-disabled") === "true") return;
       if (el.dataset.sound === "off") return;
-      playUiSound(el.dataset.sound || "click");
+      playUiSound(el.dataset.sound || (el.matches("a[href]") ? "navigate" : "tap"));
     };
 
     document.addEventListener("click", onClick, true);

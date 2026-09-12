@@ -98,6 +98,7 @@ export default function WorldQuiz() {
                 key={option.code}
                 type="button"
                 disabled={chosen !== null}
+                data-sound={option.code === flag.code ? "success" : "error"}
                 onClick={() => answer(option)}
                 className={cn(
                   "min-h-12 border-2 px-3 text-left text-sm font-bold transition-all",
@@ -124,7 +125,7 @@ export default function WorldQuiz() {
             <p className="text-sm text-muted-foreground">
               {chosen === flag.code ? "Correct — +10 XP" : `The answer was ${flag.name}.`}
             </p>
-            <button type="button" onClick={next} className="h-10 shrink-0 border-2 border-foreground bg-foreground px-4 text-sm font-bold text-background">
+            <button type="button" data-sound="advance" onClick={next} className="h-10 shrink-0 border-2 border-foreground bg-foreground px-4 text-sm font-bold text-background">
               Next →
             </button>
           </div>

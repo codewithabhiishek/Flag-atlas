@@ -553,6 +553,7 @@ export default function Battle() {
                   return (
                     <button
                       key={opt}
+                      data-sound={opt === q.flag ? "success" : "error"}
                       onClick={() => answer(opt)}
                       className={cn(
                         "h-12 border-2 border-foreground px-3 text-sm font-bold uppercase tracking-tight transition-all",

@@ -145,6 +145,7 @@ export default function FlagFragments() {
                 key={opt.code}
                 type="button"
                 disabled={!!outcome}
+                data-sound={opt.code === flag.code ? "success" : "error"}
                 onClick={() => pick(opt)}
                 aria-pressed={showAns ? true : wrong ? false : undefined}
                 aria-label={`${opt.name}${showAns ? " — correct answer" : wrong ? " — wrong answer" : ""}`}
