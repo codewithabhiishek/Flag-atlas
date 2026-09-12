@@ -113,6 +113,26 @@ npm run build      # outputs to /dist
 npm run preview    # serve the production build locally
 ```
 
+### Multiplayer deployment
+
+The Vite site can remain on Vercel, but real-time battles need a long-lived
+WebSocket process. This repository includes one in `server/battle-server.mjs`
+and a Render Blueprint in `render.yaml`.
+
+1. Create a new Render Blueprint from this repository; it runs `npm run server:start`.
+2. Copy the service's public HTTPS URL and change its scheme from `https` to
+   `wss` (for example, `wss://flag-atlas-battle.onrender.com`).
+3. In the Vercel project, add `VITE_BATTLE_WS_URL` with that `wss://` value to
+   Production, Preview, and Development, then redeploy the frontend.
+
+For local development, run `npm run server:start` in one terminal and
+`npm run dev` in another. The frontend automatically connects to
+`ws://localhost:8787` when no environment variable is set.
+
+Rooms are intentionally in-memory and hold exactly two players. A room ends
+when both players finish; if someone disconnects during a battle, the remaining
+player is allowed to finish instead of being left in a stuck room.
+
 ---
 
 ## 📁 Project Structure

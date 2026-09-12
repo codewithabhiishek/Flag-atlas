@@ -9,25 +9,14 @@ import {
   RotateCcw,
   ArrowLeft,
 } from "lucide-react";
-// ---------------------------------------------------------------------------
-// MULTIPLAYER NOTICE
-// The original Battle implementation used a real-time WebSocket room backed
-// by a cloud actor runtime, which has been removed. The stub below keeps the 
-// page renderable and displays an informative banner, but rooms cannot actually 
-// be established without a replacement WebSocket server.
-// ---------------------------------------------------------------------------
-const _noopRoom = {
-  send: () => {},
-  subscribe: () => ({ unsubscribe: () => {} }),
-  close: () => {},
-};
-
-const MULTIPLAYER_AVAILABLE = false; // flip to true once a WS server is wired up
 import { byCode } from "@/data/countries";
 import { REGIONS } from "@/data/regions";
 const PLAYABLE_REGIONS = REGIONS.filter((r) => r.id !== "Antarctica");
 import FlagImage from "@/components/FlagImage";
 import { cn } from "@/lib/utils";
+
+const BATTLE_SOCKET_URL = import.meta.env.VITE_BATTLE_WS_URL ||
+  (import.meta.env.DEV ? `ws://${window.location.hostname}:8787` : "");
 
 const ADJ = [
   "Swift",
@@ -71,38 +60,85 @@ export default function Battle() {
   const [questions, setQuestions] = useState([]);
   const [roomRegion, setRoomRegion] = useState("World");
   const [roomRounds, setRoomRounds] = useState(10);
+  const [hostSeat, setHostSeat] = useState(1);
   const [mySeat, setMySeat] = useState(null);
   const [results, setResults] = useState(null);
   const [myIndex, setMyIndex] = useState(0);
   const [picked, setPicked] = useState(null);
+  const [roomMode, setRoomMode] = useState(null);
+  const [connectionError, setConnectionError] = useState("");
+  const [connected, setConnected] = useState(false);
   const roomRef = useRef(null);
 
   useEffect(() => {
     if (!code) return;
-    // Multiplayer backend unavailable — use the no-op room so the rest of the
-    // component doesn't crash on roomRef.current calls.
-    roomRef.current = _noopRoom;
-    _noopRoom.send({ type: "set_name", name });
-    // No real subscription; cleanup is a noop.
+    if (!BATTLE_SOCKET_URL) {
+      setConnectionError("Multiplayer is not configured for this deployment yet.");
+      return;
+    }
+    const socket = new WebSocket(BATTLE_SOCKET_URL);
+    roomRef.current = {
+      send: (message) => {
+        if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+      },
+    };
+    socket.addEventListener("open", () => {
+      setConnected(true);
+      setConnectionError("");
+      socket.send(JSON.stringify({
+        type: "join",
+        code,
+        name,
+        create: roomMode === "create",
+        region,
+        rounds,
+        connectionId: getConnId(),
+      }));
+    });
+    socket.addEventListener("message", (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === "joined") setMySeat(message.seat);
+      if (message.type === "error") setConnectionError(message.message);
+      if (message.type === "state") {
+        setStatus(message.status);
+        setPlayers(message.players);
+        setQuestions(message.questions);
+        setRoomRegion(message.region);
+        setRoomRounds(message.rounds);
+        setHostSeat(message.hostSeat);
+      }
+      if (message.type === "finished") setResults(message.results);
+    });
+    socket.addEventListener("error", () => setConnectionError("Could not reach the multiplayer server."));
+    socket.addEventListener("close", () => setConnected(false));
     return () => {
+      socket.close();
       roomRef.current = null;
     };
-  }, [code]);
+  }, [code, name, region, rounds, roomMode]);
+
+  useEffect(() => {
+    const player = players.find((entry) => entry.seat === mySeat);
+    if (player) setMyIndex(player.index);
+  }, [players, mySeat]);
 
   function answer(opt) {
     if (picked || !roomRef.current) return;
     setPicked(opt);
     roomRef.current.send({ type: "answer", choice: opt });
-    setTimeout(() => {
-      setPicked(null);
-      setMyIndex((i) => i + 1);
-    }, 350);
+    setTimeout(() => setPicked(null), 350);
   }
 
   function copyCode() {
     navigator.clipboard?.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }
+
+  function openRoom(nextCode, mode) {
+    setConnectionError("");
+    setRoomMode(mode);
+    setCode(nextCode);
   }
 
   // ---- Menu ----
@@ -174,7 +210,7 @@ export default function Battle() {
               className="w-full mt-2 mb-4 accent-foreground"
             />
             <button
-              onClick={() => setCode(randomCode())}
+              onClick={() => openRoom(randomCode(), "create")}
               className="w-full h-11 border-2 border-foreground bg-foreground text-background font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform"
             >
               Create room →
@@ -203,7 +239,7 @@ export default function Battle() {
               className="mt-1 mb-4 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
             />
             <button
-              onClick={() => joinInput.length === 4 && setCode(joinInput)}
+              onClick={() => joinInput.length === 4 && openRoom(joinInput, "join")}
               disabled={joinInput.length !== 4}
               className="w-full h-11 border-2 border-foreground bg-terra font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
             >
@@ -216,6 +252,7 @@ export default function Battle() {
   }
 
   const me = players.find((p) => p.seat === mySeat);
+  const isHost = mySeat === hostSeat;
   const q = questions[myIndex];
 
   // ---- Finished ----
@@ -296,19 +333,16 @@ export default function Battle() {
           </p>
         </div>
 
-        <div className="atlas-card p-5 mb-5">
+          <div className="atlas-card p-5 mb-5">
           <div className="flex items-center gap-2 mb-3">
             <Users className="w-5 h-5 text-foreground" />
             <h2 className="font-display text-lg text-foreground">
               Players ({players.length})
             </h2>
           </div>
-          {!MULTIPLAYER_AVAILABLE && (
+          {connectionError && (
             <div className="mb-3 border-2 border-terra bg-terra/10 px-4 py-3 text-sm font-medium text-foreground">
-              <span className="font-bold">Multiplayer offline.</span> The
-              real-time battle server is not available in this deployment. Room
-              codes cannot be shared across devices until a WebSocket backend is
-              configured.
+              <span className="font-bold">Connection issue.</span> {connectionError}
             </div>
           )}
           <ul className="space-y-2">
@@ -345,6 +379,7 @@ export default function Battle() {
               </label>
               <select
                 value={roomRegion}
+                disabled={!isHost || !connected}
                 onChange={(e) =>
                   roomRef.current?.send({
                     type: "configure",
@@ -371,6 +406,7 @@ export default function Battle() {
                 min={5}
                 max={20}
                 value={roomRounds}
+                disabled={!isHost || !connected}
                 onChange={(e) =>
                   roomRef.current?.send({
                     type: "configure",
@@ -386,13 +422,16 @@ export default function Battle() {
 
         <button
           onClick={() => roomRef.current?.send({ type: "start" })}
-          disabled={players.length < 2}
+          disabled={players.length !== 2 || !isHost || !connected}
           className="w-full h-12 border-2 border-foreground bg-foreground text-background font-bold uppercase tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
         >
           <span className="inline-flex items-center gap-2">
             <Play className="w-4 h-4" /> Start battle
           </span>
         </button>
+        {!isHost && players.length === 2 && (
+          <p className="text-xs text-muted-foreground text-center mt-2 font-medium">Waiting for the host to start the battle.</p>
+        )}
         {players.length < 2 && (
           <p className="text-xs text-muted-foreground text-center mt-2 font-medium">
             Need at least 2 players to start.
