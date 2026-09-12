@@ -1,36 +1,27 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Mail } from "lucide-react";
 import { FeedbackModal } from "./FeedbackModal";
 
 /**
- * FeedbackLauncher — a small floating pill pinned to the bottom-right corner
- * (bottom-center on mobile) that opens the FeedbackModal. Rendered once in
- * the Layout so it is available on every page without intruding on gameplay.
+ * FeedbackButton — a single, stationary button for the header nav. One fixed
+ * place on every page (no floating pill, nothing overlapping the footer on
+ * small screens). Opens the postcard modal on click.
  */
-export function FeedbackLauncher() {
+export function FeedbackButton({ className = "" }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <AnimatePresence>
-        {!open && (
-          <motion.button
-            type="button"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
-            transition={{ delay: 0.4, type: "spring", stiffness: 320, damping: 26 }}
-            onClick={() => setOpen(true)}
-            aria-label="Send a postcard to the developer"
-            title="Notes, ideas, or map corrections — mail a postcard to Abhishek"
-            className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-40 inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-card px-3 h-9 text-[10px] sm:text-[11px] font-bold uppercase tracking-tight text-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-0 active:shadow-none transition-all select-none"
-          >
-            <Mail className="w-3.5 h-3.5 text-terra" aria-hidden="true" />
-            Postcard
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Mail a postcard to the developer"
+        title="Notes, ideas, or map corrections — mail a postcard to Abhishek"
+        className={className}
+      >
+        <Mail className="w-4 h-4" aria-hidden="true" />
+        <span className="hidden md:inline">Postcard</span>
+      </button>
       <FeedbackModal isOpen={open} onClose={() => setOpen(false)} />
     </>
   );

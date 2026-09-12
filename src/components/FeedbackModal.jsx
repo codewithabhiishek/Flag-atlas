@@ -220,26 +220,26 @@ export function FeedbackModal({ isOpen, onClose }) {
             exit={{ opacity: 0, y: 16, rotate: 1 }}
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[600px] my-auto max-h-[92vh] overflow-y-auto rounded-xl border-2 border-foreground bg-[#f7f1e3] dark:bg-card text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)]"
+            className="relative w-full max-w-[440px] my-auto max-h-[88vh] overflow-y-auto rounded-xl border-2 border-foreground bg-[#f7f1e3] dark:bg-card text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)]"
           >
             {/* Postmark hint — rotated rubber-stamp */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute right-4 top-14 select-none hidden sm:block"
+              className="pointer-events-none absolute right-3 top-3 select-none hidden md:block"
             >
-              <div className="rotate-12 border-2 border-terra/60 rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.2em] text-terra/70">
+              <div className="rotate-12 border-2 border-terra/60 rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-terra/70">
                 air mail
               </div>
             </div>
 
             {/* ── Postcard header ── */}
-            <div className="flex items-start justify-between gap-3 px-5 pt-5">
+            <div className="flex items-start justify-between gap-2 px-4 pt-4">
               <div>
-                <h3 id="postcard-title" className="font-display text-xl sm:text-2xl text-foreground leading-tight">
+                <h3 id="postcard-title" className="font-display text-lg text-foreground leading-tight">
                   Postcard to the Cartographer
                 </h3>
-                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
-                  Notes, map corrections & ideas — delivered straight to Abhishek.
+                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+                  Notes &amp; ideas — delivered to Abhishek.
                 </p>
               </div>
               <button
@@ -247,17 +247,17 @@ export function FeedbackModal({ isOpen, onClose }) {
                 onClick={onClose}
                 disabled={phase === "sealing"}
                 aria-label="Close postcard"
-                className="w-8 h-8 rounded-lg border-2 border-foreground bg-card inline-flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors disabled:opacity-40 shrink-0"
+                className="w-7 h-7 rounded-lg border-2 border-foreground bg-card inline-flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors disabled:opacity-40 shrink-0"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="mx-5 mt-4 border-t-2 border-dashed border-foreground/25" />
+            <div className="mx-4 mt-3 border-t-2 border-dashed border-foreground/25" />
 
             {phase === "mailed" ? (
               /* ── Mailed state ── */
-              <div className="px-5 py-10 text-center">
+              <div className="px-4 py-8 text-center">
                 <motion.div
                   initial={{ scale: 0.6, rotate: -8 }}
                   animate={{ scale: 1, rotate: 0 }}
@@ -267,9 +267,8 @@ export function FeedbackModal({ isOpen, onClose }) {
                   <MailCheck className="w-8 h-8 text-forest" />
                 </motion.div>
                 <h4 className="mt-4 font-display text-2xl text-foreground">Posted!</h4>
-                <p className="mt-1 text-xs text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">
-                  Your postcard is on its way. Every note gets read — reply
-                  comes to your email if you left one.
+                <p className="mt-0.5 text-[10px] text-muted-foreground font-medium max-w-[260px] mx-auto leading-relaxed">
+                  Every note gets read — replies go to your email.
                 </p>
                 <div className="mt-6 flex items-center justify-center gap-2.5">
                   <button
@@ -292,7 +291,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                 </div>
               </div>
             ) : (
-              <form onSubmit={mailIt} noValidate className="px-5 py-5 space-y-4">
+              <form onSubmit={mailIt} noValidate className="px-4 py-4 space-y-3.5">
                 {error && (
                   <p
                     role="alert"
@@ -303,8 +302,8 @@ export function FeedbackModal({ isOpen, onClose }) {
                 )}
 
                 {/* ── Stamp corner: pick a topic stamp ── */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground pt-1">
+                <div>
+                  <div className="text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1.5">
                     Affix a stamp
                   </div>
                   <div className="grid grid-cols-4 gap-1.5">
@@ -322,13 +321,13 @@ export function FeedbackModal({ isOpen, onClose }) {
                           aria-pressed={active}
                           title={t.label}
                           className={cn(
-                            "w-14 sm:w-16 h-14 sm:h-16 border-2 flex flex-col items-center justify-center gap-0.5 transition-all select-none",
+                            "h-12 border-2 flex flex-col items-center justify-center gap-0.5 transition-all select-none",
                             active
                               ? "border-foreground bg-gold/25 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)]"
                               : "border-dashed border-foreground/40 bg-transparent opacity-70 hover:opacity-100 hover:border-foreground",
                           )}
                         >
-                          <span className="text-base leading-none">{t.stamp}</span>
+                          <span className="text-sm leading-none">{t.stamp}</span>
                           <span className="text-[8px] font-bold uppercase tracking-wide">{t.label}</span>
                         </button>
                       );
@@ -353,7 +352,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                       if (error) setError("");
                     }}
                     placeholder={topic.prompt}
-                    rows={5}
+                    rows={4}
                     className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-[#fffdf5] dark:bg-background px-3.5 py-2.5 text-sm font-medium leading-7 outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/60"
                     style={{
                       backgroundImage:
@@ -394,11 +393,11 @@ export function FeedbackModal({ isOpen, onClose }) {
                 />
 
                 {/* ── From lines (postcard address style) ── */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
                     <label
                       htmlFor="postcard-name"
-                      className="block text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1"
+                      className="block text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-0.5"
                     >
                       From · name
                     </label>
@@ -412,15 +411,15 @@ export function FeedbackModal({ isOpen, onClose }) {
                         if (error) setError("");
                       }}
                       placeholder="Explorer name"
-                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1.5 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
+                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
                     />
                   </div>
                   <div>
                     <label
                       htmlFor="postcard-email"
-                      className="block text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1"
+                      className="block text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-0.5"
                     >
-                      Reply address · email
+                      Reply · email
                     </label>
                     <input
                       id="postcard-email"
@@ -432,7 +431,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                         if (error) setError("");
                       }}
                       placeholder="you@example.com"
-                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1.5 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
+                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
                     />
                   </div>
                 </div>
@@ -441,7 +440,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                 <button
                   type="submit"
                   disabled={phase === "sealing" || cooldown > 0}
-                  className="w-full h-12 rounded-lg border-2 border-foreground bg-terra text-white font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-y-0 transition-transform disabled:opacity-50 disabled:pointer-events-none select-none"
+                  className="w-full h-11 rounded-lg border-2 border-foreground bg-terra text-white font-bold uppercase text-xs tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-y-0 transition-transform disabled:opacity-50 disabled:pointer-events-none select-none"
                 >
                   {phase === "sealing" ? (
                     <span className="inline-flex items-center gap-2">
@@ -456,14 +455,14 @@ export function FeedbackModal({ isOpen, onClose }) {
                 </button>
 
                 {/* Direct-email fallback */}
-                <div className="flex flex-col min-[380px]:flex-row items-center justify-between gap-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between gap-2 border-t border-border pt-2.5 text-[10px] text-muted-foreground">
                   <span>Old school?</span>
                   <button
                     type="button"
                     onClick={copyEmail}
-                    className="font-bold text-terra hover:underline"
+                    className="font-bold text-terra hover:underline truncate"
                   >
-                    {copiedEmail ? "Copied to clipboard!" : `Copy ${DIRECT_EMAIL}`}
+                    {copiedEmail ? "Copied!" : "Copy email"}
                   </button>
                 </div>
               </form>
