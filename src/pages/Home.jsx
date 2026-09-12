@@ -1,5 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useGsapScrollReveal } from "@/lib/gsapScroll";
+import { HomeSkeleton } from "@/components/Skeletons";
 import {
   Sparkles,
   Zap,
@@ -14,6 +16,7 @@ import {
   Trophy,
   Compass,
   BarChart2,
+  Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -81,8 +84,8 @@ function LegendDot({ className, label }) {
   );
 }
 
-// ── Quick-fire quiz widget ──────────────────────────────────────────────────
-function QuickFlagSpotlight({ onCorrectAnswer }) {
+// ── Quick-fire quiz — records BOTH correct and wrong answers so stats are accurate ──
+function QuickFlagSpotlight({ onAnswer }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * COUNTRIES.length));
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
@@ -96,31 +99,40 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
     return [currentCountry, ...distractors].sort(() => 0.5 - Math.random());
   }, [currentCountry]);
 
-  const handleChoice = (c) => {
+  const handleChoice = useCallback((c) => {
     if (answered) return;
+    const isCorrect = c.code === currentCountry.code;
     setSelected(c.code);
     setAnswered(true);
-    if (c.code === currentCountry.code) {
-      confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 }, colors: ["#10B981", "#F59E0B", "#3B82F6", "#EC4899"] });
-      if (onCorrectAnswer) onCorrectAnswer(currentCountry.code);
+
+    // ✅ Always record — correct OR wrong — so stats.answered stays accurate
+    onAnswer(currentCountry, isCorrect);
+
+    if (isCorrect) {
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ["#10B981", "#F59E0B", "#3B82F6", "#EC4899"],
+      });
     }
-  };
+  }, [answered, currentCountry, onAnswer]);
 
   const nextQuestion = () => {
     setSelected(null);
     setAnswered(false);
-    setIndex((prev) => (prev + 7) % COUNTRIES.length);
+    // Jump by a prime to get good distribution across 195 countries
+    setIndex((prev) => (prev + 17) % COUNTRIES.length);
   };
 
   return (
     <div className="atlas-card p-5 sm:p-6 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)]">
-      {/* Header */}
       <div className="flex items-center justify-between gap-2 mb-4">
         <div>
-          <h2 className="font-display font-bold text-base sm:text-lg text-foreground leading-tight">
-            Daily Challenge
+          <h2 className="font-display font-bold text-base sm:text-lg text-foreground leading-tight flex items-center gap-2">
+            <Globe className="w-4 h-4 text-terra" /> Daily Challenge
           </h2>
-          <p className="text-xs text-muted-foreground">Guess the flag · earn bonus XP</p>
+          <p className="text-xs text-muted-foreground">Guess the flag · +15 XP on correct</p>
         </div>
         <motion.button
           whileHover={{ rotate: 180 }}
@@ -133,39 +145,52 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
         </motion.button>
       </div>
 
-      {/* Flag + choices */}
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+        {/* Flag image */}
         <motion.div
           key={currentCountry.code}
-          initial={{ scale: 0.95, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="w-28 h-20 sm:w-36 sm:h-24 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] overflow-hidden shrink-0 bg-muted/30 rounded"
+          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+          className="w-32 h-22 sm:w-40 sm:h-28 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.35)] overflow-hidden shrink-0 bg-muted/30 rounded-lg"
+          style={{ minWidth: "8rem", height: "5.5rem" }}
         >
-          <FlagImage code={currentCountry.code} className="w-full h-full object-contain" fittingType="contain" />
+          <FlagImage
+            code={currentCountry.code}
+            className="w-full h-full"
+            fittingType="contain"
+            alt={`Flag challenge — guess this country`}
+          />
         </motion.div>
 
+        {/* 4 choices */}
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
           {choices.map((c) => {
             const isTarget = c.code === currentCountry.code;
             const isUserChoice = selected === c.code;
-            let style = "border-2 border-foreground bg-card hover:bg-muted/70 text-foreground";
+            let style = "border-2 border-foreground bg-card hover:bg-muted/80 text-foreground cursor-pointer";
             if (answered) {
-              if (isTarget) style = "border-2 border-emerald-600 bg-emerald-500/20 text-emerald-900 dark:text-emerald-200 font-bold";
-              else if (isUserChoice) style = "border-2 border-destructive bg-destructive/20 text-destructive line-through opacity-70";
-              else style = "border-2 border-border/50 opacity-40";
+              if (isTarget)
+                style = "border-2 border-emerald-500 bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 font-bold shadow-[0_0_12px_rgba(16,185,129,0.3)]";
+              else if (isUserChoice)
+                style = "border-2 border-destructive bg-destructive/15 text-destructive line-through opacity-70";
+              else
+                style = "border-2 border-border/40 opacity-35 cursor-default";
             }
             return (
               <motion.button
                 key={c.code}
                 whileHover={!answered ? { scale: 1.02, y: -1 } : {}}
-                whileTap={!answered ? { scale: 0.98 } : {}}
+                whileTap={!answered ? { scale: 0.97 } : {}}
                 onClick={() => handleChoice(c)}
                 disabled={answered}
-                className={cn("px-3.5 py-2.5 text-left text-sm font-semibold tracking-tight transition-all flex items-center justify-between rounded-lg", style)}
+                className={cn(
+                  "px-3.5 py-2.5 text-left text-sm font-semibold tracking-tight transition-all flex items-center justify-between rounded-lg",
+                  style,
+                )}
               >
                 <span className="truncate">{c.name}</span>
-                {answered && isTarget && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-1.5" />}
+                {answered && isTarget && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 ml-1.5" />}
                 {answered && isUserChoice && !isTarget && <XCircle className="w-4 h-4 text-destructive shrink-0 ml-1.5" />}
               </motion.button>
             );
@@ -173,22 +198,24 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
         </div>
       </div>
 
-      {/* After-answer reveal */}
+      {/* After-answer info */}
       <AnimatePresence>
         {answered && (
           <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs"
+            className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs gap-2"
           >
-            <span className="text-muted-foreground">
-              Region: <strong className="text-foreground">{currentCountry.region}</strong>
-              {" · "}Capital: <strong className="text-foreground">{currentCountry.capital}</strong>
+            <span className="text-muted-foreground leading-snug">
+              <strong className="text-foreground">{currentCountry.name}</strong>
+              {" · "}{currentCountry.region}
+              {" · "}Capital:{" "}
+              <strong className="text-foreground">{currentCountry.capital}</strong>
             </span>
             <button
               onClick={nextQuestion}
-              className="px-3 py-1 font-bold uppercase tracking-wider bg-foreground text-background border border-foreground rounded hover:opacity-90 text-xs"
+              className="shrink-0 px-3 py-1 font-bold uppercase tracking-wider bg-foreground text-background border border-foreground rounded hover:opacity-90 text-xs"
             >
               Next →
             </button>
@@ -199,38 +226,106 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
   );
 }
 
-// ── Main Home ───────────────────────────────────────────────────────────────
+// ── Live answered-countries feed ──────────────────────────────────────────────
+function RecentActivity({ log }) {
+  if (!log.length) return null;
+  return (
+    <div className="mt-4">
+      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+        This session — {log.length} answered
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <AnimatePresence>
+          {log.map((entry) => (
+            <motion.div
+              key={entry.id}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded border text-xs font-semibold",
+                entry.correct
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
+                  : "border-destructive/30 bg-destructive/8 text-destructive",
+              )}
+              title={`${entry.name} — ${entry.correct ? "Correct" : "Wrong"}`}
+            >
+              <div className="w-6 h-4 overflow-hidden rounded-sm border border-border/50 shrink-0">
+                <FlagImage code={entry.code} className="w-full h-full" fittingType="fill" />
+              </div>
+              <span className="truncate max-w-[80px]">{entry.name}</span>
+              {entry.correct
+                ? <CheckCircle2 className="w-3 h-3 shrink-0" />
+                : <XCircle className="w-3 h-3 shrink-0" />}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Home ────────────────────────────────────────────────────────────────
 export default function Home() {
   const { state, record } = useProgress();
+  const containerRef = useRef(null);
+  const [ready, setReady] = useState(false);
+
+  // Show skeleton for one frame to avoid layout flash, then reveal
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 120);
+    return () => clearTimeout(t);
+  }, []);
+
+  // GSAP scroll-reveal — re-runs when ready flips to true
+  useGsapScrollReveal(containerRef, [ready]);
+
+  // Derived stats — re-computed on every context update (live)
   const lp = levelProgress(state.xp);
   const rank = rankFromMastered(masteredCount(state.flags));
   const mastered = masteredCount(state.flags);
-  const acc = state.stats.answered
+  const acc = state.stats?.answered
     ? Math.round((state.stats.correct / state.stats.answered) * 100)
     : 0;
 
-  const handleQuickQuizCorrect = (code) => {
-    record(code, { correct: true, quality: 5, xpGain: 15 });
-  };
+  // Session activity log — tracks answers this page session (not persisted)
+  const [activityLog, setActivityLog] = useState([]);
+
+  const handleAnswer = useCallback((country, isCorrect) => {
+    // Record to persistent store (correct + wrong both update stats.answered)
+    record(country.code, {
+      correct: isCorrect,
+      quality: isCorrect ? 5 : 2,
+      xpGain: isCorrect ? 15 : 0,
+    });
+
+    // Add to session feed
+    setActivityLog((prev) => [
+      { id: `${country.code}-${Date.now()}`, code: country.code, name: country.name, correct: isCorrect },
+      ...prev.slice(0, 19), // keep last 20
+    ]);
+  }, [record]);
 
   const triggerCelebration = () => {
     confetti({ particleCount: 60, spread: 80, origin: { y: 0.3 }, colors: ["#F59E0B", "#10B981", "#3B82F6", "#EF4444"] });
   };
 
-  return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-8">
+  if (!ready) return <HomeSkeleton />;
 
-      {/* ── 1. Hero: rank + XP + quick stats ── */}
+  return (
+    <div ref={containerRef} className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-8">
+
+      {/* ── 1. Hero: rank + live stats + XP ── */}
       <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
+        data-reveal
+        data-reveal-delay="0"
         className="atlas-card grid-paper p-5 sm:p-7 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.4)]"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-          {/* Rank + stats */}
+          {/* Left: rank + stat pills */}
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-foreground/30 bg-muted/70 text-xs uppercase tracking-[0.2em] font-bold text-foreground">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-foreground/30 bg-muted/70 text-xs uppercase tracking-[0.18em] font-bold text-foreground">
               <Compass className="w-3.5 h-3.5 text-terra" />
               Explorer Rank
             </div>
@@ -242,16 +337,25 @@ export default function Home() {
                 whileHover={{ scale: 1.2, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={triggerCelebration}
-                className="p-2 border-2 border-foreground bg-gold rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-foreground"
+                className="p-2 border-2 border-foreground bg-gold rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 title="Celebrate!"
               >
                 <Trophy className="w-5 h-5" />
               </motion.button>
             </div>
+
+            {/* Live stat pills — update as user plays */}
             <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border rounded-md">
-                🎯 <strong className="text-foreground">{mastered}</strong> mastered
-              </span>
+              <motion.span
+                key={mastered}
+                initial={{ scale: 1.15 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border rounded-md"
+              >
+                🎯 <strong className="text-foreground">{mastered}</strong>{" "}
+                <span className="text-muted-foreground">/ {COUNTRIES.length} mastered</span>
+              </motion.span>
               <span
                 onClick={triggerCelebration}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 rounded-md cursor-pointer hover:bg-amber-500/20 transition-colors"
@@ -259,13 +363,21 @@ export default function Home() {
                 <Flame className="w-4 h-4 animate-bounce" />
                 <strong>{state.streak}</strong>-day streak
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border rounded-md">
-                ⚡ <strong className="text-foreground">{acc}%</strong> accuracy
-              </span>
+              <motion.span
+                key={acc}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border rounded-md"
+                title={`${state.stats?.correct ?? 0} correct of ${state.stats?.answered ?? 0} answered`}
+              >
+                ⚡ <strong className="text-foreground">{acc}%</strong>
+                <span className="text-muted-foreground text-xs">accuracy</span>
+              </motion.span>
             </div>
           </div>
 
-          {/* XP progress + CTAs */}
+          {/* Right: XP bar + action buttons */}
           <div className="w-full sm:max-w-xs space-y-3">
             <div className="p-4 bg-card/80 backdrop-blur-sm border-2 border-foreground rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]">
               <div className="flex justify-between text-xs mb-2 font-bold uppercase">
@@ -273,20 +385,20 @@ export default function Home() {
                   <Sparkles className="w-3.5 h-3.5 text-gold" />
                   Level {lp.level}
                 </span>
-                <span className="text-muted-foreground">{lp.into}/{lp.span} XP · {lp.pct}%</span>
+                <span className="text-muted-foreground">{lp.into}/{lp.span} XP</span>
               </div>
-              <div className="h-3 border-2 border-foreground bg-background rounded-sm overflow-hidden relative">
+              <div className="h-3 border-2 border-foreground bg-background rounded-sm overflow-hidden">
                 <motion.div
-                  initial={{ width: 0 }}
                   animate={{ width: `${lp.pct}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
                   className="h-full bg-forest relative overflow-hidden"
                 >
                   <div className="absolute inset-0 shimmer-progress" />
                 </motion.div>
               </div>
+              <p className="text-right text-[10px] text-muted-foreground mt-1">{lp.pct}% to level {lp.level + 1}</p>
             </div>
-            {/* Primary CTAs */}
+
             <div className="flex gap-2">
               <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }} className="flex-1">
                 <Link
@@ -300,7 +412,7 @@ export default function Home() {
                 <Link
                   to="/dashboard"
                   className="flex items-center justify-center gap-1.5 border-2 border-foreground bg-card text-foreground h-10 px-3 font-bold uppercase text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-muted transition-colors rounded"
-                  title="Stats"
+                  title="Your stats"
                 >
                   <BarChart2 className="w-4 h-4" />
                 </Link>
@@ -309,7 +421,7 @@ export default function Home() {
                 <Link
                   to="/battle"
                   className="flex items-center justify-center gap-1.5 border-2 border-foreground bg-gold text-foreground h-10 px-3 font-bold uppercase text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-400 transition-colors rounded"
-                  title="Battle"
+                  title="Battle a friend"
                 >
                   <Swords className="w-4 h-4" />
                 </Link>
@@ -319,20 +431,20 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* ── 2. Daily Challenge (quick quiz) ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.07 }}
+      {/* ── 2. Daily Challenge + live activity log ── */}
+      <div
+        data-reveal
+        data-reveal-delay="0.05"
+        className="space-y-0"
       >
-        <QuickFlagSpotlight onCorrectAnswer={handleQuickQuizCorrect} />
-      </motion.div>
+        <QuickFlagSpotlight onAnswer={handleAnswer} />
+        <RecentActivity log={activityLog} />
+      </div>
 
       {/* ── 3. The World Atlas Map ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.12 }}
+      <section
+        data-reveal
+        data-reveal-delay="0.08"
         className="atlas-card border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] overflow-hidden"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b-2 border-foreground bg-card/60 backdrop-blur">
@@ -353,14 +465,10 @@ export default function Home() {
         <div className="bg-ocean relative">
           <WorldMap flags={state.flags} />
         </div>
-      </motion.section>
+      </section>
 
-      {/* ── 4. Game Modes — single clean row, no per-region duplication ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.17 }}
-      >
+      {/* ── 4. Game Modes ── */}
+      <section data-reveal data-reveal-delay="0.04">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-xl font-bold text-foreground">Game Modes</h2>
           <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Pick your style</span>
@@ -382,7 +490,7 @@ export default function Home() {
                 )}
               >
                 <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center border-2 border-foreground group-hover:rotate-6 transition-transform", md.iconBg)}>
-                  <md.icon className="w-4.5 h-4.5 text-foreground" />
+                  <md.icon className="w-4 h-4 text-foreground" />
                 </div>
                 <div>
                   <p className="font-display text-base font-bold text-foreground leading-tight">{md.label}</p>
@@ -393,14 +501,10 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
-      </motion.section>
+      </section>
 
-      {/* ── 5. Regional Progress — compact, no repeated mode buttons ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.22 }}
-      >
+      {/* ── 5. Regional Progress — compact strips ── */}
+      <section data-reveal data-reveal-delay="0.06">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-xl font-bold text-foreground">Progress by Region</h2>
         </div>
@@ -413,8 +517,7 @@ export default function Home() {
               <motion.div
                 key={r.id}
                 whileHover={{ y: -2 }}
-                className="atlas-card px-4 py-3.5 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] flex items-center gap-4 group cursor-pointer"
-                onClick={() => {}}
+                className="atlas-card px-4 py-3.5 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] flex items-center gap-4 group"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">
@@ -427,7 +530,7 @@ export default function Home() {
                 </div>
                 <Link
                   to={`/play/fragments?region=${encodeURIComponent(r.id)}`}
-                  className="shrink-0 border-2 border-foreground bg-card px-2.5 py-1.5 text-xs font-bold uppercase tracking-tight hover:bg-terra hover:text-white transition-all rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100"
+                  className="shrink-0 border-2 border-foreground bg-card px-2.5 py-1.5 text-xs font-bold uppercase tracking-tight hover:bg-terra hover:text-white transition-all rounded shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100 sm:opacity-100"
                   onClick={(e) => e.stopPropagation()}
                 >
                   Play →
@@ -436,13 +539,12 @@ export default function Home() {
             );
           })}
         </div>
-      </motion.section>
+      </section>
 
-      {/* ── 6. Passport Stamps ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.27 }}
+      {/* ── 6. Explorer Passport ── */}
+      <section
+        data-reveal
+        data-reveal-delay="0.08"
         className="atlas-card p-5 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)]"
       >
         <div className="flex items-center justify-between mb-4">
@@ -452,7 +554,7 @@ export default function Home() {
           </span>
         </div>
         <PassportStamps flags={state.flags} />
-      </motion.section>
+      </section>
 
     </div>
   );
