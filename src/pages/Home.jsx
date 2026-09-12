@@ -144,15 +144,15 @@ function QuickFlagSpotlight({ onCorrectAnswer }) {
         </motion.button>
       </div>
 
-      <div className="flex flex-col md:flex-row items-center gap-5 sm:gap-6">
+      <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
         <motion.div
           key={currentCountry.code}
-          initial={{ scale: 0.9, opacity: 0 }}
+          initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="w-36 h-24 sm:w-44 sm:h-28 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.4)] overflow-hidden shrink-0 bg-muted/40 rounded-sm"
+          className="w-28 h-20 sm:w-36 sm:h-24 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] overflow-hidden shrink-0 bg-muted/30 rounded flex items-center justify-center p-1"
         >
-          <FlagImage code={currentCountry.code} className="w-full h-full object-cover" />
+          <FlagImage code={currentCountry.code} className="w-full h-full object-contain" fittingType="contain" />
         </motion.div>
 
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -240,15 +240,15 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-6 sm:space-y-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
       {/* 1. Hero Explorer Section */}
       <motion.section
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="atlas-card grid-paper p-6 sm:p-9 border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.4)]"
+        className="atlas-card grid-paper p-5 sm:p-7 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.4)]"
       >
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded border border-foreground/30 bg-muted/70 text-xs uppercase tracking-[0.2em] font-bold text-foreground">
               <Compass className="w-3.5 h-3.5 text-terra" />

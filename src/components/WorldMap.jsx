@@ -69,15 +69,22 @@ export default function WorldMap({ flags }) {
   }
 
   return (
-    <div className="relative">
-      <ComposableMap
-        projection="geoEqualEarth"
-        projectionConfig={{ scale: 128 }}
-        width={800}
-        height={420}
-        style={{ width: "100%", height: "auto", display: "block" }}
-      >
-        <rect x={0} y={0} width={800} height={420} fill="hsl(var(--ocean))" />
+    <div className="relative w-full overflow-hidden flex items-center justify-center bg-ocean py-2 sm:py-4">
+      <div className="w-full max-w-4xl mx-auto px-2 sm:px-4">
+        <ComposableMap
+          projection="geoEqualEarth"
+          projectionConfig={{ scale: 130 }}
+          width={800}
+          height={410}
+          style={{
+            width: "100%",
+            maxHeight: "350px",
+            height: "auto",
+            display: "block",
+            margin: "0 auto",
+          }}
+        >
+          <rect x={0} y={0} width={800} height={410} fill="hsl(var(--ocean))" />
         <Geographies geography={GEO_URL}>
           {({ geographies }) => (
             <>
@@ -147,6 +154,7 @@ export default function WorldMap({ flags }) {
           )}
         </Geographies>
       </ComposableMap>
+      </div>
 
       {hoverInfo && (
         <div
