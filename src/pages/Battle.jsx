@@ -11,6 +11,11 @@ import {
   ArrowLeft,
   UserMinus,
   QrCode,
+  Crown,
+  Lock,
+  Unlock,
+  Circle,
+  X,
 } from "lucide-react";
 import { byCode } from "@/data/countries";
 import { REGIONS } from "@/data/regions";
@@ -71,12 +76,14 @@ export default function Battle() {
   const [hostSeat, setHostSeat] = useState(1);
   const [mySeat, setMySeat] = useState(null);
   const [results, setResults] = useState(null);
+  const [roomLocked, setRoomLocked] = useState(false);
   const [myIndex, setMyIndex] = useState(0);
   const [picked, setPicked] = useState(null);
   const [roomMode, setRoomMode] = useState(null);
   const [connectionError, setConnectionError] = useState("");
   const [connected, setConnected] = useState(false);
   const [notice, setNotice] = useState("");
+  const [qrZoom, setQrZoom] = useState(false);
   const roomRef = useRef(null);
   const answerLockedRef = useRef(false);
   const questionStartedAtRef = useRef(Date.now());
@@ -117,6 +124,7 @@ export default function Battle() {
             setRoomRegion(message.region);
             setRoomRounds(message.rounds);
             setHostSeat(message.hostSeat);
+            setRoomLocked(message.locked === true);
           }
           if (message.type === "finished") setResults(message.results);
         }),
@@ -388,6 +396,9 @@ export default function Battle() {
 
   // ---- Lobby ----
   if (status === "lobby") {
+    const notReadyCount = players.filter((p) => !p.ready).length;
+    const allReady = notReadyCount === 0 && players.length >= 2;
+    const iAmReady = !!me?.ready;
     return (
       <div className="mx-auto max-w-2xl px-3 sm:px-4 py-6">
         <div className="atlas-card p-6 sm:p-8 text-center mb-5">
@@ -411,12 +422,23 @@ export default function Battle() {
             </button>
           </div>
           <p className="text-xs text-muted-foreground mt-2 font-medium">
-            Share this code with a friend to play.
+            Share this code with friends to play. Up to {MAX_PLAYERS} players.
           </p>
           <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <div className="bg-white p-2 border-2 border-foreground" title="Scan to join this room">
+            <button
+              type="button"
+              onClick={() => setQrZoom(true)}
+              title="Tap to zoom"
+              aria-label="Zoom QR code"
+              className="group relative bg-white p-2 border-2 border-foreground cursor-zoom-in transition-transform hover:scale-[1.03] active:scale-[0.98]"
+            >
               <QRCodeSVG value={inviteUrl()} size={88} level="M" includeMargin={false} />
-            </div>
+              <span className="pointer-events-none absolute inset-0 flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="bg-foreground text-background text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                  Tap to zoom
+                </span>
+              </span>
+            </button>
             <button
               onClick={copyInviteLink}
               className="inline-flex items-center justify-center gap-2 border-2 border-foreground bg-card px-3 h-10 text-xs font-bold uppercase tracking-tight"
@@ -427,11 +449,29 @@ export default function Battle() {
         </div>
 
           <div className="atlas-card p-5 mb-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Users className="w-5 h-5 text-foreground" />
-            <h2 className="font-display text-lg text-foreground">
-              Players ({players.length})
-            </h2>
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-foreground" />
+              <h2 className="font-display text-lg text-foreground">
+                Players ({players.length})
+              </h2>
+            </div>
+            {isHost && (
+              <button
+                type="button"
+                onClick={() => roomRef.current?.send({ type: "lock", locked: !roomLocked })}
+                disabled={!connected}
+                aria-pressed={roomLocked}
+                title={roomLocked ? "Unlock room to allow new players" : "Lock the room so no one else can join"}
+                className={cn(
+                  "inline-flex items-center gap-1.5 border-2 border-foreground px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-tight transition-colors disabled:opacity-40",
+                  roomLocked ? "bg-destructive text-white" : "bg-card hover:bg-muted",
+                )}
+              >
+                {roomLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                {roomLocked ? "Locked" : "Open"}
+              </button>
+            )}
           </div>
           {connectionError && (
             <div className="mb-3 border-2 border-terra bg-terra/10 px-4 py-3 text-sm font-medium text-foreground">
@@ -442,22 +482,43 @@ export default function Battle() {
             {players.map((p) => (
               <li
                 key={p.seat}
-                className="flex items-center gap-2 border-2 border-foreground bg-card px-3 py-2"
+                className={cn(
+                  "flex items-center gap-2 border-2 border-foreground px-3 py-2 transition-colors",
+                  p.ready ? "bg-forest/10 border-l-4" : "bg-card",
+                )}
               >
-                <span className="w-6 h-6 border-2 border-foreground bg-terra inline-flex items-center justify-center text-xs font-bold">
+                <span className="w-6 h-6 border-2 border-foreground bg-terra inline-flex items-center justify-center text-xs font-bold shrink-0">
                   {p.seat}
                 </span>
-                <span className="font-bold uppercase tracking-tight text-sm">
+                <span className="font-bold uppercase tracking-tight text-sm truncate">
                   {p.name || `Player ${p.seat}`}
                 </span>
+                {p.seat === hostSeat && (
+                  <span
+                    className="inline-flex items-center gap-1 border border-foreground bg-gold px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shrink-0"
+                    title="Room host — can edit settings, lock the room, and remove players"
+                  >
+                    <Crown className="w-3 h-3" /> Host
+                  </span>
+                )}
                 {p.seat === mySeat && (
                   <span className="text-xs text-muted-foreground">(you)</span>
                 )}
+                <span
+                  className={cn(
+                    "ml-auto inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shrink-0",
+                    p.ready ? "text-forest" : "text-muted-foreground",
+                  )}
+                >
+                  {p.ready ? <Check className="w-3.5 h-3.5" /> : <Circle className="w-3 h-3" />}
+                  {p.ready ? "Ready" : "Not ready"}
+                </span>
                 {isHost && p.seat !== mySeat && (
                   <button
                     type="button"
                     onClick={() => roomRef.current?.send({ type: "kick", seat: p.seat })}
-                    className="ml-auto inline-flex items-center gap-1 border border-destructive px-2 py-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    className="inline-flex items-center gap-1 border border-destructive px-2 py-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive hover:text-destructive-foreground shrink-0"
+                    aria-label={`Remove ${p.name} from the room`}
                   >
                     <UserMinus className="w-3 h-3" /> Remove
                   </button>
@@ -466,7 +527,7 @@ export default function Battle() {
             ))}
             {players.length < MAX_PLAYERS && (
               <li className="text-sm text-muted-foreground font-medium px-1">
-                {MAX_PLAYERS - players.length} more can join this room…
+                {roomLocked ? "Room is locked — new players can't join." : `${MAX_PLAYERS - players.length} more can join this room…`}
               </li>
             )}
           </ul>
@@ -527,22 +588,84 @@ export default function Battle() {
           </div>
         </div>
 
-        <button
-          onClick={() => roomRef.current?.send({ type: "start" })}
-          disabled={players.length < 2 || !isHost || !connected}
-          className="w-full h-12 border-2 border-foreground bg-foreground text-background font-bold uppercase tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
-        >
-          <span className="inline-flex items-center gap-2">
-            <Play className="w-4 h-4" /> Start battle
-          </span>
-        </button>
-        {!isHost && players.length >= 2 && (
-          <p className="text-xs text-muted-foreground text-center mt-2 font-medium">Waiting for the host to start the battle.</p>
+        {isHost ? (
+          <>
+            <button
+              onClick={() => roomRef.current?.send({ type: "start" })}
+              disabled={!allReady || !connected}
+              className="w-full h-12 border-2 border-foreground bg-foreground text-background font-bold uppercase tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Play className="w-4 h-4" /> Start battle
+              </span>
+            </button>
+            {players.length < 2 ? (
+              <p className="text-xs text-muted-foreground text-center mt-2 font-medium">
+                Need at least 2 players to start.
+              </p>
+            ) : !allReady ? (
+              <p className="text-xs text-muted-foreground text-center mt-2 font-medium">
+                Waiting for {notReadyCount} player{notReadyCount > 1 ? "s" : ""} to ready up…
+              </p>
+            ) : (
+              <p className="text-xs text-forest text-center mt-2 font-bold">
+                Everyone's ready — start the battle!
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => roomRef.current?.send({ type: "ready", ready: !iAmReady })}
+              disabled={!connected}
+              aria-pressed={iAmReady}
+              className={cn(
+                "w-full h-12 border-2 border-foreground font-bold uppercase tracking-tight transition-all disabled:opacity-40",
+                iAmReady
+                  ? "bg-forest text-white hover:opacity-90"
+                  : "bg-gold text-foreground hover:-translate-x-0.5 hover:-translate-y-0.5",
+              )}
+            >
+              <span className="inline-flex items-center gap-2">
+                {iAmReady ? <Check className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                {iAmReady ? "Ready — tap to unready" : "I'm ready"}
+              </span>
+            </button>
+            <p className="text-xs text-muted-foreground text-center mt-2 font-medium">
+              {iAmReady
+                ? "Waiting for the host to start the battle."
+                : "Tap ready when you want to play — the host starts the battle."}
+            </p>
+          </>
         )}
-        {players.length < 2 && (
-          <p className="text-xs text-muted-foreground text-center mt-2 font-medium">
-            Need at least 2 players to start.
-          </p>
+
+        {/* QR zoom overlay — tap the small QR to open */}
+        {qrZoom && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Room invite QR code"
+            onClick={() => setQrZoom(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 cursor-zoom-out"
+          >
+            <div
+              className="bg-white p-4 border-2 border-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)] max-w-[min(90vw,420px)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <QRCodeSVG value={inviteUrl()} size={320} level="M" includeMargin={false} className="w-full h-auto" />
+              <p className="text-center text-xs font-bold uppercase tracking-wider text-foreground mt-3">
+                Scan to join room {code}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setQrZoom(false)}
+              aria-label="Close QR code"
+              className="absolute top-4 right-4 w-10 h-10 inline-flex items-center justify-center border-2 border-foreground bg-card text-foreground hover:bg-muted"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         )}
       </div>
     );
