@@ -62,6 +62,7 @@ const AuthenticatedApp = () => {
         <Route path="/play/recall" element={<Recall />} />
         <Route path="/play/builder" element={<FlagBuilder />} />
         <Route path="/play/world-quiz" element={<WorldQuiz />} />
+        <Route path="/play/go-berserk" element={<WorldQuiz />} />
         <Route path="/play" element={<ModePicker />} />
         <Route path="/review" element={<ReviewDeck />} />
         <Route path="/battle" element={<Battle />} />

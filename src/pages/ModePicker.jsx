@@ -26,9 +26,9 @@ export default function ModePicker() {
         <h1 className="mt-2 font-display text-3xl font-bold text-foreground sm:text-4xl">{title}</h1>
         <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">Every question in the selected game will use flags from {region || "around the world"}.</p>
         {!region && (
-          <Link to="/play/world-quiz" className="mt-5 flex items-center gap-4 border-2 border-foreground bg-violet-500/10 p-4 transition-transform hover:-translate-y-1">
+          <Link to="/play/go-berserk" className="mt-5 flex items-center gap-4 border-2 border-foreground bg-violet-500/10 p-4 transition-transform hover:-translate-y-1">
             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center border-2 border-foreground bg-violet-500/15"><Globe2 className="h-5 w-5" /></span>
-            <span><span className="block font-display text-xl font-bold text-foreground">World Quiz</span><span className="mt-0.5 block text-sm text-muted-foreground">A dedicated 20-question quiz drawn randomly from all 197 countries.</span></span>
+            <span><span className="block font-display text-xl font-bold text-foreground">Go Berserk</span><span className="mt-0.5 block text-sm text-muted-foreground">One intense, randomized run through all 197 countries — every flag appears exactly once.</span></span>
           </Link>
         )}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

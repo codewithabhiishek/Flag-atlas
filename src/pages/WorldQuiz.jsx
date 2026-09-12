@@ -7,7 +7,8 @@ import { COUNTRIES, pickOptions, shuffle } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { cn } from "@/lib/utils";
 
-const ROUND = 20;
+// A complete Go Berserk run covers every country once, in a fresh random order.
+const ROUND = COUNTRIES.length;
 
 export default function WorldQuiz() {
   const { record, touchStreak } = useProgress();
@@ -68,10 +69,10 @@ export default function WorldQuiz() {
   }
 
   return (
-    <ModeShell title="World Quiz" region="All countries">
+    <ModeShell title="Go Berserk" region="All countries">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <span className="font-bold">Question {index + 1} / {queue.length}</span>
-        <span className="inline-flex items-center gap-1 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Randomly selected from all {COUNTRIES.length} countries</span>
+        <span className="inline-flex items-center gap-1 font-semibold"><Globe2 className="h-3.5 w-3.5" /> Every country, one full run</span>
       </div>
       <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] overflow-hidden rounded-lg border-2 border-foreground bg-muted">

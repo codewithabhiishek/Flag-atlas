@@ -43,9 +43,9 @@ import { playUiSound } from "@/lib/sounds";
 const MODES = [
   {
     key: "world-quiz",
-    path: "/play/world-quiz",
-    label: "World Quiz",
-    desc: "20 random flags from every country",
+    path: "/play/go-berserk",
+    label: "Go Berserk",
+    desc: "The full 197-country flag marathon",
     icon: Globe,
     accent: "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30",
     iconBg: "bg-violet-500/15",
