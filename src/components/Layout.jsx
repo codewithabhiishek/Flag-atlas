@@ -7,6 +7,7 @@ import { useProgress } from "@/lib/ProgressContext";
 import { levelProgress, rankFromMastered } from "@/lib/scoring";
 import { masteredCount } from "@/lib/derive";
 import { cn } from "@/lib/utils";
+import { useUiClickSounds } from "@/hooks/use-ui-click-sounds";
 
 const NAV = [
   { to: "/", label: "Atlas", icon: Compass },
@@ -17,6 +18,7 @@ const NAV = [
 
 export default function Layout() {
   const { state } = useProgress();
+  useUiClickSounds();
   const [dark, setDark] = useState(
     () =>
       typeof document !== "undefined" &&

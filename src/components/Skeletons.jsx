@@ -62,8 +62,8 @@ export function RegionCardSkeleton() {
 /** Skeleton for the WorldMap (just the ocean rectangle) */
 export function MapSkeleton() {
   return (
-    <div className="w-full bg-ocean py-4 flex items-center justify-center" style={{ minHeight: 260 }}>
-      <Skeleton className="w-[90%] mx-auto rounded-xl" style={{ height: 220 }} />
+    <div className="w-full bg-ocean py-2 flex items-center justify-center">
+      <Skeleton className="w-[94%] mx-auto rounded-xl" style={{ aspectRatio: "2.05 / 1", maxHeight: 200 }} />
     </div>
   );
 }

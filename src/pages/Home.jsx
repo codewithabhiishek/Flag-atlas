@@ -19,6 +19,7 @@ import {
   Compass,
   BarChart2,
   Globe,
+  History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -37,6 +38,7 @@ import MasteryMeter from "@/components/MasteryMeter";
 import PassportStamps from "@/components/PassportStamps";
 import FlagImage from "@/components/FlagImage";
 import { cn } from "@/lib/utils";
+import { playUiSound } from "@/lib/sounds";
 
 const MODES = [
   {
@@ -87,7 +89,7 @@ function LegendDot({ className, label }) {
 }
 
 // ── Quick-fire quiz — records BOTH correct and wrong answers so stats are accurate ──
-function QuickFlagSpotlight({ onAnswer }) {
+function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * COUNTRIES.length));
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
@@ -115,6 +117,8 @@ function QuickFlagSpotlight({ onAnswer }) {
 
     // ✅ Always record — correct OR wrong — so stats.answered stays accurate
     onAnswer(currentCountry, isCorrect);
+
+    playUiSound(isCorrect ? "success" : "error");
 
     if (isCorrect) {
       confetti({
@@ -202,6 +206,7 @@ function QuickFlagSpotlight({ onAnswer }) {
               <motion.button
                 key={c.code}
                 type="button"
+                data-sound="off"
                 whileHover={!answered ? { y: -1 } : {}}
                 whileTap={!answered ? { scale: 0.98, y: 1 } : {}}
                 onClick={() => handleChoice(c)}
@@ -277,46 +282,50 @@ function QuickFlagSpotlight({ onAnswer }) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
 
-// ── Live answered-countries feed ──────────────────────────────────────────────
-function RecentActivity({ log }) {
-  if (!log.length) return null;
-  return (
-    <div className="mt-4">
-      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-        This session — {log.length} answered
-      </p>
-      <div className="flex flex-wrap gap-2">
-        <AnimatePresence>
-          {log.map((entry) => (
-            <motion.div
-              key={entry.id}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded border text-xs font-semibold",
-                entry.correct
-                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"
-                  : "border-destructive/30 bg-destructive/8 text-destructive",
-              )}
-              title={`${entry.name} — ${entry.correct ? "Correct" : "Wrong"}`}
-            >
-              <div className="w-6 h-4 overflow-hidden rounded-sm border border-border/50 shrink-0">
-                <FlagImage code={entry.code} className="w-full h-full" fittingType="fill" />
-              </div>
-              <span className="truncate max-w-[80px]">{entry.name}</span>
-              {entry.correct
-                ? <CheckCircle2 className="w-3 h-3 shrink-0" />
-                : <XCircle className="w-3 h-3 shrink-0" />}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+      {/* ── Integrated Session Progress Footer ── */}
+      {activityLog && activityLog.length > 0 && (
+        <div className="mt-4 pt-3.5 border-t border-border/60">
+          <div className="flex items-center justify-between gap-2 mb-2 text-xs">
+            <span className="font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <History className="w-3.5 h-3.5 text-terra" /> Session Activity
+            </span>
+            <span className="font-semibold text-muted-foreground">
+              {activityLog.filter((e) => e.correct).length}/{activityLog.length} correct
+            </span>
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-none">
+            <AnimatePresence initial={false}>
+              {activityLog.map((entry) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold shrink-0 shadow-sm transition-all",
+                    entry.correct
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200"
+                      : "border-destructive/40 bg-destructive/10 text-destructive line-through opacity-85",
+                  )}
+                  title={`${entry.name} — ${entry.correct ? "Correct" : "Wrong"}`}
+                >
+                  <div className="w-5 h-3.5 overflow-hidden rounded-[2px] border border-foreground/20 shrink-0 bg-muted">
+                    <FlagImage code={entry.code} className="w-full h-full object-cover" fittingType="fill" />
+                  </div>
+                  <span className="whitespace-nowrap">{entry.name}</span>
+                  {entry.correct ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  ) : (
+                    <XCircle className="w-3.5 h-3.5 text-destructive shrink-0" />
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -363,13 +372,14 @@ export default function Home() {
   }, [record]);
 
   const triggerCelebration = () => {
+    playUiSound("success");
     confetti({ particleCount: 60, spread: 80, origin: { y: 0.3 }, colors: ["#F59E0B", "#10B981", "#3B82F6", "#EF4444"] });
   };
 
   if (!ready) return <HomeSkeleton />;
 
   return (
-    <div ref={containerRef} className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-8">
+    <div ref={containerRef} className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-5 sm:space-y-6">
 
       {/* ── 1. Hero: rank + live stats + XP ── */}
       <motion.section
@@ -392,6 +402,7 @@ export default function Home() {
                 whileHover={{ scale: 1.2, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={triggerCelebration}
+                data-sound="off"
                 className="p-2 border-2 border-foreground bg-gold rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 title="Celebrate!"
               >
@@ -486,14 +497,12 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* ── 2. Daily Challenge + live activity log ── */}
+      {/* ── 2. Daily Challenge with integrated session progress ── */}
       <div
         data-reveal
         data-reveal-delay="0.05"
-        className="space-y-0"
       >
-        <QuickFlagSpotlight onAnswer={handleAnswer} />
-        <RecentActivity log={activityLog} />
+        <QuickFlagSpotlight onAnswer={handleAnswer} activityLog={activityLog} />
       </div>
 
       {/* ── 3. The World Atlas Map ── */}
@@ -502,7 +511,7 @@ export default function Home() {
         data-reveal-delay="0.08"
         className="atlas-card border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] overflow-hidden"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b-2 border-foreground bg-card/60 backdrop-blur">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 sm:py-3.5 border-b-2 border-foreground bg-card/60 backdrop-blur">
           <div>
             <h2 className="font-display font-bold text-xl text-foreground flex items-center gap-2">
               <Compass className="w-5 h-5 text-terra" /> World Atlas
@@ -523,7 +532,7 @@ export default function Home() {
       </section>
 
       {/* ── 4. Game Modes ── */}
-      <section data-reveal data-reveal-delay="0.04">
+      <section data-reveal data-reveal-delay="0.04" className="-mt-1">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-xl font-bold text-foreground">Game Modes</h2>
           <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Pick your style</span>

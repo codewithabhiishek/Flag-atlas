@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { byCode } from "@/data/countries";
 import { codeForGeo } from "@/data/geoMap";
 import { flagStatus } from "@/lib/derive";
+import { computeWorldMapLayout } from "@/lib/worldMapProjection";
+import { playUiSound } from "@/lib/sounds";
+import { useSize } from "@/hooks/use-size";
 import FlagImage from "@/components/FlagImage";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
@@ -34,7 +37,6 @@ function statusColor(s) {
       : "text-muted-foreground";
 }
 
-// Detect if the primary input is touch (coarse pointer = finger)
 function isTouchDevice() {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(pointer: coarse)").matches;
@@ -42,15 +44,45 @@ function isTouchDevice() {
 
 export default function WorldMap({ flags }) {
   const navigate = useNavigate();
+  const containerRef = useRef(null);
+  const containerSize = useSize(containerRef);
+  const [geoData, setGeoData] = useState(null);
+  const [mapLoadFailed, setMapLoadFailed] = useState(false);
+
   const [hoverInfo, setHoverInfo] = useState(null);
   const [hoverGeo, setHoverGeo] = useState(null);
-  // Touch-specific: tapped country panel (shown below the map on mobile)
   const [tapInfo, setTapInfo] = useState(null);
   const [tapGeo, setTapGeo] = useState(null);
 
   const tooltipRef = useRef(null);
   const pos = useRef({ x: 0, y: 0 });
   const isTouch = useRef(isTouchDevice());
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(GEO_URL)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Map data request failed: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!cancelled) setGeoData(data);
+      })
+      .catch(() => {
+        if (!cancelled) setMapLoadFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const layout = useMemo(() => {
+    if (!containerSize?.width || !geoData) return null;
+    const available = containerSize.width;
+    const padding = available < 400 ? 12 : available < 768 ? 14 : 18;
+    const width = available < 640 ? available : Math.min(available, 860);
+    return computeWorldMapLayout(width, geoData, padding);
+  }, [containerSize?.width, geoData]);
 
   function tooltipTransform(x, y) {
     const ttW = 260,
@@ -89,43 +121,61 @@ export default function WorldMap({ flags }) {
     return FILL[flagStatus(flags, code)];
   }
 
-  // Highlight geo: whichever is active (hover on desktop, tap on mobile)
   const activeGeo = hoverGeo || tapGeo;
 
-  function handleTap(geo, code, name) {
-    // If tapping the same country, navigate like a desktop click
-    if (tapInfo && tapInfo.code === code) {
+  const navigateToCountry = useCallback(
+    (code) => {
       if (!code) return;
       const country = byCode(code);
       if (!country) return;
+      playUiSound("navigate");
       navigate(`/play/fragments?region=${encodeURIComponent(country.region)}`);
+    },
+    [navigate],
+  );
+
+  function handleTap(geo, code, name) {
+    if (tapInfo && tapInfo.code === code) {
+      navigateToCountry(code);
       setTapInfo(null);
       setTapGeo(null);
       return;
     }
-    // First tap: show info panel
+    playUiSound("tap");
     setTapGeo(geo);
     setTapInfo({ code, name });
   }
 
   return (
-    <div className="relative w-full overflow-hidden flex flex-col items-center justify-center bg-ocean py-2 sm:py-4">
-      <div className="w-full max-w-4xl mx-auto px-2 sm:px-4">
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-hidden flex flex-col items-center justify-center bg-ocean px-2 sm:px-3 py-1.5 sm:py-2"
+    >
+      {layout ? (
         <ComposableMap
           projection="geoEqualEarth"
-          projectionConfig={{ scale: 130 }}
-          width={800}
-          height={410}
+          projectionConfig={{
+            scale: layout.scale,
+            center: layout.center,
+          }}
+          width={layout.width}
+          height={layout.height}
           style={{
             width: "100%",
-            maxHeight: "350px",
+            maxWidth: layout.width,
             height: "auto",
             display: "block",
             margin: "0 auto",
           }}
         >
-          <rect x={0} y={0} width={800} height={410} fill="hsl(var(--ocean))" />
-          <Geographies geography={GEO_URL}>
+          <rect
+            x={0}
+            y={0}
+            width={layout.width}
+            height={layout.height}
+            fill="hsl(var(--ocean))"
+          />
+          <Geographies geography={geoData}>
             {({ geographies }) => (
               <>
                 {geographies.map((geo) => {
@@ -154,7 +204,6 @@ export default function WorldMap({ flags }) {
                         },
                       }}
                       className="cursor-pointer"
-                      // ── Desktop hover ──
                       onMouseEnter={(e) => {
                         if (isTouch.current) return;
                         setHoverGeo(geo);
@@ -171,16 +220,9 @@ export default function WorldMap({ flags }) {
                         setHoverInfo(null);
                       }}
                       onClick={() => {
-                        // Desktop: navigate immediately on click
                         if (isTouch.current) return;
-                        if (!code) return;
-                        const country = byCode(code);
-                        if (!country) return;
-                        navigate(
-                          `/play/fragments?region=${encodeURIComponent(country.region)}`,
-                        );
+                        navigateToCountry(code);
                       }}
-                      // ── Mobile tap ──
                       onTouchStart={(e) => {
                         isTouch.current = true;
                         e.stopPropagation();
@@ -189,7 +231,6 @@ export default function WorldMap({ flags }) {
                     />
                   );
                 })}
-                {/* Highlight overlay for active country */}
                 {activeGeo && (
                   <Geography
                     key="__highlight"
@@ -210,9 +251,21 @@ export default function WorldMap({ flags }) {
             )}
           </Geographies>
         </ComposableMap>
-      </div>
+      ) : (
+        <div
+          className="w-full flex items-center justify-center rounded-sm"
+          style={{ aspectRatio: "2.05 / 1", maxHeight: 220 }}
+        >
+          {mapLoadFailed ? (
+            <p className="max-w-xs px-4 text-center text-xs font-semibold text-white/80">
+              The map could not be loaded. Please check your connection and refresh.
+            </p>
+          ) : (
+            <div className="w-full h-full bg-ocean/80 animate-pulse" aria-hidden />
+          )}
+        </div>
+      )}
 
-      {/* ── Desktop tooltip (mouse hover) ── */}
       {hoverInfo && (
         <div
           ref={tooltipRef}
@@ -239,7 +292,6 @@ export default function WorldMap({ flags }) {
         </div>
       )}
 
-      {/* ── Mobile tap info panel (shown below the map) ── */}
       <AnimatePresence>
         {tapInfo && (
           <motion.div
@@ -248,9 +300,9 @@ export default function WorldMap({ flags }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="w-full max-w-4xl mx-auto px-2 sm:px-4 sm:hidden"
+            className="w-full sm:hidden pt-1.5"
           >
-            <div className="flex items-center gap-3 border-2 border-foreground bg-popover px-3 py-2.5 mx-2 brutal-shadow">
+            <div className="flex items-center gap-3 border-2 border-foreground bg-popover px-3 py-2.5 brutal-shadow">
               {tapInfo.code && (
                 <div className="w-12 h-8 overflow-hidden border border-border shrink-0 rounded-sm">
                   <FlagImage code={tapInfo.code} className="w-full h-full" />
@@ -268,16 +320,12 @@ export default function WorldMap({ flags }) {
                     : "Not in atlas"}
                 </div>
               </div>
-              {/* Tap again = navigate hint */}
               <button
-                onTouchStart={(e) => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
-                  if (!tapInfo.code) return;
-                  const country = byCode(tapInfo.code);
-                  if (!country) return;
-                  navigate(
-                    `/play/fragments?region=${encodeURIComponent(country.region)}`,
-                  );
+                  navigateToCountry(tapInfo.code);
                   setTapInfo(null);
                   setTapGeo(null);
                 }}
@@ -286,8 +334,11 @@ export default function WorldMap({ flags }) {
                 Play <ArrowRight className="w-3.5 h-3.5" />
               </button>
               <button
-                onTouchStart={(e) => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
+                  playUiSound("click");
                   setTapInfo(null);
                   setTapGeo(null);
                 }}
