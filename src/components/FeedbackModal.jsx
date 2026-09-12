@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { MailCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -206,14 +207,16 @@ export function FeedbackModal({ isOpen, onClose }) {
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="postcard-title"
-          onClick={() => phase !== "sealing" && onClose()}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-        >
+      {isOpen &&
+        createPortal(
+          <div
+            key="postcard-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="postcard-title"
+            onClick={() => phase !== "sealing" && onClose()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
+          >
           <motion.div
             initial={{ opacity: 0, y: 24, rotate: -1 }}
             animate={{ opacity: 1, y: 0, rotate: 0 }}
@@ -468,7 +471,8 @@ export function FeedbackModal({ isOpen, onClose }) {
               </form>
             )}
           </motion.div>
-        </div>
+        </div>,
+        document.body,
       )}
     </AnimatePresence>
   );

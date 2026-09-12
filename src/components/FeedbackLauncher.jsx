@@ -15,12 +15,12 @@ export function FeedbackButton({ className = "" }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Mail a postcard to the developer"
-        title="Notes, ideas, or map corrections — mail a postcard to Abhishek"
+        aria-label="Send a suggestion to the developer"
+        title="Suggestions, ideas, or map corrections — send them to Abhishek"
         className={className}
       >
         <Mail className="w-4 h-4" aria-hidden="true" />
-        <span className="hidden md:inline">Postcard</span>
+        <span className="hidden md:inline">Suggest</span>
       </button>
       <FeedbackModal isOpen={open} onClose={() => setOpen(false)} />
     </>
