@@ -21,7 +21,7 @@ import {
   Globe,
   History,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useProgress } from "@/lib/ProgressContext";
 import { levelProgress, rankFromMastered } from "@/lib/scoring";
@@ -103,6 +103,7 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
   const readyAtRef = useRef(0);
+  const shouldReduceMotion = useReducedMotion();
 
   const currentCountry = COUNTRIES[index];
 
@@ -273,21 +274,51 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs gap-2"
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
+            className="mt-4 border-t border-border pt-3"
           >
-            <span className="text-muted-foreground leading-snug">
-              <strong className="text-foreground">{currentCountry.name}</strong>
-              {" · "}{currentCountry.region}
-              {" · "}Capital:{" "}
-              <strong className="text-foreground">{currentCountry.capital}</strong>
-            </span>
-            <button
-              type="button"
-              onClick={nextQuestion}
-              className="shrink-0 px-3 py-1 font-bold uppercase tracking-wider bg-foreground text-background border border-foreground rounded hover:opacity-90 text-xs"
-            >
-              Next →
-            </button>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <motion.p
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
+                  className="text-[10px] font-bold uppercase tracking-[0.16em] text-terra"
+                >
+                  Country revealed
+                </motion.p>
+                <motion.h3
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, delay: 0.04, ease: "easeOut" }}
+                  className="mt-0.5 break-words font-display text-xl font-bold leading-tight text-foreground sm:text-2xl"
+                >
+                  {currentCountry.name}
+                </motion.h3>
+                <motion.dl
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, delay: 0.09, ease: "easeOut" }}
+                  className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 text-xs leading-snug"
+                >
+                  <div className="flex min-w-0 items-baseline gap-1.5">
+                    <dt className="shrink-0 font-bold uppercase tracking-wide text-muted-foreground">Region</dt>
+                    <dd className="break-words font-semibold text-foreground">{currentCountry.region}</dd>
+                  </div>
+                  <div className="flex min-w-0 items-baseline gap-1.5">
+                    <dt className="shrink-0 font-bold uppercase tracking-wide text-muted-foreground">Capital</dt>
+                    <dd className="break-words font-semibold text-foreground">{currentCountry.capital}</dd>
+                  </div>
+                </motion.dl>
+              </div>
+              <button
+                type="button"
+                onClick={nextQuestion}
+                className="h-9 self-start shrink-0 border border-foreground bg-foreground px-3 font-bold uppercase tracking-wider text-background hover:opacity-90 sm:self-auto text-xs"
+              >
+                Next →
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
