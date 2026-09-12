@@ -151,16 +151,15 @@ function QuickFlagSpotlight({ onAnswer }) {
         {/* Flag image */}
         <motion.div
           key={currentCountry.code}
-          initial={{ scale: 0.9, opacity: 0 }}
+          initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 22 }}
-          className="w-32 h-22 sm:w-40 sm:h-28 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.35)] overflow-hidden shrink-0 bg-muted/30 rounded-lg"
-          style={{ minWidth: "8rem", height: "5.5rem" }}
+          className="w-36 sm:w-44 aspect-[3/2] border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.35)] overflow-hidden shrink-0 rounded-lg bg-card"
         >
           <FlagImage
             code={currentCountry.code}
-            className="w-full h-full"
-            fittingType="contain"
+            className="w-full h-full object-cover"
+            fittingType="fill"
             alt={`Flag challenge — guess this country`}
           />
         </motion.div>
