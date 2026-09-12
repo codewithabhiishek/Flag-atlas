@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Eye, Globe2, Palette, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, Globe2, Palette, Sparkles, Zap } from "lucide-react";
 import { BUILDABLE } from "@/data/buildableFlags";
 import { byCode } from "@/data/countries";
 import { cn } from "@/lib/utils";
@@ -36,13 +36,14 @@ export default function ModePicker() {
             const unavailable = mode.label === "Builder" && region && !BUILDABLE.some((item) => byCode(item.code)?.region === region);
             const Icon = mode.icon;
             if (unavailable) {
-              return <div key={mode.path} className="border-2 border-border bg-muted p-5 opacity-65"><Icon className="h-6 w-6" /><h2 className="mt-3 font-display text-xl font-bold">{mode.label}</h2><p className="mt-1 text-sm">No stripe-pattern flags are available for this region yet.</p></div>;
+              return <div key={mode.path} className="border-2 border-border bg-muted p-4 opacity-65 sm:min-h-40 sm:p-5"><Icon className="h-6 w-6" /><h2 className="mt-2.5 font-display text-xl font-bold sm:mt-3">{mode.label}</h2><p className="mt-1 text-sm">No stripe-pattern flags are available for this region yet.</p></div>;
             }
             const destination = `${mode.path}${region ? `?region=${encodeURIComponent(region)}` : ""}`;
-            return <Link key={mode.path} to={destination} className={cn("min-h-40 border-2 border-foreground p-5 transition-transform hover:-translate-y-1", mode.accent)}>
+            return <Link key={mode.path} to={destination} className={cn("group flex min-h-0 flex-col border-2 border-foreground p-4 transition-transform hover:-translate-y-1 sm:min-h-40 sm:p-5", mode.accent)}>
               <Icon className="h-6 w-6" />
-              <h2 className="mt-3 font-display text-xl font-bold text-foreground">{mode.label}</h2>
+              <h2 className="mt-2.5 font-display text-xl font-bold text-foreground sm:mt-3">{mode.label}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{mode.description}</p>
+              <ArrowRight className="mt-3 h-4 w-4 self-end transition-transform group-hover:translate-x-1 sm:mt-auto" aria-hidden="true" />
             </Link>;
           })}
         </div>
