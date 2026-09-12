@@ -57,13 +57,34 @@ export function useGsapScrollProgress(indicatorRef, routeKey = "") {
 
     const ctx = gsap.context(() => {
       gsap.set(indicator, { scaleX: 0, transformOrigin: "left center" });
-      ScrollTrigger.create({
-        start: 0,
-        end: () => Math.max(1, ScrollTrigger.maxScroll(window)),
-        invalidateOnRefresh: true,
-        onUpdate: (trigger) => gsap.set(indicator, { scaleX: trigger.progress }),
+      const setProgress = gsap.quickTo(indicator, "scaleX", {
+        duration: 0.12,
+        ease: "power1.out",
       });
+      const updateProgress = () => {
+        const documentHeight = document.documentElement.scrollHeight;
+        const scrollableHeight = Math.max(1, documentHeight - window.innerHeight);
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        setProgress(Math.min(1, Math.max(0, scrollTop / scrollableHeight)));
+      };
+      const progressTrigger = ScrollTrigger.create({
+        trigger: document.documentElement,
+        start: 0,
+        end: () => Math.max(1, document.documentElement.scrollHeight - window.innerHeight),
+        invalidateOnRefresh: true,
+        onUpdate: updateProgress,
+      });
+      const observer = new ResizeObserver(() => ScrollTrigger.refresh());
+      observer.observe(document.documentElement);
+      ScrollTrigger.addEventListener("refresh", updateProgress);
       ScrollTrigger.refresh();
+      requestAnimationFrame(updateProgress);
+
+      return () => {
+        observer.disconnect();
+        ScrollTrigger.removeEventListener("refresh", updateProgress);
+        progressTrigger.kill();
+      };
     });
 
     return () => ctx.revert();
