@@ -2,11 +2,15 @@
  * FlagAtlas authoritative battle engine — browser edition.
  *
  * This is the room logic of the former server/battle-server.mjs, ported
- * verbatim into a transport-agnostic class so the HOST PLAYER'S BROWSER can
- * run it locally (Word Rush architecture). The wire protocol is unchanged:
- * clients send { type: "join" | "configure" | "start" | "answer" | "kick" |
- * "rematch" }, the engine answers with { type: "joined" | "state" |
- * "notice" | "error" | "finished" | "kicked" }.
+ * into a transport-agnostic class so the HOST PLAYER'S BROWSER can
+ * run it locally (Word Rush architecture). The wire protocol:
+ * clients send { type: "join" | "ready" | "configure" | "lock" | "start" |
+ * "answer" | "kick" | "rematch" }, the engine answers with { type:
+ * "joined" | "state" | "notice" | "error" | "finished" | "kicked" }.
+ *
+ * Lobby rules (Word Rush style): the host is always ready; everyone else
+ * toggles ready/unready. The host can only start when every connected
+ * player is ready, and can lock the room to stop new joins.
  *
  * The engine only needs a `send(connId, msg)` callback — it doesn't know or
  * care whether messages go over a WebSocket, a WebRTC data channel, or a
@@ -73,6 +77,12 @@ export class BattleEngine {
       case "configure":
         this.actionConfigure(conn, room, msg);
         return;
+      case "ready":
+        this.actionReady(conn, room, msg);
+        return;
+      case "lock":
+        this.actionLock(conn, room, msg);
+        return;
       case "start":
         this.actionStart(conn, room);
         return;
@@ -111,6 +121,7 @@ export class BattleEngine {
         rounds: Number(msg.rounds) || 10,
         status: "lobby",
         hostSeat: 1,
+        locked: false,
         players: new Map(), // seat -> player
         questions: [],
         results: [],
@@ -121,6 +132,8 @@ export class BattleEngine {
 
     if (room.status !== "lobby")
       return this.fail(connId, "This battle has already started.");
+    if (room.locked && !creating)
+      return this.fail(connId, "This room is locked by the host.");
     if (room.players.size >= MAX_PLAYERS)
       return this.fail(connId, "This room is full (five players maximum).");
 
@@ -138,6 +151,7 @@ export class BattleEngine {
       totalAnswerMs: 0,
       answerCount: 0,
       lastAnswerMs: 0,
+      ready: false,
       connId,
     };
     room.players.set(seat, player);
@@ -145,7 +159,10 @@ export class BattleEngine {
 
     this.io.send(connId, { type: "joined", seat });
     this.broadcast(room);
-    this.announce(room, `${player.name} joined the room.`);
+    this.announce(
+      room,
+      creating ? `${player.name} opened the room.` : `${player.name} joined the room.`,
+    );
     this.schedulePurgeSweep();
   }
 
@@ -162,11 +179,40 @@ export class BattleEngine {
     this.broadcast(room);
   }
 
+  /** Word Rush rule: host is always ready; guests toggle freely. */
+  actionReady(conn, room, msg) {
+    if (room.status !== "lobby") return;
+    const player = room.players.get(conn.seat);
+    if (!player) return;
+    if (conn.seat === room.hostSeat) {
+      player.ready = true;
+    } else {
+      player.ready = msg.ready === true;
+    }
+    this.broadcast(room);
+  }
+
+  /** Host-only: lock the room so nobody else can join. */
+  actionLock(conn, room, msg) {
+    if (conn.seat !== room.hostSeat || room.status !== "lobby") return;
+    room.locked = msg.locked === true;
+    this.broadcast(room);
+    this.announce(room, room.locked ? "Room locked — no new players can join." : "Room unlocked — anyone can join.");
+  }
+
   actionStart(conn, room) {
     if (conn.seat !== room.hostSeat)
       return this.fail(conn.connId, "Only the room host can start the battle.");
     if (room.players.size < 2)
       return this.fail(conn.connId, "At least two players are required to start.");
+    // Word Rush rule: start requires every connected player to be ready.
+    const notReady = [...room.players.values()].filter((p) => !p.ready);
+    if (notReady.length > 0) {
+      return this.fail(
+        conn.connId,
+        `Waiting for ${notReady.map((p) => p.name).join(", ")} to ready up.`,
+      );
+    }
     room.questions = makeQuestions(room.region, room.rounds);
     room.status = "playing";
     const now = Date.now();
@@ -226,8 +272,10 @@ export class BattleEngine {
     this.conns.delete(target.connId);
     room.players.delete(targetSeat);
     this.broadcast(room);
-    this.announce(room, `${target.name} was removed by the host.`);
+    this.announce(room, `${target.name} was kicked from the room.`);
   }
+
+  /* ---------------- lifecycle ---------------- */
 
   actionRematch(room) {
     if (room.status !== "finished") return;
@@ -246,11 +294,11 @@ export class BattleEngine {
         answerCount: 0,
         lastAnswerMs: 0,
       });
+      // Back to the lobby: everyone must ready up again (host stays ready).
+      p.ready = p.seat === room.hostSeat;
     }
     this.broadcast(room);
   }
-
-  /* ---------------- lifecycle ---------------- */
 
   /** Transport-level disconnect (tab closed, WebRTC drop). */
   onDisconnect(connId) {
@@ -270,6 +318,11 @@ export class BattleEngine {
     }
     if (conn.seat === room.hostSeat) {
       room.hostSeat = [...room.players.keys()][0];
+      const nextHost = room.players.get(room.hostSeat);
+      if (nextHost) {
+        nextHost.ready = true;
+        this.announce(room, `${nextHost.name} is now the host.`);
+      }
     }
     // During a match the remaining player is allowed to finish (README
     // behavior) — do NOT force-finish the room.
@@ -339,6 +392,7 @@ export class BattleEngine {
       region: room.region,
       rounds: room.rounds,
       hostSeat: room.hostSeat,
+      locked: room.locked === true,
       questions: room.status === "playing" ? room.questions : [],
       players: [...room.players.values()].map(({ connId, ...p }) => p),
     };

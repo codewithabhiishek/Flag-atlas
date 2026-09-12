@@ -34,6 +34,7 @@ import {
 import { REGIONS } from "@/data/regions";
 import { COUNTRIES, pickOptions } from "@/data/countries";
 import WorldMap from "@/components/WorldMap";
+import InfoTip from "@/components/InfoTip";
 import MasteryMeter from "@/components/MasteryMeter";
 import PassportStamps from "@/components/PassportStamps";
 import FlagImage from "@/components/FlagImage";
@@ -582,6 +583,9 @@ export default function Home() {
             <AtlasLegendItem markerClassName="bg-land" label="Not studied" description="No answers recorded yet" />
             <AtlasLegendItem markerClassName="rounded-full bg-terra" label="Learning" description="Studied, but not mastered yet" />
             <AtlasLegendItem markerClassName="bg-forest rotate-45" label="Mastered" description="Three consecutive correct reviews" />
+            <InfoTip label="About progress colors">
+              <b>Learning</b> = you've seen the flag at least once. <b>Mastered</b> (green) = 3 correct answers in a row — only mastered flags count toward region progress, your rank, and passport stamps.
+            </InfoTip>
           </div>
         </div>
         <div className="bg-ocean relative">
@@ -628,7 +632,12 @@ export default function Home() {
       {/* ── 5. Regional Progress — compact strips ── */}
       <section data-reveal data-reveal-delay="0.06">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl font-bold text-foreground">Progress by Region</h2>
+          <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+            Progress by Region
+            <InfoTip label="About region progress">
+              Counts only <b>mastered</b> flags — 3 correct answers in a row. Flags you're still learning don't count yet; keep answering them correctly to fill the bar.
+            </InfoTip>
+          </h2>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {REGIONS.filter((r) => r.id !== "Antarctica").map((r) => {
