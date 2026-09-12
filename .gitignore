@@ -35,3 +35,7 @@ dist-ssr
 .env
 .vite
 base44/.app.jsonc
+
+# Local tooling — never commit
+.freebuff/
+make_ico.py
