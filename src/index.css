@@ -94,15 +94,41 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* UX guideline: anchor/jump links scroll smoothly instead of teleporting. */
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground font-body antialiased;
     overflow-x: hidden;
+    /* Kill the 300ms tap delay and double-tap-zoom lag on interactive UI. */
+    touch-action: manipulation;
   }
   h1, h2, h3 {
     @apply font-display;
     font-weight: 600;
     letter-spacing: -0.01em;
     line-height: 1.1;
+  }
+  /* Keyboard focus must be clearly visible everywhere (WCAG 2.4.7) —
+     a 2px forest ring with offset so it never blends into borders. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--foreground));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  /* Users who opt out of motion get no spins, floats, or shimmers. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
