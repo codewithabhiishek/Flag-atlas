@@ -332,10 +332,10 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
-            className="mt-4 border-t border-border pt-3"
+            className="mt-3 border-t border-border pt-3"
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <motion.p
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -352,26 +352,28 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
                 >
                   {currentCountry.name}
                 </motion.h3>
+                {/* Metadata sits directly under the name as one grouped block —
+                    a divider separates the two fields without scattering them. */}
                 <motion.dl
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2, delay: 0.09, ease: "easeOut" }}
-                  className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 text-xs leading-snug"
+                  className="mt-2 flex items-center divide-x divide-border/60 text-xs leading-snug"
                 >
-                  <div className="flex min-w-0 items-baseline gap-1.5">
-                    <dt className="shrink-0 font-bold uppercase tracking-wide text-muted-foreground">Region</dt>
-                    <dd className="break-words font-semibold text-foreground">{currentCountry.region}</dd>
+                  <div className="flex min-w-0 items-baseline gap-1.5 pr-3">
+                    <dt className="shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Region</dt>
+                    <dd className="truncate font-semibold text-foreground">{currentCountry.region}</dd>
                   </div>
-                  <div className="flex min-w-0 items-baseline gap-1.5">
-                    <dt className="shrink-0 font-bold uppercase tracking-wide text-muted-foreground">Capital</dt>
-                    <dd className="break-words font-semibold text-foreground">{currentCountry.capital}</dd>
+                  <div className="flex min-w-0 items-baseline gap-1.5 pl-3">
+                    <dt className="shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Capital</dt>
+                    <dd className="truncate font-semibold text-foreground">{currentCountry.capital}</dd>
                   </div>
                 </motion.dl>
               </div>
               <button
                 type="button"
                 onClick={nextQuestion}
-                className="h-9 self-start shrink-0 border border-foreground bg-foreground px-3 font-bold uppercase tracking-wider text-background hover:opacity-90 sm:self-auto text-xs"
+                className="h-9 shrink-0 border border-foreground bg-foreground px-3 font-bold uppercase tracking-wider text-background hover:opacity-90 text-xs sm:ml-4"
               >
                 Next →
               </button>
