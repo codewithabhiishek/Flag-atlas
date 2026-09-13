@@ -172,11 +172,11 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
         origin: { y: 0.6 },
         colors: ["#10B981", "#F59E0B", "#3B82F6", "#EC4899"],
       });
-      // Correct answers advance on their own — a short beat so the reveal
-      // (green flash + confetti) registers before the next flag appears.
+      // Correct answers advance on their own — just enough beat for the
+      // green flash to register before the next flag appears.
       autoTimerRef.current = window.setTimeout(() => {
         nextQuestion();
-      }, 1400);
+      }, 650);
     }
   }, [currentCountry, onAnswer]);
 
