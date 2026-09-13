@@ -253,7 +253,19 @@ export function tryPeerGuestLink(roomCode, timeoutMs = 8000) {
  */
 export function createPeerHostLink({ code, name, region, rounds }) {
   const listeners = new Set();
-  const deliver = (msg) => listeners.forEach((cb) => cb(msg));
+  // Engine replies fired before the UI registers onMessage (the local
+  // "joined" + first "state" arrive synchronously with the join below) must
+  // be buffered, not dropped — otherwise the host tab never learns its seat
+  // and renders the guest UI (no Start button, locked settings, no kick).
+  const earlyQueue = [];
+  let hasListener = false;
+  const deliver = (msg) => {
+    if (!hasListener) {
+      earlyQueue.push(msg);
+      return;
+    }
+    listeners.forEach((cb) => cb(msg));
+  };
   const HOST_CONN = "host-local";
 
   let bridge = null;
@@ -270,6 +282,12 @@ export function createPeerHostLink({ code, name, region, rounds }) {
     },
     onMessage: (cb) => {
       listeners.add(cb);
+      if (!hasListener) {
+        hasListener = true;
+        // Replay everything the engine said before the UI was listening.
+        const queued = earlyQueue.splice(0);
+        for (const msg of queued) cb(msg);
+      }
       return () => listeners.delete(cb);
     },
     onClose: undefined,
