@@ -25,12 +25,14 @@ export default function InfoTip({ label = "More info", children, className = "" 
     const GAP = 10;
     const viewportW = window.innerWidth;
 
-    // Panel width: min(288px, viewport minus margins)
-    const maxWidth = Math.min(288, viewportW - MARGIN * 2);
-    // Prefer opening BELOW the button; flip above if not enough room.
-    const spaceBelow = window.innerHeight - r.bottom;
-    const openUp = spaceBelow < 180 && r.top > spaceBelow;
-    const top = openUp ? r.top - GAP : r.bottom + GAP;
+    // Panel width: min(260px, viewport minus margins)
+    const maxWidth = Math.min(260, viewportW - MARGIN * 2);
+    // Prefer opening ABOVE the button (both usages sit on top of content —
+    // map, charts — so opening below covers the thing being explained).
+    // Flip below only when there isn't room above.
+    const spaceAbove = r.top;
+    const openDown = spaceAbove < 150 && r.bottom < window.innerHeight - 150;
+    const top = openDown ? r.bottom + GAP : r.top - GAP - 8;
 
     // Horizontal: align panel's right edge to the button's right edge,
     // then clamp inside the viewport.
@@ -58,9 +60,9 @@ export default function InfoTip({ label = "More info", children, className = "" 
       {open && pos && (
         <motion.span
           role="tooltip"
-          initial={{ opacity: 0, y: -4, scale: 0.97 }}
+          initial={{ opacity: 0, y: 4, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -4, scale: 0.97 }}
+          exit={{ opacity: 0, y: 4, scale: 0.97 }}
           transition={{ duration: 0.15 }}
           style={{
             position: "fixed",
