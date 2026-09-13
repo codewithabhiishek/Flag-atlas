@@ -205,18 +205,20 @@ export function FeedbackModal({ isOpen, onClose }) {
     }
   };
 
-  return (
+  // NOTE: createPortal must wrap AnimatePresence, not the other way around —
+  // AnimatePresence cannot track a portal element as its direct child and the
+  // modal would never mount.
+  if (!isOpen) return null;
+  return createPortal(
     <AnimatePresence>
-      {isOpen &&
-        createPortal(
-          <div
-            key="postcard-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="postcard-title"
-            onClick={() => phase !== "sealing" && onClose()}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
-          >
+      <div
+        key="postcard-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="postcard-title"
+        onClick={() => phase !== "sealing" && onClose()}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
+      >
           <motion.div
             initial={{ opacity: 0, y: 24, rotate: -1 }}
             animate={{ opacity: 1, y: 0, rotate: 0 }}
@@ -471,9 +473,8 @@ export function FeedbackModal({ isOpen, onClose }) {
               </form>
             )}
           </motion.div>
-        </div>,
-        document.body,
-      )}
-    </AnimatePresence>
+      </div>
+    </AnimatePresence>,
+    document.body,
   );
 }
