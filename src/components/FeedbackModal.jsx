@@ -358,12 +358,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                     }}
                     placeholder={topic.prompt}
                     rows={4}
-                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-[#fffdf5] dark:bg-background px-3.5 py-2.5 text-sm font-medium leading-7 outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/60"
-                    style={{
-                      backgroundImage:
-                        "repeating-linear-gradient(transparent, transparent 27px, rgba(0,0,0,0.07) 27px, rgba(0,0,0,0.07) 28px)",
-                      lineHeight: "28px",
-                    }}
+                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-[#fffdf5] dark:bg-background px-3.5 py-2.5 text-sm font-medium leading-relaxed outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/60"
                   />
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-[10px] text-muted-foreground">
