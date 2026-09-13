@@ -234,11 +234,11 @@ export default function Battle() {
   const inviteCode = searchParams.get("room")?.toUpperCase().slice(0, 4) || "";
   if (!code && inviteCode) {
     return (
-      <div className="mx-auto max-w-md px-3 sm:px-4 py-6">
-        <div className="flex items-center justify-between mb-5">
+      <div className="mx-auto max-w-md px-3 sm:px-4 py-4">
+        <div className="flex items-center justify-between mb-3">
           <Link
             to="/battle"
-            className="inline-flex items-center gap-1.5 border-2 border-foreground bg-card px-3 h-9 text-sm font-bold uppercase tracking-tight"
+            className="inline-flex items-center gap-1.5 border-2 border-foreground bg-card px-3 h-8 text-sm font-bold uppercase tracking-tight"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
@@ -247,18 +247,18 @@ export default function Battle() {
           </span>
         </div>
 
-        <div className="atlas-card grid-paper p-6 sm:p-8 text-center">
-          <div className="inline-flex w-12 h-12 border-2 border-foreground bg-terra items-center justify-center mb-3 brutal-shadow">
-            <Users className="w-6 h-6 text-foreground" />
+        <div className="atlas-card grid-paper p-4 sm:p-6 text-center">
+          <div className="inline-flex w-10 h-10 border-2 border-foreground bg-terra items-center justify-center mb-2 brutal-shadow">
+            <Users className="w-5 h-5 text-foreground" />
           </div>
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
             Room code
           </p>
-          <div className="mt-1 font-display text-5xl sm:text-6xl tracking-[0.2em] text-foreground">
+          <div className="mt-1 font-display text-4xl sm:text-5xl tracking-[0.2em] text-foreground">
             {inviteCode}
           </div>
 
-          <div className="mt-6 text-left">
+          <div className="mt-4 text-left">
             <label
               htmlFor="invite-name"
               className="text-xs font-bold uppercase tracking-tight text-muted-foreground"
@@ -297,11 +297,11 @@ export default function Battle() {
   // ---- Menu ----
   if (!code) {
     return (
-      <div className="mx-auto max-w-3xl px-3 sm:px-4 py-6">
-        <div className="flex items-center justify-between mb-5">
+      <div className="mx-auto max-w-3xl px-3 sm:px-4 py-4">
+        <div className="flex items-center justify-between mb-3">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 border-2 border-foreground bg-card px-3 h-9 text-sm font-bold uppercase tracking-tight"
+            className="inline-flex items-center gap-1.5 border-2 border-foreground bg-card px-3 h-8 text-sm font-bold uppercase tracking-tight"
           >
             <ArrowLeft className="w-4 h-4" /> Map
           </Link>
@@ -310,22 +310,24 @@ export default function Battle() {
           </span>
         </div>
 
-        <div className="atlas-card grid-paper p-6 sm:p-8 mb-5">
-          <div className="inline-flex w-12 h-12 border-2 border-foreground bg-gold items-center justify-center mb-3 brutal-shadow">
-            <Swords className="w-6 h-6 text-foreground" />
+        <div className="atlas-card grid-paper p-4 sm:p-5 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex w-10 h-10 shrink-0 border-2 border-foreground bg-gold items-center justify-center brutal-shadow">
+              <Swords className="w-5 h-5 text-foreground" />
+            </div>
+            <h1 className="font-display text-2xl sm:text-3xl text-foreground">
+              Flag Battle
+            </h1>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl text-foreground">
-            Flag Battle
-          </h1>
-          <p className="text-muted-foreground mt-2 font-medium max-w-md">
+          <p className="text-sm text-muted-foreground mt-2 font-medium max-w-md">
             Create a room, share the code with a friend, and race through flags.
             Most correct wins — ties go to the fastest finisher.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 sm:gap-5">
-          <div className="atlas-card p-5">
-            <h2 className="font-display text-xl text-foreground mb-3">
+        <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="atlas-card p-4 flex flex-col">
+            <h2 className="font-display text-lg text-foreground mb-2">
               Create
             </h2>
             <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
@@ -334,7 +336,7 @@ export default function Battle() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value.slice(0, 20))}
-              className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
+              className="mt-1 mb-2.5 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
             />
             <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
               Region
@@ -342,7 +344,7 @@ export default function Battle() {
             <select
               value={region}
               onChange={(e) => setRegion(e.target.value)}
-              className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-2 text-sm font-medium focus:outline-none"
+              className="mt-1 mb-2.5 w-full h-10 border-2 border-foreground bg-card px-2 text-sm font-medium focus:outline-none"
             >
               <option value="World">World · all 197 countries</option>
               {PLAYABLE_REGIONS.map((r) => (
@@ -360,19 +362,19 @@ export default function Battle() {
               max={20}
               value={rounds}
               onChange={(e) => setRounds(Number(e.target.value))}
-              className="w-full mt-2 mb-4 accent-foreground"
+              className="w-full mt-1.5 mb-1 accent-foreground"
             />
-            <p className="-mt-2 mb-4 text-xs text-muted-foreground">World uses a random mix from all 197 countries.</p>
+            <p className="mb-3 text-xs text-muted-foreground">World uses a random mix from all 197 countries.</p>
             <button
               onClick={() => openRoom(randomCode(), "create")}
-              className="w-full h-11 border-2 border-foreground bg-foreground text-background font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform"
+              className="mt-auto w-full h-10 border-2 border-foreground bg-foreground text-background font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform"
             >
               Create room →
             </button>
           </div>
 
-          <div className="atlas-card p-5">
-            <h2 className="font-display text-xl text-foreground mb-3">Join</h2>
+          <div className="atlas-card p-4 flex flex-col">
+            <h2 className="font-display text-lg text-foreground mb-2">Join</h2>
             <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
               Room code
             </label>
@@ -382,7 +384,7 @@ export default function Battle() {
                 setJoinInput(e.target.value.toUpperCase().slice(0, 4))
               }
               placeholder="ABCD"
-              className="mt-1 mb-3 w-full h-12 border-2 border-foreground bg-card px-3 text-2xl font-bold tracking-[0.3em] text-center focus:outline-none"
+              className="mt-1 mb-2.5 w-full h-11 border-2 border-foreground bg-card px-3 text-xl font-bold tracking-[0.3em] text-center focus:outline-none"
             />
             <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
               Your name
@@ -390,12 +392,12 @@ export default function Battle() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value.slice(0, 20))}
-              className="mt-1 mb-4 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
+              className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
             />
             <button
               onClick={() => joinInput.length === 4 && openRoom(joinInput, "join")}
               disabled={joinInput.length !== 4}
-              className="w-full h-11 border-2 border-foreground bg-terra font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
+              className="mt-auto w-full h-10 border-2 border-foreground bg-terra font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40"
             >
               Join room →
             </button>
