@@ -52,7 +52,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col selection:bg-gold selection:text-foreground">
       <header className="sticky top-0 z-30 border-b-2 border-foreground bg-background/90 backdrop-blur-md transition-colors duration-300">
-        <div className="w-full px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-2 sm:gap-3">
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-2.5 sm:gap-3">
           <NavLink
             to="/"
             className="group flex items-center gap-2 font-display font-extrabold text-base sm:text-lg text-foreground tracking-tight"

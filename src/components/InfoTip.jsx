@@ -97,7 +97,7 @@ export default function InfoTip({ label = "More info", children, className = "" 
           setOpen((o) => !o);
         }}
         onBlur={() => setOpen(false)}
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-foreground/40 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+        className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-foreground/40 text-muted-foreground hover:bg-foreground hover:text-background transition-colors cursor-pointer"
       >
         <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
       </button>
