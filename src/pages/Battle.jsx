@@ -16,6 +16,8 @@ import {
   Unlock,
   Circle,
   X,
+  LogOut,
+  DoorClosed,
 } from "lucide-react";
 import { byCode } from "@/data/countries";
 import { REGIONS } from "@/data/regions";
@@ -114,6 +116,15 @@ export default function Battle() {
           if (message.type === "error") setConnectionError(message.message);
           if (message.type === "kicked") {
             setConnectionError("The host removed you from this room.");
+            setCode(null);
+          }
+          if (message.type === "leftRoom") {
+            // Deliberate exit — return to the menu with no error noise.
+            setCode(null);
+            setRoomMode(null);
+          }
+          if (message.type === "roomClosed") {
+            setConnectionError("The host closed this room.");
             setCode(null);
           }
           if (message.type === "notice") {
@@ -307,6 +318,11 @@ export default function Battle() {
           >
             <ArrowLeft className="w-4 h-4" /> Map
           </Link>
+          {connectionError && (
+            <span role="status" className="text-xs font-semibold text-destructive">
+              {connectionError}
+            </span>
+          )}
           <span className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
             Multiplayer Battle
           </span>
@@ -712,6 +728,31 @@ export default function Battle() {
                 : "Tap ready when you want to play — the host starts the battle."}
             </p>
           </>
+        )}
+
+        {/* Leave (guest) / Close room (host) */}
+        {isHost ? (
+          <button
+            type="button"
+            onClick={() => roomRef.current?.send({ type: "closeRoom" })}
+            disabled={!connected}
+            className="w-full h-10 border-2 border-destructive/70 text-destructive font-bold uppercase tracking-tight text-sm hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-40"
+          >
+            <span className="inline-flex items-center gap-2">
+              <DoorClosed className="w-4 h-4" /> Close room for everyone
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => roomRef.current?.send({ type: "leave" })}
+            disabled={!connected}
+            className="w-full h-10 border-2 border-destructive/70 text-destructive font-bold uppercase tracking-tight text-sm hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-40"
+          >
+            <span className="inline-flex items-center gap-2">
+              <LogOut className="w-4 h-4" /> Leave room
+            </span>
+          </button>
         )}
 
         {/* QR zoom overlay — tap the small QR to open */}
