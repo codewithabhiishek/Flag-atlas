@@ -8,6 +8,7 @@ import { flagsByRegion, shuffle, pickOptions } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { cn } from "@/lib/utils";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
+import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 
 const ROUND = 10;
 
@@ -30,6 +31,7 @@ export default function FlagFragments() {
   const questionStartedAtRef = useRef(Date.now());
   const elapsedMs = useElapsedTimer(outcome !== "done", seed);
   const flag = queue[idx];
+  useFlagPrefetch(queue, idx);
 
   // Guarantee clean state reset and cooldown whenever question/flag changes
   useEffect(() => {

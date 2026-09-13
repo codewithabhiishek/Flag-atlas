@@ -8,6 +8,7 @@ import { useProgress } from "@/lib/ProgressContext";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
+import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 import { playUiSound } from "@/lib/sounds";
 
 const DURATION = 45;
@@ -39,6 +40,7 @@ export default function SpeedRun() {
   const lastTimerCueRef = useRef(null);
 
   const flag = pool[pos];
+  useFlagPrefetch(pool, pos);
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, region, 4) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -7,6 +7,7 @@ import { COUNTRIES, pickOptions, shuffle } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { cn } from "@/lib/utils";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
+import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 
 // A complete Go Berserk run covers every country once, in a fresh random order.
 const ROUND = COUNTRIES.length;
@@ -22,6 +23,7 @@ export default function WorldQuiz() {
   const questionStartedAtRef = useRef(Date.now());
   const elapsedMs = useElapsedTimer(index < queue.length, seed);
   const flag = queue[index];
+  useFlagPrefetch(queue, index);
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, null, 4) : []),
     [flag?.code],

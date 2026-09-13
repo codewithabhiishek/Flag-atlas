@@ -9,6 +9,7 @@ import { useProgress } from "@/lib/ProgressContext";
 import { isDue } from "@/lib/spacedRepetition";
 import { cn } from "@/lib/utils";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
+import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 
 export default function ReviewDeck() {
   const { state, touchStreak, record } = useProgress();
@@ -44,6 +45,7 @@ export default function ReviewDeck() {
   const [correct, setCorrect] = useState(0);
   const [seed, setSeed] = useState(0);
   const flag = sessionDeck[idx];
+  useFlagPrefetch(sessionDeck, idx);
   const elapsedMs = useElapsedTimer(done < deck.length && Boolean(flag), seed);
 
   // Guarantee clean state reset and cooldown whenever question/card changes
