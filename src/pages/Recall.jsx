@@ -7,6 +7,7 @@ import FlagImage from "@/components/FlagImage";
 import { flagsByRegion, shuffle } from "@/data/countries";
 import { useProgress } from "@/lib/ProgressContext";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
+import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 
 const ROUND = 10;
 
@@ -26,6 +27,7 @@ export default function Recall() {
   const questionStartedAtRef = useRef(Date.now());
   const elapsedMs = useElapsedTimer(!done, seed);
   const flag = queue[idx];
+  useFlagPrefetch(queue, idx);
 
   useEffect(() => {
     touchStreak();

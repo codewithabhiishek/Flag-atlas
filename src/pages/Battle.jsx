@@ -27,6 +27,7 @@ import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 import { randomRoomCode } from "@/lib/battle/engine";
 import { createPeerHostLink, tryPeerGuestLink } from "@/lib/battle/peerTransport";
 import { FeedbackInvite } from "@/components/FeedbackLauncher";
+import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 
 const MAX_PLAYERS = 5;
 
@@ -88,6 +89,7 @@ export default function Battle() {
   const roomRef = useRef(null);
   const answerLockedRef = useRef(false);
   const questionStartedAtRef = useRef(Date.now());
+  useFlagPrefetch(questions, myIndex);
   const elapsedMs = useElapsedTimer(status === "playing", `${code || ""}-${status}`);
 
   useEffect(() => {
