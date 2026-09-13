@@ -92,6 +92,12 @@ export class BattleEngine {
       case "kick":
         this.actionKick(conn, room, msg);
         return;
+      case "leave":
+        this.actionLeave(conn, room);
+        return;
+      case "closeRoom":
+        this.actionCloseRoom(conn, room);
+        return;
       case "rematch":
         this.actionRematch(room);
         return;
@@ -276,6 +282,39 @@ export class BattleEngine {
     room.players.delete(targetSeat);
     this.broadcast(room);
     this.announce(room, `${target.name} was kicked from the room.`);
+  }
+
+  /** Player chose to walk out of the lobby. */
+  actionLeave(conn, room) {
+    const player = room.players.get(conn.seat);
+    if (!player) return;
+    this.io.send(player.connId, { type: "leftRoom" });
+    this.conns.delete(player.connId);
+    room.players.delete(conn.seat);
+    if (room.players.size === 0) {
+      this.rooms.delete(room.code);
+      return;
+    }
+    if (conn.seat === room.hostSeat) {
+      room.hostSeat = [...room.players.keys()][0];
+      const nextHost = room.players.get(room.hostSeat);
+      if (nextHost) {
+        nextHost.ready = true;
+        this.announce(room, `${nextHost.name} is now the host.`);
+      }
+    }
+    this.broadcast(room);
+    this.announce(room, `${player.name} left the room.`);
+  }
+
+  /** Host-only: shut the room down for everyone. */
+  actionCloseRoom(conn, room) {
+    if (conn.seat !== room.hostSeat) return;
+    for (const p of room.players.values()) {
+      this.io.send(p.connId, { type: "roomClosed" });
+      this.conns.delete(p.connId);
+    }
+    this.rooms.delete(room.code);
   }
 
   /* ---------------- lifecycle ---------------- */
