@@ -114,6 +114,8 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * COUNTRIES.length));
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
+  const answeredRef = useRef(false);
+  const autoTimerRef = useRef(0);
   const readyAtRef = useRef(0);
   const questionStartedAtRef = useRef(Date.now());
   const shouldReduceMotion = useReducedMotion();
@@ -124,19 +126,36 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
   // Guarantee clean state reset and cooldown whenever question changes
   useEffect(() => {
     setSelected(null);
+    answeredRef.current = false;
     setAnswered(false);
     readyAtRef.current = Date.now() + 220; // Ignore accidental click-bleed
     questionStartedAtRef.current = Date.now();
   }, [currentCountry.code]);
 
+  // Clear any pending auto-advance on unmount
+  useEffect(() => () => window.clearTimeout(autoTimerRef.current), []);
+
   const choices = useMemo(() => {
     return pickOptions(currentCountry.code, null, 4);
   }, [currentCountry.code]);
 
+  const nextQuestion = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
+    setSelected(null);
+    setAnswered(false);
+    // Jump by a prime to get good distribution across 195 countries
+    setIndex((prev) => (prev + 17) % COUNTRIES.length);
+  };
+
   const handleChoice = useCallback((c) => {
-    if (answered) return;
+    if (answeredRef.current) return;
     if (Date.now() < readyAtRef.current) return;
     const isCorrect = c.code === currentCountry.code;
+    answeredRef.current = true;
     setSelected(c.code);
     setAnswered(true);
 
@@ -153,20 +172,39 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
         origin: { y: 0.6 },
         colors: ["#10B981", "#F59E0B", "#3B82F6", "#EC4899"],
       });
+      // Correct answers advance on their own — a short beat so the reveal
+      // (green flash + confetti) registers before the next flag appears.
+      autoTimerRef.current = window.setTimeout(() => {
+        nextQuestion();
+      }, 1400);
     }
-  }, [answered, currentCountry, onAnswer]);
+  }, [currentCountry, onAnswer]);
 
-  const nextQuestion = (e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    if (document.activeElement && typeof document.activeElement.blur === "function") {
-      document.activeElement.blur();
-    }
-    setSelected(null);
-    setAnswered(false);
-    // Jump by a prime to get good distribution across 195 countries
-    setIndex((prev) => (prev + 17) % COUNTRIES.length);
-  };
+  // Keyboard: Enter or number keys (1–4 / A–D) answer; Enter after answering
+  // moves to the next flag — full laptop play without touching the mouse.
+  useEffect(() => {
+    const onKey = (ev) => {
+      if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.altKey) return;
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || document.activeElement?.isContentEditable) return;
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        if (answeredRef.current) {
+          window.clearTimeout(autoTimerRef.current);
+          nextQuestion();
+        }
+        return;
+      }
+      if (answeredRef.current) return;
+      const idx = "1234".indexOf(ev.key) !== -1 ? Number(ev.key) - 1 : "abcd".indexOf(ev.key.toLowerCase());
+      if (idx >= 0 && idx < choices.length) {
+        ev.preventDefault();
+        handleChoice(choices[idx]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [choices, handleChoice]);
 
   return (
     <div className="atlas-card p-5 sm:p-6 border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)]">
