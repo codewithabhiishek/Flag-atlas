@@ -17,11 +17,11 @@ export function FeedbackButton({ className = "" }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Send a suggestion to the developer"
-        title="Suggestions, ideas, or map corrections — send them to Abhishek"
+        title="Feedback, ideas, or map corrections — send them to Abhishek"
         className={className}
       >
         <Mail className="w-4 h-4" aria-hidden="true" />
-        <span className="hidden md:inline">Suggest</span>
+        <span className="hidden md:inline">Feedback</span>
       </button>
       <FeedbackModal isOpen={open} onClose={() => setOpen(false)} />
     </>

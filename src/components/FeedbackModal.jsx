@@ -227,12 +227,12 @@ export function FeedbackModal({ isOpen, onClose }) {
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-[440px] my-auto max-h-[88vh] overflow-y-auto rounded-xl border-2 border-foreground bg-[#f7f1e3] dark:bg-card text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)]"
           >
-            {/* Postmark hint — rotated rubber-stamp */}
+            {/* Postmark hint — rotated rubber-stamp, tucked left of the close button */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute right-3 top-3 select-none hidden md:block"
+              className="pointer-events-none absolute right-12 top-4 select-none hidden lg:block"
             >
-              <div className="rotate-12 border-2 border-terra/60 rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-terra/70">
+              <div className="-rotate-6 border-2 border-terra/50 rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-terra/60">
                 air mail
               </div>
             </div>
