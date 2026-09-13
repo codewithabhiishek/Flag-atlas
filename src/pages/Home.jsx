@@ -105,6 +105,11 @@ function AtlasLegendItem({ markerClassName, label, description }) {
 }
 
 // ── Quick-fire quiz — records BOTH correct and wrong answers so stats are accurate ──
+
+// A single daily flag should never count as more than 2 minutes — neither on
+// the clock display nor in recorded stats (walk away and it stops counting).
+const MAX_QUESTION_MS = 2 * 60 * 1000;
+
 function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * COUNTRIES.length));
   const [selected, setSelected] = useState(null);
@@ -135,8 +140,9 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
     setSelected(c.code);
     setAnswered(true);
 
-    // ✅ Always record — correct OR wrong — so stats.answered stays accurate
-    onAnswer(currentCountry, isCorrect, Date.now() - questionStartedAtRef.current);
+    // ✅ Always record — correct OR wrong — so stats.answered stays accurate.
+    // Time is capped so an abandoned tab can't poison averages with a 40-minute "answer".
+    onAnswer(currentCountry, isCorrect, Math.min(Date.now() - questionStartedAtRef.current, MAX_QUESTION_MS));
 
     playUiSound(isCorrect ? "success" : "error");
 
@@ -172,7 +178,7 @@ function QuickFlagSpotlight({ onAnswer, activityLog = [] }) {
           <p className="text-xs text-muted-foreground">Guess the flag · +15 XP on correct</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-terra">{formatElapsedTime(questionElapsedMs)}</span>
+          <span className="text-xs font-semibold text-terra">{formatElapsedTime(Math.min(questionElapsedMs, MAX_QUESTION_MS))}</span>
           <motion.button
             whileHover={{ rotate: 180 }}
             transition={{ duration: 0.3 }}

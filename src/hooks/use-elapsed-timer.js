@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 
-/** Tracks elapsed wall-clock time and freezes cleanly when a round ends. */
-export function useElapsedTimer(running = true, resetKey = 0) {
+/**
+ * Tracks elapsed active time and freezes cleanly when a round ends.
+ *
+ * With `pauseOnHidden` (default true), time spent while the tab is hidden
+ * (switched away, minimized) does NOT count — a question left open in the
+ * background for an hour should not show "1h 2m" when you come back.
+ */
+export function useElapsedTimer(running = true, resetKey = 0, { pauseOnHidden = true } = {}) {
   const startedAtRef = useRef(Date.now());
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -15,11 +21,26 @@ export function useElapsedTimer(running = true, resetKey = 0) {
       setElapsedMs(Date.now() - startedAtRef.current);
       return undefined;
     }
-    const update = () => setElapsedMs(Date.now() - startedAtRef.current);
+    const update = () => {
+      // While hidden, keep shifting the start forward so background time
+      // is never accumulated — on return, the clock resumes where it left.
+      if (pauseOnHidden && document.visibilityState === "hidden") {
+        startedAtRef.current = Date.now();
+        return;
+      }
+      setElapsedMs(Date.now() - startedAtRef.current);
+    };
     update();
     const interval = window.setInterval(update, 250);
-    return () => window.clearInterval(interval);
-  }, [running]);
+    // Also fire immediately on visibility changes so the clock resumes
+    // (or pauses) the instant the tab is shown/hidden, not a tick later.
+    const onVisible = () => update();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [running, pauseOnHidden]);
 
   return elapsedMs;
 }
