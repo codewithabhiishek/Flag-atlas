@@ -365,7 +365,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                       paddingTop: "5px",
                       backgroundImage: "repeating-linear-gradient(to bottom, transparent, transparent 27px, rgba(21, 62, 46, 0.16) 27px, rgba(21, 62, 46, 0.16) 28px)",
                     }}
-                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-[#fffdf5] dark:bg-background px-3.5 font-hand text-lg text-foreground leading-none outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50"
+                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-[#fffdf5] dark:bg-background px-3.5 py-2.5 text-sm font-medium text-foreground outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50"
                   />
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-[10px] text-muted-foreground">
