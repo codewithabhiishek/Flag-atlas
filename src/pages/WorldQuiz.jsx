@@ -80,6 +80,48 @@ export default function WorldQuiz() {
     setIndex((current) => current + 1);
   }
 
+  // Keyboard support: Press A, B, C, D to pick; Enter / Space to advance to next
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.isComposing
+      ) {
+        return;
+      }
+
+      const key = e.key.toUpperCase();
+      if (chosen !== null) {
+        if (key === "ENTER" || key === " " || key === "ARROW_RIGHT") {
+          e.preventDefault();
+          next();
+        }
+        return;
+      }
+
+      const keyMap = {
+        A: 0,
+        "1": 0,
+        B: 1,
+        "2": 1,
+        C: 2,
+        "3": 2,
+        D: 3,
+        "4": 3,
+      };
+
+      const optionIndex = keyMap[key];
+      if (optionIndex !== undefined && options[optionIndex]) {
+        e.preventDefault();
+        answer(options[optionIndex]);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [chosen, options, flag]);
+
   return (
     <ModeShell title="Go Berserk" region="All countries">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
@@ -90,11 +132,17 @@ export default function WorldQuiz() {
         <div className="mx-auto max-w-md aspect-[3/2] overflow-hidden rounded-lg border-2 border-foreground bg-muted">
           <FlagImage code={flag.code} className="h-full w-full" alt={`Flag quiz question ${index + 1}`} />
         </div>
-        <p className="mt-3 text-center text-sm text-muted-foreground">Which country does this flag belong to?</p>
+        <p className="mt-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-1.5 flex-wrap">
+          <span>Which country does this flag belong to?</span>
+          <span className="hidden sm:inline-flex items-center gap-1 text-xs font-mono bg-muted/60 px-1.5 py-0.5 rounded border border-foreground/15 text-muted-foreground">
+            Keys <kbd className="font-bold text-foreground">A</kbd>–<kbd className="font-bold text-foreground">D</kbd>
+          </span>
+        </p>
         <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-          {options.map((option) => {
+          {options.map((option, optIdx) => {
             const isCorrect = option.code === flag.code;
             const isChoice = chosen === option.code;
+            const keyLetter = ["A", "B", "C", "D"][optIdx] || optIdx + 1;
             return (
               <button
                 key={option.code}
@@ -103,9 +151,9 @@ export default function WorldQuiz() {
                 data-sound={option.code === flag.code ? "success" : "error"}
                 onClick={() => answer(option)}
                 className={cn(
-                  "min-h-12 border-2 px-3 text-left text-sm font-bold transition-all",
+                  "min-h-12 border-2 px-3 py-2 text-left text-sm font-bold transition-all flex items-center gap-2.5 rounded-lg",
                   chosen === null
-                    ? "border-foreground bg-card hover:-translate-x-0.5 hover:-translate-y-0.5"
+                    ? "border-foreground bg-card hover:-translate-x-0.5 hover:-translate-y-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)]"
                     : isCorrect
                       ? "border-emerald-600 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200"
                       : isChoice
@@ -113,11 +161,10 @@ export default function WorldQuiz() {
                         : "border-border bg-muted/30 text-muted-foreground opacity-60",
                 )}
               >
-                <span className="inline-flex items-center gap-2">
-                  {chosen !== null && isCorrect && <Check className="h-4 w-4" />}
-                  {chosen !== null && isChoice && !isCorrect && <X className="h-4 w-4" />}
-                  {option.name}
+                <span className="w-6 h-6 rounded-md bg-muted text-foreground/80 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-foreground/20">
+                  {chosen !== null && isCorrect ? <Check className="h-3.5 w-3.5 stroke-[3]" /> : chosen !== null && isChoice && !isCorrect ? <X className="h-3.5 w-3.5 stroke-[3]" /> : keyLetter}
                 </span>
+                <span className="truncate flex-1 font-semibold text-sm sm:text-base leading-snug">{option.name}</span>
               </button>
             );
           })}

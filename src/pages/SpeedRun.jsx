@@ -138,10 +138,44 @@ export default function SpeedRun() {
       nextFlag();
     }
     const tid = setTimeout(() => setFlash(null), 250);
-    // No cleanup needed — 250 ms is short and the component handles unmount
-    // through the running→false guard; but we return a noop to be tidy.
     return () => clearTimeout(tid);
   }
+
+  // Keyboard support: Press A, B, C, D or 1, 2, 3, 4 to select matching answer option
+  useEffect(() => {
+    if (!running) return;
+
+    function handleKeyDown(e) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.isComposing
+      ) {
+        return;
+      }
+
+      const key = e.key.toUpperCase();
+      const keyMap = {
+        A: 0,
+        "1": 0,
+        B: 1,
+        "2": 1,
+        C: 2,
+        "3": 2,
+        D: 3,
+        "4": 3,
+      };
+
+      const optionIndex = keyMap[key];
+      if (optionIndex !== undefined && options[optionIndex]) {
+        e.preventDefault();
+        pick(options[optionIndex]);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [running, options, flag]);
 
   function restart() {
     comboRef.current = 0;
@@ -325,8 +359,11 @@ export default function SpeedRun() {
         >
           <FlagImage code={flag.code} className="w-full h-full" />
         </div>
-        <p className="text-center text-sm text-muted-foreground mt-3">
-          Tap the matching country
+        <p className="text-center text-sm text-muted-foreground mt-3 flex items-center justify-center gap-1.5 flex-wrap">
+          <span>Choose the matching country</span>
+          <span className="hidden sm:inline-flex items-center gap-1 text-xs font-mono bg-muted/60 px-1.5 py-0.5 rounded border border-foreground/15 text-muted-foreground">
+            Keys <kbd className="font-bold text-foreground">A</kbd>–<kbd className="font-bold text-foreground">D</kbd>
+          </span>
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
           {options.map((opt, idx) => (
