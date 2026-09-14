@@ -135,6 +135,48 @@ export default function ReviewDeck() {
     setSeed((s) => s + 1);
   }
 
+  // Keyboard support: A, B, C, D to pick; Enter / Space to advance
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.isComposing
+      ) {
+        return;
+      }
+
+      const key = e.key.toUpperCase();
+      if (chosen) {
+        if (key === "ENTER" || key === " " || key === "ARROW_RIGHT") {
+          e.preventDefault();
+          next();
+        }
+        return;
+      }
+
+      const keyMap = {
+        A: 0,
+        "1": 0,
+        B: 1,
+        "2": 1,
+        C: 2,
+        "3": 2,
+        D: 3,
+        "4": 3,
+      };
+
+      const optionIndex = keyMap[key];
+      if (optionIndex !== undefined && options[optionIndex]) {
+        e.preventDefault();
+        pick(options[optionIndex]);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [chosen, options, flag]);
+
   return (
     <ModeShell title="Review Deck" region="Weak flags">
       <div className="flex items-center justify-between mb-4 text-xs text-muted-foreground">
