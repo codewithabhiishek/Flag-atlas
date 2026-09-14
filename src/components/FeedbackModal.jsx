@@ -358,14 +358,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                     }}
                     placeholder={topic.prompt}
                     rows={4}
-                    style={{
-                      // Ruled letter paper: line-height must EXACTLY match the
-                      // 28px rule spacing so every text row sits on a line.
-                      lineHeight: "28px",
-                      paddingTop: "5px",
-                      backgroundImage: "repeating-linear-gradient(to bottom, transparent, transparent 27px, rgba(120, 113, 108, 0.28) 27px, rgba(120, 113, 108, 0.28) 28px)",
-                    }}
-                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-[#fffdf5] dark:bg-background px-3.5 py-2.5 text-sm font-medium text-foreground outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground/50"
+                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-card px-3.5 py-2.5 text-sm font-medium text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground/20 transition-all placeholder:text-muted-foreground/50 leading-relaxed shadow-inner"
                   />
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-[10px] text-muted-foreground">
