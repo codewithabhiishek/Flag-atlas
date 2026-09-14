@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Zap, Timer } from "lucide-react";
+import { Zap, Timer, Trophy } from "lucide-react";
 import ModeShell from "@/components/ModeShell";
 import FlagImage from "@/components/FlagImage";
 import { flagsByRegion, shuffle, pickOptions } from "@/data/countries";
@@ -163,51 +163,127 @@ export default function SpeedRun() {
 
   if (!running) {
     const lb = (state.leaderboards[region || "World"] || []).slice(0, 5);
+    const accuracy = count > 0 ? Math.round((correctCount / count) * 100) : 0;
+
     return (
       <ModeShell title="Speed Run" region={region || "World"}>
-        <div className="text-center py-10">
-          <Zap className="w-10 h-10 mx-auto text-terra mb-3" aria-hidden="true" />
-          <h2 className="font-display text-3xl text-forest">Time!</h2>
-          <p className="text-2xl font-display text-forest mt-2">{finalScoreRef.current} pts</p>
-          <p className="text-sm text-muted-foreground">
-            {correctCount} correct · best combo {best}x
-          </p>
-          <p className="mt-1 text-sm font-semibold text-terra">Finished in {formatElapsedTime(elapsedMs)}</p>
-          <div className="max-w-xs mx-auto mt-6 text-left">
-            <h3 className="text-sm font-medium text-forest mb-2">
-              Leaderboard · {region || "World"}
-            </h3>
-            <ol className="space-y-1">
-              {lb.length === 0 && (
-                <li className="text-xs text-muted-foreground">No scores yet</li>
-              )}
-              {lb.map((e, i) => (
-                <li
-                  key={i}
-                  className={cn(
-                    "flex justify-between text-sm px-3 py-1.5 rounded-md",
-                    i === 0 ? "bg-gold/10 text-gold" : "bg-muted",
-                  )}
-                >
-                  <span>#{i + 1}</span>
-                  <span>{e.score}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className="flex gap-2 justify-center mt-6">
-            <Link
-              to="/"
-              className="px-4 h-10 inline-flex items-center rounded-md border border-border text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Map
-            </Link>
-            <button
-              onClick={restart}
-              className="px-4 h-10 inline-flex items-center rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              Again
-            </button>
+        <div className="mx-auto max-w-md">
+          <div className="atlas-card grid-paper p-6 sm:p-8 text-center brutal-shadow border-2 border-foreground bg-card">
+            {/* Trophy / Zap Icon Badge */}
+            <div className="inline-flex w-14 h-14 border-2 border-foreground bg-terra/20 text-terra items-center justify-center mb-4 brutal-shadow rounded-xl">
+              <Zap className="w-7 h-7 fill-current" aria-hidden="true" />
+            </div>
+
+            <h2 className="font-display text-3xl sm:text-4xl text-foreground font-bold tracking-tight">
+              Time's Up!
+            </h2>
+
+            {/* Main Score Hero */}
+            <div className="mt-3 mb-6 inline-flex flex-col items-center">
+              <span className="text-4xl sm:text-5xl font-display font-extrabold text-forest">
+                {finalScoreRef.current}
+              </span>
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-0.5">
+                Total Points
+              </span>
+            </div>
+
+            {/* Structured Stats Grid — Symmetric & Uniform */}
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 mb-6">
+              {/* Questions Correct / Total */}
+              <div className="border-2 border-foreground/30 bg-background/80 rounded-lg p-2.5 sm:p-3 flex flex-col items-center justify-center">
+                <span className="text-base sm:text-lg font-bold font-mono text-foreground">
+                  {correctCount} <span className="text-xs text-muted-foreground font-normal">/ {count}</span>
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+                  Answered
+                </span>
+              </div>
+
+              {/* Accuracy % */}
+              <div className="border-2 border-foreground/30 bg-background/80 rounded-lg p-2.5 sm:p-3 flex flex-col items-center justify-center">
+                <span className="text-base sm:text-lg font-bold font-mono text-forest">
+                  {accuracy}%
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+                  Accuracy
+                </span>
+              </div>
+
+              {/* Best Streak / Combo */}
+              <div className="border-2 border-foreground/30 bg-background/80 rounded-lg p-2.5 sm:p-3 flex flex-col items-center justify-center">
+                <span className="text-base sm:text-lg font-bold font-mono text-terra">
+                  {best}x
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+                  Best Combo
+                </span>
+              </div>
+            </div>
+
+            {/* Time Pill */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-terra/40 bg-terra/10 text-xs font-semibold text-terra mb-6">
+              <Timer className="w-3.5 h-3.5" />
+              <span>Finished in {formatElapsedTime(elapsedMs)}</span>
+            </div>
+
+            {/* Leaderboard Section */}
+            <div className="border-2 border-foreground/30 bg-background/60 rounded-xl p-3 sm:p-4 mb-6 text-left">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Trophy className="w-3.5 h-3.5 text-gold" />
+                  Leaderboard · {region || "World"}
+                </h3>
+                <span className="text-[10px] font-mono text-muted-foreground uppercase">Top 5</span>
+              </div>
+              <ol className="space-y-1.5">
+                {lb.length === 0 && (
+                  <li className="text-xs text-muted-foreground text-center py-2">No scores recorded yet</li>
+                )}
+                {lb.map((e, i) => {
+                  const isCurrentRun = e.score === finalScoreRef.current && i === 0;
+                  return (
+                    <li
+                      key={i}
+                      className={cn(
+                        "flex items-center justify-between text-xs sm:text-sm px-3 py-2 rounded-lg border font-mono font-medium transition-all",
+                        i === 0
+                          ? "bg-gold/20 border-gold/60 text-gold-foreground font-bold shadow-sm"
+                          : "bg-card/70 border-border text-foreground",
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className={cn("w-5 text-center font-bold", i === 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+                          #{i + 1}
+                        </span>
+                        {isCurrentRun && (
+                          <span className="text-[9px] font-sans font-bold bg-forest text-primary-foreground px-1.5 py-0.5 rounded uppercase">
+                            New
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-bold">{e.score} pts</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+
+            {/* Action Buttons — Symmetrical & Bold */}
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                to="/"
+                className="inline-flex items-center justify-center border-2 border-foreground bg-card h-11 text-sm font-bold uppercase tracking-tight rounded-lg hover:bg-muted active:translate-y-0.5 transition-all"
+              >
+                Back to Map
+              </Link>
+              <button
+                onClick={restart}
+                className="inline-flex items-center justify-center border-2 border-foreground bg-forest text-primary-foreground h-11 text-sm font-bold uppercase tracking-tight rounded-lg hover:opacity-95 active:translate-y-0.5 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)]"
+              >
+                Play Again
+              </button>
+            </div>
           </div>
         </div>
       </ModeShell>
