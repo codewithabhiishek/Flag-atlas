@@ -8,23 +8,32 @@ import PageNotFound from "./lib/PageNotFound";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import UserNotRegisteredError from "@/components/UserNotRegisteredError";
 import ScrollToTop from "./components/ScrollToTop";
+import { lazy, Suspense } from "react";
 import Layout from "@/components/Layout";
 import { ProgressProvider } from "@/lib/ProgressContext";
-import Home from "@/pages/Home";
-import FlagFragments from "@/pages/FlagFragments";
-import SpeedRun from "@/pages/SpeedRun";
-import Recall from "@/pages/Recall";
-import FlagBuilder from "@/pages/FlagBuilder";
-import ModePicker from "@/pages/ModePicker";
-import ReviewDeck from "@/pages/ReviewDeck";
-import Dashboard from "@/pages/Dashboard";
-import Battle from "@/pages/Battle";
-import WorldQuiz from "@/pages/WorldQuiz";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import ForgotPassword from "@/pages/ForgotPassword";
-import ResetPassword from "@/pages/ResetPassword";
-import OAuthConsent from "@/pages/OAuthConsent";
+
+// Code splitting via React.lazy — ensures game modes and auth screens are only loaded when navigated to
+const Home = lazy(() => import("@/pages/Home"));
+const FlagFragments = lazy(() => import("@/pages/FlagFragments"));
+const SpeedRun = lazy(() => import("@/pages/SpeedRun"));
+const Recall = lazy(() => import("@/pages/Recall"));
+const FlagBuilder = lazy(() => import("@/pages/FlagBuilder"));
+const ModePicker = lazy(() => import("@/pages/ModePicker"));
+const ReviewDeck = lazy(() => import("@/pages/ReviewDeck"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Battle = lazy(() => import("@/pages/Battle"));
+const WorldQuiz = lazy(() => import("@/pages/WorldQuiz"));
+const Login = lazy(() => import("@/pages/Login"));
+const Register = lazy(() => import("@/pages/Register"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
+
+const RouteFallback = () => (
+  <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-muted border-t-forest rounded-full animate-spin" />
+  </div>
+);
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } =
@@ -48,31 +57,33 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Routes>
-      {/* Auth pages — rendered outside the Layout shell (no nav/footer) */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/oauth/consent" element={<OAuthConsent />} />
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        {/* Auth pages — rendered outside the Layout shell (no nav/footer) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/oauth/consent" element={<OAuthConsent />} />
 
-      {/* Main app — wrapped in Layout (header + footer) */}
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/play/fragments" element={<FlagFragments />} />
-        <Route path="/play/speed" element={<SpeedRun />} />
-        <Route path="/play/recall" element={<Recall />} />
-        <Route path="/play/builder" element={<FlagBuilder />} />
-        <Route path="/play/world-quiz" element={<WorldQuiz />} />
-        <Route path="/play/go-berserk" element={<WorldQuiz />} />
-        <Route path="/play" element={<ModePicker />} />
-        <Route path="/review" element={<ReviewDeck />} />
-        <Route path="/battle" element={<Battle />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Route>
+        {/* Main app — wrapped in Layout (header + footer) */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/play/fragments" element={<FlagFragments />} />
+          <Route path="/play/speed" element={<SpeedRun />} />
+          <Route path="/play/recall" element={<Recall />} />
+          <Route path="/play/builder" element={<FlagBuilder />} />
+          <Route path="/play/world-quiz" element={<WorldQuiz />} />
+          <Route path="/play/go-berserk" element={<WorldQuiz />} />
+          <Route path="/play" element={<ModePicker />} />
+          <Route path="/review" element={<ReviewDeck />} />
+          <Route path="/battle" element={<Battle />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
 
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

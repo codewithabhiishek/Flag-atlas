@@ -68,6 +68,76 @@ export default function ReviewDeck() {
     touchStreak();
   }, [touchStreak]);
 
+  function pick(opt) {
+    if (chosen || !flag) return;
+    if (Date.now() < readyAtRef.current) return;
+    setChosen(opt.code);
+    const ok = opt.code === flag.code;
+    record(flag.code, {
+      correct: ok,
+      quality: ok ? 5 : 2,
+      xpGain: ok ? 10 : 0,
+      timeMs: Date.now() - questionStartedAtRef.current,
+    });
+    if (ok) setCorrect((c) => c + 1);
+    setDone((d) => d + 1);
+  }
+
+  function next(e) {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
+    setChosen(null);
+    setIdx((i) => i + 1);
+    setSeed((s) => s + 1);
+  }
+
+  // Keyboard support: A, B, C, D to pick; Enter / Space to advance
+  useEffect(() => {
+    if (done >= sessionDeck.length || !flag) return;
+
+    function handleKeyDown(e) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.isComposing
+      ) {
+        return;
+      }
+
+      const key = e.key.toUpperCase();
+      if (chosen) {
+        if (key === "ENTER" || key === " " || key === "ARROW_RIGHT") {
+          e.preventDefault();
+          next();
+        }
+        return;
+      }
+
+      const keyMap = {
+        A: 0,
+        "1": 0,
+        B: 1,
+        "2": 1,
+        C: 2,
+        "3": 2,
+        D: 3,
+        "4": 3,
+      };
+
+      const optionIndex = keyMap[key];
+      if (optionIndex !== undefined && options[optionIndex]) {
+        e.preventDefault();
+        pick(options[optionIndex]);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [chosen, options, flag, done, sessionDeck.length]);
+
   if (sessionDeck.length === 0) {
     return (
       <ModeShell title="Review Deck" region="Weak flags">
@@ -108,74 +178,6 @@ export default function ReviewDeck() {
       />
     );
   }
-
-  function pick(opt) {
-    if (chosen) return;
-    if (Date.now() < readyAtRef.current) return;
-    setChosen(opt.code);
-    const ok = opt.code === flag.code;
-    record(flag.code, {
-      correct: ok,
-      quality: ok ? 5 : 2,
-      xpGain: ok ? 10 : 0,
-      timeMs: Date.now() - questionStartedAtRef.current,
-    });
-    if (ok) setCorrect((c) => c + 1);
-    setDone((d) => d + 1);
-  }
-
-  function next(e) {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    if (document.activeElement && typeof document.activeElement.blur === "function") {
-      document.activeElement.blur();
-    }
-    setChosen(null);
-    setIdx((i) => i + 1);
-    setSeed((s) => s + 1);
-  }
-
-  // Keyboard support: A, B, C, D to pick; Enter / Space to advance
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.isComposing
-      ) {
-        return;
-      }
-
-      const key = e.key.toUpperCase();
-      if (chosen) {
-        if (key === "ENTER" || key === " " || key === "ARROW_RIGHT") {
-          e.preventDefault();
-          next();
-        }
-        return;
-      }
-
-      const keyMap = {
-        A: 0,
-        "1": 0,
-        B: 1,
-        "2": 1,
-        C: 2,
-        "3": 2,
-        D: 3,
-        "4": 3,
-      };
-
-      const optionIndex = keyMap[key];
-      if (optionIndex !== undefined && options[optionIndex]) {
-        e.preventDefault();
-        pick(options[optionIndex]);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [chosen, options, flag]);
 
   return (
     <ModeShell title="Review Deck" region="Weak flags">
