@@ -263,8 +263,7 @@ export default function Layout() {
               className="font-semibold text-foreground underline decoration-terra/70 underline-offset-4 transition-colors hover:text-terra focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Built by Abhishek
-            </a>{" "}
-            · To humble your geography.
+            </a>
           </p>
         </div>
       </footer>
