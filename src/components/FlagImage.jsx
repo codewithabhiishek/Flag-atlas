@@ -6,10 +6,10 @@ import { byCode } from "@/data/countries";
 // PNG fallback from flagcdn.com as secondary.
 // On final error we render a small placeholder with the country's ISO code.
 
-export default function FlagImage({ code, className, alt, fittingType = "fill" }) {
+export default function FlagImage({ code, className, alt = "", fittingType = "fill" }) {
   const [errCount, setErrCount] = useState(0);
   const c = byCode(code);
-  const label = alt || `Flag of ${c?.name || code}`;
+  const label = alt || (c ? `Flag of ${c.name}` : code ? `Flag of ${code}` : "Flag placeholder");
 
   if (!code) {
     return <FlagPlaceholder code={code} label={label} className={className} />;

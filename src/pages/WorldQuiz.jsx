@@ -39,27 +39,8 @@ export default function WorldQuiz() {
     questionStartedAtRef.current = Date.now();
   }, [flag?.code]);
 
-  if (index >= queue.length) {
-    return (
-      <SessionSummary
-        correct={session.correct}
-        total={queue.length}
-        xp={session.xp}
-        timeMs={elapsedMs}
-        onAgain={() => {
-          setSeed((value) => value + 1);
-          setIndex(0);
-          setChosen(null);
-          setSession({ correct: 0, xp: 0 });
-        }}
-      />
-    );
-  }
-
-  if (!flag) return null;
-
   function answer(option) {
-    if (answerLocked.current) return;
+    if (answerLocked.current || !flag) return;
     answerLocked.current = true;
     const correct = option.code === flag.code;
     const xp = correct ? 10 : 0;
@@ -82,6 +63,8 @@ export default function WorldQuiz() {
 
   // Keyboard support: Press A, B, C, D to pick; Enter / Space to advance to next
   useEffect(() => {
+    if (index >= queue.length || !flag) return;
+
     function handleKeyDown(e) {
       if (
         e.target instanceof HTMLInputElement ||
@@ -120,7 +103,26 @@ export default function WorldQuiz() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [chosen, options, flag]);
+  }, [chosen, options, flag, index, queue.length]);
+
+  if (index >= queue.length) {
+    return (
+      <SessionSummary
+        correct={session.correct}
+        total={queue.length}
+        xp={session.xp}
+        timeMs={elapsedMs}
+        onAgain={() => {
+          setSeed((value) => value + 1);
+          setIndex(0);
+          setChosen(null);
+          setSession({ correct: 0, xp: 0 });
+        }}
+      />
+    );
+  }
+
+  if (!flag) return null;
 
   return (
     <ModeShell title="Go Berserk" region="All countries">

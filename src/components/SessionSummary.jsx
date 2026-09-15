@@ -4,7 +4,7 @@ import ModeShell from "@/components/ModeShell";
 import { FeedbackInvite } from "@/components/FeedbackLauncher";
 import { formatElapsedTime } from "@/hooks/use-elapsed-timer";
 
-export default function SessionSummary({ correct, total, xp, timeMs, onAgain, extra }) {
+export default function SessionSummary({ correct, total, xp, timeMs, onAgain, extra = null }) {
   return (
     <ModeShell title="Summary">
       <div className="atlas-card grid-paper p-8 text-center">
