@@ -12,7 +12,8 @@ import { useGsapScrollProgress } from "@/lib/gsapScroll";
 import { FeedbackButton } from "@/components/FeedbackLauncher";
 
 const NAV = [
-  { to: "/", label: "Atlas", icon: Compass },
+  { to: "/atlas", label: "Atlas", icon: Compass },
+  { to: "/play", label: "Modes", icon: Sparkles },
   { to: "/battle", label: "Battle", icon: Swords },
   { to: "/dashboard", label: "Stats", icon: BarChart3 },
   { to: "/review", label: "Review", icon: Layers },
