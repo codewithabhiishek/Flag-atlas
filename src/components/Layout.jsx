@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Moon, Sun, Compass, BarChart3, Layers, Swords, Flame, Sparkles } from "lucide-react";
+import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
+import { Moon, Sun, Compass, BarChart3, Layers, Swords, Flame, Sparkles, Menu, X, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useProgress } from "@/lib/ProgressContext";
@@ -30,6 +30,7 @@ export default function Layout() {
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark"),
   );
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const lp = levelProgress(state.xp);
   const rank = rankFromMastered(masteredCount(state.flags));
 
@@ -39,6 +40,11 @@ export default function Layout() {
       localStorage.setItem("flagatlas.theme", dark ? "dark" : "light");
     } catch (e) {}
   }, [dark]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const triggerStreakConfetti = (e) => {
     e.stopPropagation();
@@ -52,45 +58,47 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-gold selection:text-foreground">
-      <header className="sticky top-0 z-30 border-b-2 border-foreground bg-background/90 backdrop-blur-md transition-colors duration-300">
-        <div className="w-full px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-2.5 sm:gap-3">
+      <header className="sticky top-0 z-30 border-b-2 border-foreground bg-background/95 backdrop-blur-md transition-colors duration-300">
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-2">
+          {/* Brand Logo */}
           <NavLink
             to="/"
-            className="group flex items-center gap-2 font-display font-extrabold text-base sm:text-lg text-foreground tracking-tight"
+            className="group flex items-center gap-1.5 sm:gap-2 font-display font-black text-sm sm:text-base md:text-lg text-foreground tracking-tight shrink-0"
           >
             <motion.span
               whileHover={{ rotate: 90, scale: 1.1 }}
               transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              className="inline-flex w-7 h-7 items-center justify-center border-2 border-foreground bg-terra text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)]"
+              className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center border-2 border-foreground bg-terra text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
             >
-              <Compass className="w-4 h-4 text-white" />
+              <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </motion.span>
-            <span className="group-hover:tracking-wider transition-all duration-300">
+            <span className="tracking-tight">
               FLAG<span className="text-terra">ATLAS</span>
             </span>
           </NavLink>
 
-          <nav className="ml-auto flex items-center gap-1.5">
+          {/* Desktop Navigation (>= md) */}
+          <nav className="hidden md:flex items-center gap-1 sm:gap-1.5 py-0.5">
             {NAV.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}
-                end={n.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "relative px-2.5 sm:px-3 h-9 inline-flex items-center gap-1.5 border-2 text-sm font-bold uppercase tracking-tight transition-all duration-200",
+                    "px-2 sm:px-2.5 h-8 sm:h-8.5 inline-flex items-center gap-1 sm:gap-1.5 border-2 text-xs font-bold uppercase tracking-tight transition-all shrink-0",
                     isActive
-                      ? "border-foreground bg-foreground text-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]"
-                      : "border-transparent text-foreground hover:border-foreground hover:bg-muted/80 hover:-translate-y-0.5",
+                      ? "border-foreground bg-foreground text-background shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.3)]"
+                      : "border-transparent text-foreground hover:border-foreground hover:bg-muted/80",
                   )
                 }
               >
-                <n.icon className="w-4 h-4 transition-transform group-hover:scale-110" />
-                <span className="hidden md:inline">{n.label}</span>
+                <n.icon className="w-3.5 h-3.5" />
+                <span>{n.label}</span>
               </NavLink>
             ))}
           </nav>
 
+          {/* Desktop User Level / Streak & Theme & Feedback */}
           <div className="hidden lg:flex items-center gap-3 pl-3 ml-2 border-l-2 border-foreground">
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -116,7 +124,7 @@ export default function Layout() {
               whileTap={{ scale: 0.9, rotate: 180 }}
               whileHover={{ scale: 1.08 }}
               onClick={() => setDark((d) => !d)}
-              className="w-9 h-9 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] transition-colors"
+              className="w-8.5 h-8.5 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] transition-colors"
               aria-label="Toggle theme"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -135,7 +143,7 @@ export default function Layout() {
                     key="moon"
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
+                    exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     <Moon className="w-4 h-4 text-foreground" />
@@ -145,19 +153,88 @@ export default function Layout() {
             </motion.button>
           </div>
 
-          <FeedbackButton className="h-9 px-2.5 sm:px-3 inline-flex items-center gap-1.5 border-2 border-transparent text-foreground hover:border-foreground hover:bg-muted/80 transition-all text-sm font-bold uppercase tracking-tight" />
+          <div className="hidden md:flex items-center">
+            <FeedbackButton className="h-8.5 px-2.5 sm:px-3 inline-flex items-center gap-1.5 border-2 border-transparent text-foreground hover:border-foreground hover:bg-muted/80 transition-all text-xs font-bold uppercase tracking-tight" />
+          </div>
 
-          <button
-            onClick={() => setDark((d) => !d)}
-            className="lg:hidden w-9 h-9 border-2 border-foreground inline-flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)]"
-            aria-label="Toggle theme"
-          >
-            {dark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-          </button>
+          {/* Mobile Right Controls (< md) */}
+          <div className="flex md:hidden items-center gap-1.5">
+            {/* Quick Play CTA pill */}
+            <Link
+              to="/play"
+              className="h-7.5 px-2 border-2 border-foreground bg-foreground text-background inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
+            >
+              <Play className="w-2.5 h-2.5 fill-current" />
+              <span>Play</span>
+            </Link>
+
+            {/* Dark mode button */}
+            <button
+              onClick={() => setDark((d) => !d)}
+              className="w-7.5 h-7.5 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] bg-card"
+              aria-label="Toggle theme"
+            >
+              {dark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-foreground" />}
+            </button>
+
+            {/* Mobile Navigation Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen((o) => !o)}
+              className={cn(
+                "w-7.5 h-7.5 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] transition-colors",
+                mobileMenuOpen ? "bg-foreground text-background" : "bg-card text-foreground"
+              )}
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
-        <div className="w-full px-4 pb-2 sm:px-6 lg:px-8" aria-hidden="true">
-          <div className="h-2 border-2 border-foreground bg-background overflow-hidden relative">
+        {/* Mobile Dropdown Panel */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="md:hidden border-t-2 border-foreground bg-background px-3.5 py-3 overflow-hidden shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]"
+            >
+              <div className="grid grid-cols-2 gap-2">
+                {NAV.map((n) => (
+                  <NavLink
+                    key={n.to}
+                    to={n.to}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "h-8 px-2.5 border-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-tight transition-all",
+                        isActive
+                          ? "border-foreground bg-foreground text-background shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
+                          : "border-foreground bg-card text-foreground hover:bg-muted"
+                      )
+                    }
+                  >
+                    <n.icon className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{n.label}</span>
+                  </NavLink>
+                ))}
+                {/* Feedback button wrapped for mobile */}
+                <div className="col-span-2 pt-1 border-t border-foreground/15 flex items-center justify-between">
+                  <div className="text-[10px] text-muted-foreground font-bold uppercase">
+                    Level {lp.level} · {state.streak}d streak
+                  </div>
+                  <FeedbackButton className="h-7 px-2 inline-flex items-center gap-1.5 border-2 border-foreground bg-card text-foreground text-[10px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="w-full px-3 sm:px-6 lg:px-8 pb-1.5" aria-hidden="true">
+          <div className="h-1.5 sm:h-2 border-2 border-foreground bg-background overflow-hidden relative">
             <div
               ref={scrollProgressRef}
               className="h-full w-full bg-forest relative overflow-hidden"
@@ -170,15 +247,15 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t-2 border-foreground bg-background/80 px-5 py-5 text-center backdrop-blur sm:px-8 sm:py-6">
-        <div className="mx-auto flex max-w-xl flex-col items-center gap-2 text-muted-foreground">
-          <p className="text-xs font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-widest">
+      <footer className="border-t-2 border-foreground bg-background/80 px-3.5 py-4 text-center backdrop-blur sm:px-8 sm:py-5">
+        <div className="mx-auto flex max-w-xl flex-col items-center gap-1.5 text-muted-foreground">
+          <p className="text-[10.5px] sm:text-xs font-bold uppercase leading-relaxed tracking-wider">
             FlagAtlas · explore the world, master every flag
           </p>
-          <p className="text-[11px] font-bold uppercase leading-relaxed tracking-[0.14em] sm:tracking-widest">
+          <p className="text-[10px] sm:text-[11px] font-bold uppercase leading-relaxed tracking-wider">
             🌍 197 countries to master
           </p>
-          <p className="pt-1 text-xs font-medium normal-case leading-relaxed">
+          <p className="pt-0.5 text-[10.5px] sm:text-xs font-medium normal-case leading-relaxed">
             <a
               href="https://abhiishek.is-a.dev/"
               target="_blank"
