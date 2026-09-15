@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Compass,
   Globe2,
@@ -17,6 +17,9 @@ import {
   MapPin,
   Play,
   RotateCcw,
+  Users,
+  Crown,
+  QrCode,
 } from "lucide-react";
 import FlagImage from "@/components/FlagImage";
 import { useProgress } from "@/lib/ProgressContext";
@@ -134,6 +137,8 @@ const STEPS = [
 ];
 
 export default function Landing() {
+  const navigate = useNavigate();
+  const [roomInput, setRoomInput] = useState("");
   const { state } = useProgress();
   const mastered = masteredCount(state.flags);
 
@@ -144,6 +149,14 @@ export default function Landing() {
   const [demoFeedback, setDemoFeedback] = useState(null);
 
   const currentFlag = DEMO_FLAGS[demoIdx];
+
+  const handleJoinRoom = (e) => {
+    e.preventDefault();
+    const trimmed = roomInput.trim().toUpperCase();
+    if (trimmed.length === 4) {
+      navigate(`/battle?room=${trimmed}`);
+    }
+  };
 
   const handleDemoPick = (index) => {
     if (demoChosen !== null) return;
@@ -212,25 +225,25 @@ export default function Landing() {
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-card border-2 border-foreground text-[9.5px] sm:text-[10.5px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                 ⚡ 197 Countries
               </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gold/25 border-2 border-foreground text-[9.5px] sm:text-[10.5px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] text-foreground">
+                ⚔️ Play With Friends
+              </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-card border-2 border-foreground text-[9.5px] sm:text-[10.5px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                 🎮 6 Game Modes
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-card border-2 border-foreground text-[9.5px] sm:text-[10.5px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                 🧠 Spaced Repetition
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-card border-2 border-foreground text-[9.5px] sm:text-[10.5px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                🛡️ 100% Free & Local
-              </span>
             </div>
 
             {/* Quick Action Boxes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 pt-1 max-w-lg">
-              {/* Box 1: Start Playing */}
+              {/* Box 1: Start Playing Solo */}
               <div className="atlas-card p-2.5 sm:p-3 border-2 border-foreground bg-card shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-2">
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase tracking-wider text-terra flex items-center gap-1">
-                      <Zap className="w-3 h-3" /> Instant Quiz
+                      <Zap className="w-3 h-3" /> Solo Quiz
                     </span>
                     <span className="text-[8.5px] sm:text-[9px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold px-1.5 py-0.2 border border-emerald-500/30 rounded">
                       Quick Start
@@ -251,40 +264,46 @@ export default function Landing() {
                 </Link>
               </div>
 
-              {/* Box 2: Open Map Dashboard */}
+              {/* Box 2: Play With Friends / Multiplayer Battle */}
               <div className="atlas-card p-2.5 sm:p-3 border-2 border-foreground bg-card shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-2">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-forest dark:text-forest flex items-center gap-1">
-                      <Compass className="w-3 h-3" /> Map Explorer
+                    <span className="text-[10px] font-black uppercase tracking-wider text-terra flex items-center gap-1">
+                      <Swords className="w-3 h-3" /> Multiplayer
                     </span>
-                    {mastered > 0 && (
-                      <span className="text-[8.5px] sm:text-[9px] bg-gold/20 text-foreground font-bold px-1.5 py-0.2 border border-foreground/20 rounded">
-                        {mastered} Mastered
-                      </span>
-                    )}
+                    <span className="text-[8.5px] sm:text-[9px] bg-gold/25 text-foreground font-bold px-1.5 py-0.2 border border-foreground/20 rounded">
+                      Live Battle
+                    </span>
                   </div>
                   <h3 className="font-display font-bold text-xs sm:text-sm text-foreground mt-0.5">
-                    World Atlas Map
+                    Play With Friends
                   </h3>
                   <p className="text-[10px] sm:text-[10.5px] text-muted-foreground">
-                    Track regions, streaks & mastery stats.
+                    Host a private room or enter a code.
                   </p>
                 </div>
                 <Link
-                  to="/atlas"
+                  to="/battle"
                   className="w-full h-8 sm:h-8.5 border-2 border-foreground bg-card hover:bg-muted text-foreground flex items-center justify-center gap-1.5 font-bold text-xs uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
                 >
-                  <MapPin className="w-3 h-3" /> Open World Atlas →
+                  <Users className="w-3 h-3 text-terra" /> Battle Friends →
                 </Link>
               </div>
             </div>
 
-            {/* Zero Signup Footnote */}
-            <p className="text-[10px] sm:text-[10.5px] text-muted-foreground font-semibold flex items-center gap-1.5 pt-0.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              No signup or download required. Progress stays 100% on your device.
-            </p>
+            {/* Direct World Atlas Explorer link + Zero Signup Footnote */}
+            <div className="flex flex-wrap items-center justify-between gap-1.5 pt-0.5 text-[10px] sm:text-[10.5px]">
+              <Link
+                to="/atlas"
+                className="font-bold text-foreground hover:text-terra inline-flex items-center gap-1 underline underline-offset-2"
+              >
+                <Compass className="w-3 h-3 text-forest dark:text-forest" /> Explore World Atlas Map {mastered > 0 ? `(${mastered} Mastered)` : ""} →
+              </Link>
+              <span className="text-muted-foreground font-semibold flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                No signup or install required.
+              </span>
+            </div>
           </div>
 
           {/* RIGHT: Live Interactive Board Showcase (Disciplined, compact, responsive game preview) */}
@@ -392,6 +411,104 @@ export default function Landing() {
               )}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── PLAY WITH FRIENDS & 1v1 MULTIPLAYER ROOMS ── */}
+      <section className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-7 sm:pt-10 lg:pt-12">
+        <div className="atlas-card p-4 sm:p-7 border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="max-w-2xl mb-4 sm:mb-6">
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 border-2 border-foreground bg-gold/25 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-foreground shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] mb-2">
+              <Swords className="w-3.5 h-3.5 text-terra" /> MULTIPLAYER ARENA & ROOM BATTLES
+            </div>
+            <h2 className="font-display font-black text-foreground tracking-tight text-[clamp(1.35rem,3.8vw,2.25rem)]">
+              PLAY WITH FRIENDS IN REAL-TIME.
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-1 leading-relaxed">
+              Challenge friends or classmates to a live flag showdown. Host a private battle room, share the 4-letter code or QR code, and race on identical flags. No signups, no downloads.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-5 items-stretch">
+            {/* Action 1: Create / Host a Room */}
+            <div className="p-3.5 sm:p-4.5 border-2 border-foreground bg-muted/40 flex flex-col justify-between space-y-3">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="w-8 h-8 border-2 border-foreground rounded-lg flex items-center justify-center bg-card shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] text-foreground">
+                    <Crown className="w-4 h-4 text-amber-500" />
+                  </span>
+                  <span className="text-[9.5px] sm:text-[10px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-bold px-2 py-0.5 border border-emerald-500/30 rounded uppercase tracking-wider">
+                    You're The Host
+                  </span>
+                </div>
+                <h3 className="font-display font-bold text-sm sm:text-base text-foreground">
+                  Create a Private Room
+                </h3>
+                <p className="text-[11.5px] sm:text-xs text-muted-foreground leading-relaxed">
+                  Choose any continent or all 197 countries, set round counts, and receive a shareable 4-letter room code with an instant QR code for friends on phone or laptop.
+                </p>
+              </div>
+
+              <Link
+                to="/battle"
+                className="w-full h-9 border-2 border-foreground bg-foreground text-background flex items-center justify-center gap-1.5 font-bold text-xs uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
+              >
+                <Users className="w-3.5 h-3.5" /> Host a Battle Room →
+              </Link>
+            </div>
+
+            {/* Action 2: Join with Room Code */}
+            <div className="p-3.5 sm:p-4.5 border-2 border-foreground bg-muted/40 flex flex-col justify-between space-y-3">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="w-8 h-8 border-2 border-foreground rounded-lg flex items-center justify-center bg-card shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] text-foreground">
+                    <QrCode className="w-4 h-4 text-forest dark:text-forest" />
+                  </span>
+                  <span className="text-[9.5px] sm:text-[10px] bg-gold/25 text-foreground font-bold px-2 py-0.5 border border-foreground/30 rounded uppercase tracking-wider">
+                    Have A Code?
+                  </span>
+                </div>
+                <h3 className="font-display font-bold text-sm sm:text-base text-foreground">
+                  Join a Friend's Room
+                </h3>
+                <p className="text-[11.5px] sm:text-xs text-muted-foreground leading-relaxed">
+                  Enter your friend's 4-letter battle room code to jump straight into their live lobby.
+                </p>
+              </div>
+
+              <form onSubmit={handleJoinRoom} className="flex gap-2">
+                <input
+                  type="text"
+                  value={roomInput}
+                  onChange={(e) => setRoomInput(e.target.value.toUpperCase().slice(0, 4))}
+                  placeholder="ABCD"
+                  maxLength={4}
+                  className="w-24 sm:w-28 h-9 border-2 border-foreground bg-card text-center font-mono font-bold text-sm tracking-[0.25em] focus:outline-none uppercase placeholder:text-muted-foreground/50 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                  aria-label="4-letter room code"
+                />
+                <button
+                  type="submit"
+                  disabled={roomInput.trim().length !== 4}
+                  className="flex-1 h-9 border-2 border-foreground bg-terra text-white disabled:opacity-40 font-bold text-xs uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform disabled:hover:translate-y-0 flex items-center justify-center gap-1"
+                >
+                  Join Room →
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Highlights strip */}
+          <div className="mt-4 pt-3 border-t border-foreground/15 flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
+            <span className="flex items-center gap-1 text-foreground">
+              ⚡ Identical flag deals
+            </span>
+            <span className="flex items-center gap-1 text-foreground">
+              📱 Cross-platform phone & laptop
+            </span>
+            <span className="flex items-center gap-1 text-foreground">
+              🛡️ 100% Free & Peer-to-Peer
+            </span>
+          </div>
         </div>
       </section>
 
