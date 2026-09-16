@@ -93,6 +93,19 @@ export default function Battle() {
   const questionStartedAtRef = useRef(Date.now());
   useFlagPrefetch(questions, myIndex);
   const elapsedMs = useElapsedTimer(status === "playing", `${code || ""}-${status}`);
+  const actionParam = searchParams.get("action");
+  const joinInputRef = useRef(null);
+  const createNameRef = useRef(null);
+
+  useEffect(() => {
+    if (!code) {
+      if (actionParam === "join") {
+        joinInputRef.current?.focus();
+      } else if (actionParam === "create") {
+        createNameRef.current?.focus();
+      }
+    }
+  }, [actionParam, code]);
 
   useEffect(() => {
     if (!code) return;
@@ -352,6 +365,7 @@ export default function Battle() {
               Your name
             </label>
             <input
+              ref={createNameRef}
               value={name}
               onChange={(e) => setName(e.target.value.slice(0, 20))}
               className="mt-1 mb-2.5 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
@@ -397,6 +411,7 @@ export default function Battle() {
               Room code
             </label>
             <input
+              ref={joinInputRef}
               value={joinInput}
               onChange={(e) =>
                 setJoinInput(e.target.value.toUpperCase().slice(0, 4))

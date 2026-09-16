@@ -17,6 +17,7 @@ import {
   MapPin,
   Play,
   RotateCcw,
+  Users,
 } from "lucide-react";
 import FlagImage from "@/components/FlagImage";
 import confetti from "canvas-confetti";
@@ -213,12 +214,16 @@ export default function Landing() {
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   No signup or install required
                 </span>
-                <Link
-                  to="/battle"
-                  className="font-bold text-foreground hover:text-terra inline-flex items-center gap-1 underline underline-offset-2"
+                <a
+                  href="#multiplayer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById("multiplayer")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="font-bold text-foreground hover:text-terra inline-flex items-center gap-1 underline underline-offset-2 transition-colors cursor-pointer"
                 >
-                  Duel friends in 1v1 Battle →
-                </Link>
+                  Play with friends →
+                </a>
               </div>
             </div>
           </div>
@@ -332,6 +337,47 @@ export default function Landing() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PLAY WITH FRIENDS (Multiplayer Room Discovery) ── */}
+      <section id="multiplayer" className="w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-5 sm:pt-7 lg:pt-8 scroll-mt-6">
+        <div className="atlas-card p-4 sm:p-5 lg:p-6 border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-8 items-center">
+          {/* Left: Eyebrow, Heading, Supporting Description */}
+          <div className="md:col-span-7 space-y-1.5 sm:space-y-2">
+            <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-terra">
+              <Swords className="w-3.5 h-3.5" /> Play With Friends
+            </div>
+            <h2 className="font-display font-black text-foreground tracking-tight text-[clamp(1.25rem,3.2vw,1.85rem)] leading-tight">
+              PLAY WITH FRIENDS.
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-xl leading-relaxed">
+              Challenge friends to a real-time flag duel. Share a 4-letter room code,
+              race head-to-head through national flags, and find out who has the fastest recall.
+            </p>
+          </div>
+
+          {/* Right: Compact Action Panel */}
+          <div className="md:col-span-5 flex flex-col items-stretch md:items-end justify-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch gap-2.5 w-full md:w-auto">
+              <Link
+                to="/battle?action=create"
+                className="h-10 sm:h-11 px-5 border-2 border-foreground bg-foreground text-background flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform whitespace-nowrap"
+              >
+                <Users className="w-3.5 h-3.5" /> Create a Room
+              </Link>
+              <Link
+                to="/battle?action=join"
+                className="h-10 sm:h-11 px-5 border-2 border-foreground bg-card hover:bg-muted text-foreground flex items-center justify-center gap-2 font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform whitespace-nowrap"
+              >
+                <Swords className="w-3.5 h-3.5 text-terra" /> Join a Room
+              </Link>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10.5px] sm:text-[11px] text-muted-foreground font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>No signup required.</span>
+            </div>
           </div>
         </div>
       </section>
