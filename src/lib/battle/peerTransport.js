@@ -89,8 +89,12 @@ export class PeerHostBridge {
 
       this.peer.on("error", (err) => {
         // Someone else already claimed this room id (double-tab host) —
-        // retry after a beat, same strategy as Word Rush.
+        // clean up previous peer instance before retrying
         if (err.type === "unavailable-id" && !this.closed) {
+          try {
+            this.peer?.destroy();
+          } catch {}
+          this.peer = null;
           window.setTimeout(() => {
             if (!this.closed) this.init();
           }, 1500);
@@ -236,7 +240,13 @@ export function tryPeerGuestLink(roomCode, timeoutMs = 8000) {
       if (!settled) {
         settled = true;
         clearTimeout(timer);
+        try {
+          conn?.close();
+          peer?.destroy();
+        } catch {}
         reject(err);
+      } else {
+        link.onClose?.();
       }
     });
   });
