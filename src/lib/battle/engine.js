@@ -1,27 +1,24 @@
 /**
  * FlagAtlas authoritative battle engine — browser edition.
  *
- * This is the room logic of the former server/battle-server.mjs, ported
- * into a transport-agnostic class so the HOST PLAYER'S BROWSER can
- * run it locally (Word Rush architecture). The wire protocol:
- * clients send { type: "join" | "ready" | "configure" | "lock" | "start" |
- * "answer" | "kick" | "rematch" }, the engine answers with { type:
- * "joined" | "state" | "notice" | "error" | "finished" | "kicked" }.
+ * Runs locally inside the host player's browser (Word Rush architecture).
+ * Synchronized round-by-round quiz: every player receives and plays the EXACT
+ * same flag at the EXACT same time. When all active players lock in an answer
+ * (or the 12-second round timer expires), a brief 2.5-second reveal displays
+ * the correct country and earned points before everyone advances together.
  *
- * Lobby rules (Word Rush style): the host is always ready; everyone else
- * toggles ready/unready. The host can only start when every connected
- * player is ready, and can lock the room to stop new joins.
- *
- * The engine only needs a `send(connId, msg)` callback — it doesn't know or
- * care whether messages go over a WebSocket, a WebRTC data channel, or a
- * loopback call inside the host tab.
+ * Wire protocol:
+ * - Clients send: { type: "join" | "ready" | "configure" | "lock" | "start" | "answer" | "kick" | "leave" | "closeRoom" | "rematch" }
+ * - Engine responds: { type: "joined" | "state" | "notice" | "error" | "finished" | "kicked" | "leftRoom" | "roomClosed" }
  */
 
-import { COUNTRIES, pickOptions } from "@/data/countries";
+import { COUNTRIES, pickOptions } from "../../data/countries.js";
 
 const MAX_PLAYERS = 5;
 const SEATS = [1, 2, 3, 4, 5];
-const ROOM_PURGE_MS = 90_000; // empty rooms are swept after 90s
+const ROOM_PURGE_MS = 90_000;
+export const ROUND_DURATION_MS = 12_000;
+export const REVEAL_DURATION_MS = 2_500;
 
 function makeQuestions(region, rounds) {
   const candidates =
@@ -42,8 +39,7 @@ function makeQuestions(region, rounds) {
 export class BattleEngine {
   /**
    * @param {{ send: (connId: string, msg: object) => void }} io
-   *        send() must deliver the message to that connection. Local host
-   *        connections use connId "host-local"; P2P guests use "p2p-<peerId>".
+   *        send() delivers message to that connection. Local host is "host-local".
    */
   constructor(io) {
     this.io = io;
@@ -68,10 +64,10 @@ export class BattleEngine {
     }
 
     const conn = this.conns.get(connId);
-    if (!conn) return this.fail(connId, "Join a room first.");
+    if (!conn) return this.fail(connId, "Join a room first.", "NOT_JOINED");
 
     const room = this.rooms.get(conn.roomCode);
-    if (!room) return this.fail(connId, "This room no longer exists.");
+    if (!room) return this.fail(connId, "This room no longer exists.", "ROOM_NOT_FOUND");
 
     switch (msg.type) {
       case "configure":
@@ -111,57 +107,78 @@ export class BattleEngine {
   actionJoin(connId, msg) {
     const code = String(msg.code || "").toUpperCase();
     const creating = Boolean(msg.create);
-    if (!/^[A-Z2-9]{4}$/.test(code))
-      return this.fail(connId, "Enter a valid room code.");
-    if (this.conns.has(connId))
-      return this.fail(connId, "Already connected to a room.");
+
+    if (!/^[A-Z2-9]{4}$/.test(code)) {
+      return this.fail(connId, "Enter a valid 4-letter room code.", "INVALID_CODE");
+    }
+    if (this.conns.has(connId)) {
+      return this.fail(connId, "Already connected to a room.", "ALREADY_CONNECTED");
+    }
 
     let room = this.rooms.get(code);
-    if (!room && !creating)
-      return this.fail(connId, "This room does not exist. Check the code and try again.");
+    if (!room && !creating) {
+      return this.fail(
+        connId,
+        "This room does not exist. Check the code and try again.",
+        "ROOM_NOT_FOUND",
+      );
+    }
 
     if (!room) {
       room = {
         code,
         region: msg.region || "World",
-        rounds: Number(msg.rounds) || 10,
-        status: "lobby",
+        rounds: Math.max(5, Math.min(20, Number(msg.rounds) || 10)),
+        status: "lobby", // "lobby" | "playing" | "finished"
+        roundPhase: "lobby", // "lobby" | "question" | "reveal" | "finished"
         hostSeat: 1,
         locked: false,
         players: new Map(), // seat -> player
         questions: [],
         results: [],
+        currentRound: 0,
+        roundStartedAt: 0,
+        roundDurationMs: ROUND_DURATION_MS,
+        roundTimer: null,
+        revealTimer: null,
         createdAt: Date.now(),
       };
       this.rooms.set(code, room);
     }
 
-    if (room.status !== "lobby")
-      return this.fail(connId, "This battle has already started.");
-    if (room.locked && !creating)
-      return this.fail(connId, "This room is locked by the host.");
-    if (room.players.size >= MAX_PLAYERS)
-      return this.fail(connId, "This room is full (five players maximum).");
+    if (room.status !== "lobby") {
+      return this.fail(connId, "This battle has already started.", "ALREADY_STARTED");
+    }
+    if (room.locked && !creating) {
+      return this.fail(connId, "This room is locked by the host.", "ROOM_LOCKED");
+    }
+    if (room.players.size >= MAX_PLAYERS) {
+      return this.fail(connId, "This room is full (5 players maximum).", "ROOM_FULL");
+    }
 
     const seat = SEATS.find((s) => !room.players.has(s));
+    const cleanName =
+      String(msg.name || "")
+        .trim()
+        .replace(/<[^>]*>?/gm, "")
+        .slice(0, 20) || `Player ${seat}`;
+
     const player = {
-      socket: null, // transports deliver via io.send; kept for parity with old server
       seat,
-      name: String(msg.name || `Player ${seat}`).slice(0, 20),
+      name: cleanName,
       correct: 0,
       score: 0,
-      index: 0,
-      finished: false,
-      finishedAt: 0,
-      questionStartedAt: 0,
       totalAnswerMs: 0,
       answerCount: 0,
       lastAnswerMs: 0,
-      // Word Rush rule: the host is implicitly always ready — a freshly
-      // created room must never be blocked by its own host.
+      currentAnswer: null,
+      hasAnswered: false,
+      lastPoints: 0,
+      // Word Rush rule: the host is implicitly always ready.
       ready: Boolean(creating),
       connId,
     };
+
     room.players.set(seat, player);
     this.conns.set(connId, { roomCode: code, seat, lastSeen: Date.now() });
 
@@ -169,7 +186,7 @@ export class BattleEngine {
     this.broadcast(room);
     this.announce(
       room,
-      creating ? `${player.name} opened the room.` : `${player.name} joined the room.`,
+      creating ? `${player.name} created room ${code}.` : `${player.name} joined the room.`,
     );
     this.schedulePurgeSweep();
   }
@@ -187,13 +204,11 @@ export class BattleEngine {
     this.broadcast(room);
   }
 
-  /** Word Rush rule: host is always ready; guests toggle freely. */
   actionReady(conn, room, msg) {
     if (room.status !== "lobby") return;
     const player = room.players.get(conn.seat);
     if (!player) return;
     if (conn.seat === room.hostSeat) {
-      // Hosts cannot unready — readiness is implicit in hosting.
       player.ready = true;
       return;
     }
@@ -201,20 +216,25 @@ export class BattleEngine {
     this.broadcast(room);
   }
 
-  /** Host-only: lock the room so nobody else can join. */
   actionLock(conn, room, msg) {
     if (conn.seat !== room.hostSeat || room.status !== "lobby") return;
     room.locked = msg.locked === true;
     this.broadcast(room);
-    this.announce(room, room.locked ? "Room locked — no new players can join." : "Room unlocked — anyone can join.");
+    this.announce(
+      room,
+      room.locked
+        ? "Room locked — no new players can join."
+        : "Room unlocked — new players can join.",
+    );
   }
 
   actionStart(conn, room) {
-    if (conn.seat !== room.hostSeat)
+    if (conn.seat !== room.hostSeat) {
       return this.fail(conn.connId, "Only the room host can start the battle.");
-    if (room.players.size < 2)
+    }
+    if (room.players.size < 2) {
       return this.fail(conn.connId, "At least two players are required to start.");
-    // Word Rush rule: start requires every connected player to be ready.
+    }
     const notReady = [...room.players.values()].filter((p) => !p.ready);
     if (notReady.length > 0) {
       return this.fail(
@@ -222,53 +242,134 @@ export class BattleEngine {
         `Waiting for ${notReady.map((p) => p.name).join(", ")} to ready up.`,
       );
     }
+
+    this.clearRoomTimers(room);
     room.questions = makeQuestions(room.region, room.rounds);
     room.status = "playing";
-    const now = Date.now();
+    room.currentRound = 0;
+
     for (const p of room.players.values()) {
       Object.assign(p, {
         correct: 0,
         score: 0,
-        index: 0,
-        finished: false,
-        finishedAt: 0,
-        questionStartedAt: now,
         totalAnswerMs: 0,
         answerCount: 0,
         lastAnswerMs: 0,
+        currentAnswer: null,
+        hasAnswered: false,
+        lastPoints: 0,
       });
     }
-    this.broadcast(room);
+
     this.announce(room, "Battle started — good luck!");
+    this.startRound(room);
+  }
+
+  startRound(room) {
+    this.clearRoomTimers(room);
+    room.roundPhase = "question";
+    room.roundStartedAt = Date.now();
+    room.roundDurationMs = ROUND_DURATION_MS;
+
+    for (const p of room.players.values()) {
+      p.currentAnswer = null;
+      p.hasAnswered = false;
+      p.lastPoints = 0;
+    }
+
+    this.broadcast(room);
+
+    // Auto-reveal when round duration expires
+    room.roundTimer = setTimeout(() => {
+      this.revealRound(room);
+    }, ROUND_DURATION_MS);
   }
 
   actionAnswer(conn, room, msg) {
-    if (room.status !== "playing") return;
+    if (room.status !== "playing" || room.roundPhase !== "question") return;
     const player = room.players.get(conn.seat);
-    if (!player || player.finished) return;
-    const question = room.questions[player.index];
+    if (!player || player.hasAnswered) return;
+
+    const question = room.questions[room.currentRound];
     if (!question || !question.options.includes(msg.choice)) return;
 
-    const answerMs = Math.max(0, Date.now() - player.questionStartedAt);
+    const answerMs = Math.max(0, Date.now() - room.roundStartedAt);
     player.lastAnswerMs = answerMs;
     player.totalAnswerMs += answerMs;
     player.answerCount += 1;
+    player.currentAnswer = msg.choice;
+    player.hasAnswered = true;
 
-    if (msg.choice === question.flag) {
+    const isCorrect = msg.choice === question.flag;
+    // Speed bonus: up to 100 bonus pts if answered quickly within round window
+    const speedBonus = isCorrect ? Math.max(0, 100 - Math.floor(answerMs / 60)) : 0;
+    const points = isCorrect ? 100 + speedBonus : 0;
+    player.lastPoints = points;
+
+    if (isCorrect) {
       player.correct += 1;
-      player.score += 100 + Math.max(0, 100 - Math.floor(answerMs / 50));
-    }
-
-    player.index += 1;
-    if (player.index >= room.questions.length) {
-      player.finished = true;
-      player.finishedAt = Date.now();
-    } else {
-      player.questionStartedAt = Date.now();
+      player.score += points;
     }
 
     this.broadcast(room);
-    this.finishIfReady(room);
+
+    // If every connected player has answered, reveal immediately without waiting for timer!
+    const activePlayers = [...room.players.values()];
+    if (activePlayers.length > 0 && activePlayers.every((p) => p.hasAnswered)) {
+      this.revealRound(room);
+    }
+  }
+
+  revealRound(room) {
+    this.clearRoomTimers(room);
+    room.roundPhase = "reveal";
+    this.broadcast(room);
+
+    room.revealTimer = setTimeout(() => {
+      this.advanceOrFinish(room);
+    }, REVEAL_DURATION_MS);
+  }
+
+  advanceOrFinish(room) {
+    this.clearRoomTimers(room);
+    if (room.currentRound + 1 < room.questions.length) {
+      room.currentRound += 1;
+      this.startRound(room);
+    } else {
+      this.finishMatch(room);
+    }
+  }
+
+  finishMatch(room) {
+    this.clearRoomTimers(room);
+    room.status = "finished";
+    room.roundPhase = "finished";
+
+    const players = [...room.players.values()];
+    const results = players
+      .map((p) => ({ ...p }))
+      .sort(
+        (a, b) =>
+          b.correct - a.correct ||
+          b.score - a.score ||
+          a.totalAnswerMs - b.totalAnswerMs,
+      )
+      .map((p, i) => ({
+        seat: p.seat,
+        name: p.name,
+        correct: p.correct,
+        score: p.score,
+        averageAnswerMs: p.answerCount
+          ? Math.round(p.totalAnswerMs / p.answerCount)
+          : 0,
+        rank: i + 1,
+      }));
+
+    room.results = results;
+    for (const p of room.players.values()) {
+      this.io.send(p.connId, { type: "finished", results });
+    }
+    this.broadcast(room);
   }
 
   actionKick(conn, room, msg) {
@@ -281,17 +382,18 @@ export class BattleEngine {
     this.conns.delete(target.connId);
     room.players.delete(targetSeat);
     this.broadcast(room);
-    this.announce(room, `${target.name} was kicked from the room.`);
+    this.announce(room, `${target.name} was removed from the room.`);
   }
 
-  /** Player chose to walk out of the lobby. */
   actionLeave(conn, room) {
     const player = room.players.get(conn.seat);
     if (!player) return;
     this.io.send(player.connId, { type: "leftRoom" });
     this.conns.delete(player.connId);
     room.players.delete(conn.seat);
+
     if (room.players.size === 0) {
+      this.clearRoomTimers(room);
       this.rooms.delete(room.code);
       return;
     }
@@ -300,16 +402,23 @@ export class BattleEngine {
       const nextHost = room.players.get(room.hostSeat);
       if (nextHost) {
         nextHost.ready = true;
-        this.announce(room, `${nextHost.name} is now the host.`);
+        this.announce(room, `${nextHost.name} is now the room host.`);
       }
     }
     this.broadcast(room);
     this.announce(room, `${player.name} left the room.`);
+
+    if (room.status === "playing" && room.roundPhase === "question") {
+      const activePlayers = [...room.players.values()];
+      if (activePlayers.length > 0 && activePlayers.every((p) => p.hasAnswered)) {
+        this.revealRound(room);
+      }
+    }
   }
 
-  /** Host-only: shut the room down for everyone. */
   actionCloseRoom(conn, room) {
     if (conn.seat !== room.hostSeat) return;
+    this.clearRoomTimers(room);
     for (const p of room.players.values()) {
       this.io.send(p.connId, { type: "roomClosed" });
       this.conns.delete(p.connId);
@@ -317,32 +426,34 @@ export class BattleEngine {
     this.rooms.delete(room.code);
   }
 
-  /* ---------------- lifecycle ---------------- */
-
   actionRematch(room) {
     if (room.status !== "finished") return;
+    this.clearRoomTimers(room);
     room.status = "lobby";
+    room.roundPhase = "lobby";
+    room.currentRound = 0;
     room.questions = [];
     room.results = [];
+
     for (const p of room.players.values()) {
       Object.assign(p, {
         correct: 0,
         score: 0,
-        index: 0,
-        finished: false,
-        finishedAt: 0,
-        questionStartedAt: 0,
         totalAnswerMs: 0,
         answerCount: 0,
         lastAnswerMs: 0,
+        currentAnswer: null,
+        hasAnswered: false,
+        lastPoints: 0,
       });
-      // Back to the lobby: everyone must ready up again (host stays ready).
       p.ready = p.seat === room.hostSeat;
     }
     this.broadcast(room);
+    this.announce(room, "Rematch ready! Everyone ready up to play again.");
   }
 
-  /** Transport-level disconnect (tab closed, WebRTC drop). */
+  /* ---------------- lifecycle & cleanup ---------------- */
+
   onDisconnect(connId) {
     const conn = this.conns.get(connId);
     if (!conn) return;
@@ -355,63 +466,48 @@ export class BattleEngine {
     room.players.delete(conn.seat);
 
     if (room.players.size === 0) {
+      this.clearRoomTimers(room);
       this.rooms.delete(room.code);
       return;
     }
+
     if (conn.seat === room.hostSeat) {
       room.hostSeat = [...room.players.keys()][0];
       const nextHost = room.players.get(room.hostSeat);
       if (nextHost) {
         nextHost.ready = true;
-        this.announce(room, `${nextHost.name} is now the host.`);
+        this.announce(room, `${nextHost.name} is now the room host.`);
       }
     }
-    // During a match the remaining player is allowed to finish (README
-    // behavior) — do NOT force-finish the room.
-    this.broadcast(room);
-    this.announce(room, `${player.name} left the room.`);
-    if (room.status === "playing") this.finishIfReady(room);
-  }
 
-  finishIfReady(room) {
-    const players = [...room.players.values()];
-    if (!players.length || !players.every((p) => p.finished)) return;
-    const results = players
-      .map((p) => ({ ...p }))
-      .sort(
-        (a, b) =>
-          b.correct - a.correct ||
-          a.totalAnswerMs - b.totalAnswerMs ||
-          a.finishedAt - b.finishedAt,
-      )
-      .map((p, i) => ({
-        seat: p.seat,
-        name: p.name,
-        correct: p.correct,
-        score: p.score,
-        averageAnswerMs: p.answerCount
-          ? Math.round(p.totalAnswerMs / p.answerCount)
-          : 0,
-        rank: i + 1,
-      }));
-    room.status = "finished";
-    room.results = results;
-    for (const p of room.players.values()) {
-      this.io.send(p.connId, { type: "finished", results });
+    this.broadcast(room);
+    this.announce(room, `${player.name} disconnected.`);
+
+    // If game in progress, check if remaining players all answered
+    if (room.status === "playing" && room.roundPhase === "question") {
+      const activePlayers = [...room.players.values()];
+      if (activePlayers.length > 0 && activePlayers.every((p) => p.hasAnswered)) {
+        this.revealRound(room);
+      }
     }
-    this.broadcast(room);
   }
 
-  /**
-   * Periodic housekeeping. Unlike Word Rush's engine there are no client
-   * heartbeats in this protocol, so stale connections are detected by the
-   * transport (WebRTC close events → onDisconnect); here we only purge rooms
-   * that have been empty too long.
-   */
+  clearRoomTimers(room) {
+    if (room.roundTimer != null) {
+      clearTimeout(room.roundTimer);
+      room.roundTimer = null;
+    }
+    if (room.revealTimer != null) {
+      clearTimeout(room.revealTimer);
+      room.revealTimer = null;
+    }
+  }
+
   sweep() {
     const now = Date.now();
     for (const [code, room] of [...this.rooms.entries()]) {
       if (room.players.size === 0 && now - room.createdAt > ROOM_PURGE_MS) {
+        this.clearRoomTimers(room);
         this.rooms.delete(code);
       }
     }
@@ -420,6 +516,9 @@ export class BattleEngine {
   destroy() {
     if (this.purgeTimer != null) clearInterval(this.purgeTimer);
     this.purgeTimer = null;
+    for (const room of this.rooms.values()) {
+      this.clearRoomTimers(room);
+    }
     this.rooms.clear();
     this.conns.clear();
   }
@@ -431,12 +530,29 @@ export class BattleEngine {
       type: "state",
       code: room.code,
       status: room.status,
+      roundPhase: room.roundPhase,
       region: room.region,
       rounds: room.rounds,
       hostSeat: room.hostSeat,
       locked: room.locked === true,
+      currentRound: room.currentRound,
+      roundStartedAt: room.roundStartedAt,
+      roundDurationMs: room.roundDurationMs,
       questions: room.status === "playing" ? room.questions : [],
-      players: [...room.players.values()].map(({ connId, ...p }) => p),
+      players: [...room.players.values()].map((p) => ({
+        seat: p.seat,
+        name: p.name,
+        correct: p.correct,
+        score: p.score,
+        ready: p.ready,
+        hasAnswered: p.hasAnswered === true,
+        lastPoints: p.lastPoints || 0,
+        // Only broadcast choices during reveal or finished phase to prevent inspection cheating
+        currentAnswer:
+          room.roundPhase === "reveal" || room.status === "finished"
+            ? p.currentAnswer
+            : null,
+      })),
     };
   }
 
@@ -453,8 +569,8 @@ export class BattleEngine {
     }
   }
 
-  fail(connId, message) {
-    this.io.send(connId, { type: "error", message });
+  fail(connId, message, code = "GENERIC_ERROR") {
+    this.io.send(connId, { type: "error", message, code });
   }
 
   schedulePurgeSweep() {

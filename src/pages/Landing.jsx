@@ -18,11 +18,15 @@ import {
   Play,
   RotateCcw,
   Users,
+  Repeat,
+  Flame,
+  Award,
+  BookOpen,
 } from "lucide-react";
 import FlagImage from "@/components/FlagImage";
 import confetti from "canvas-confetti";
 
-// Showcase flags for the interactive mock card
+// Showcase flags for the interactive demo card
 const DEMO_FLAGS = [
   {
     code: "cr",
@@ -58,56 +62,112 @@ const DEMO_FLAGS = [
   },
 ];
 
-const MODES_LIST = [
+// 4-step progressive learning process
+const HOW_IT_WORKS = [
+  {
+    step: "01",
+    title: "Active Recall",
+    desc: "Test flag recognition across 197 sovereign nations. Instant scoring sharpens your initial visual cues.",
+    icon: Eye,
+  },
+  {
+    step: "02",
+    title: "Capital & Context",
+    desc: "Every answer reveals vital geopolitical context: capitals, geographic regions, and coat-of-arms details.",
+    icon: BookOpen,
+  },
+  {
+    step: "03",
+    title: "Color the Atlas",
+    desc: "Each mastered country lights up on your interactive world map as you build geographic territory.",
+    icon: MapPin,
+  },
+  {
+    step: "04",
+    title: "Spaced Repetition",
+    desc: "Algorithms predict memory decay, surfacing flags right before you forget them for permanent retention.",
+    icon: Repeat,
+  },
+];
+
+// 6 Game Modes with uniform dimensions
+const GAME_MODES = [
   {
     path: "/play/go-berserk",
     label: "Go Berserk",
     badge: "Most Popular",
-    desc: "The ultimate 197-nation flag marathon. Every country appears once in random order.",
+    desc: "The ultimate 197-nation marathon. Every country appears once in randomized order for complete mastery.",
     icon: Globe2,
+    badgeColor: "bg-terra/15 text-terra border-terra/30",
   },
   {
     path: "/play/speed",
     label: "Speed Run",
     badge: "45s Blitz",
-    desc: "Rapid-fire reflex test. Answer as many flags as possible before the clock expires.",
+    desc: "High-adrenaline reflex test. Identify as many flags as possible before the countdown timer hits zero.",
     icon: Zap,
+    badgeColor: "bg-gold/20 text-foreground border-foreground/30",
   },
   {
     path: "/play/fragments",
     label: "Fragments",
     badge: "Visual Puzzle",
-    desc: "The flag starts heavily blurred. Identify it before your misses run out.",
+    desc: "Flags start obscured or blurred. Discern subtle national emblems before your allotted misses run out.",
     icon: Sparkles,
+    badgeColor: "bg-forest/15 text-forest border-forest/30",
   },
   {
     path: "/play/recall",
-    label: "Recall",
-    badge: "Memory",
-    desc: "Picture the flag in your mind from the country name, then reveal and self-grade.",
+    label: "Pure Recall",
+    badge: "Active Memory",
+    desc: "Picture the national flag from country name alone, reveal the answer, and self-grade your accuracy.",
     icon: Eye,
+    badgeColor: "bg-muted text-foreground border-foreground/30",
   },
   {
     path: "/play/builder",
     label: "Flag Builder",
     badge: "Creative",
-    desc: "Reconstruct national flags stripe-by-stripe by selecting the right colors in order.",
+    desc: "Deconstruct and rebuild flags stripe-by-stripe, selecting correct proportions, layouts, and colors.",
     icon: Palette,
+    badgeColor: "bg-muted text-foreground border-foreground/30",
   },
   {
     path: "/battle",
     label: "1v1 Battle",
     badge: "Multiplayer",
-    desc: "Real-time flag duel. Share a room code with a friend and race to 10 points.",
+    desc: "Live head-to-head multiplayer duel. Share a room code with any friend and race to 10 points.",
     icon: Swords,
+    badgeColor: "bg-terra/15 text-terra border-terra/30",
   },
 ];
 
-const STEPS = [
-  { step: "01", label: "GUESS" },
-  { step: "02", label: "LEARN" },
-  { step: "03", label: "COLOR THE MAP" },
-  { step: "04", label: "COLLECT STAMPS" },
+// Science stats cards
+const STATS = [
+  {
+    value: "197",
+    label: "Sovereign Nations",
+    detail: "Every UN member & territory",
+    icon: Globe2,
+  },
+  {
+    value: "3x",
+    label: "Review Threshold",
+    detail: "Consecutive recalls lock mastery",
+    icon: Award,
+  },
+  {
+    value: "85%",
+    label: "Long-term Recall",
+    detail: "Empirically validated retention",
+    icon: Brain,
+  },
+  {
+    value: "0s",
+    label: "Onboarding Time",
+    detail: "No mandatory signups or setup",
+    icon: Zap,
+  },
 ];
 
 export default function Landing() {
@@ -125,382 +185,510 @@ export default function Landing() {
     const isCorrect = index === currentFlag.correct;
     if (isCorrect) {
       setDemoScore((s) => s + 15);
-      setDemoFeedback("+15 XP · MASTERED!");
+      setDemoFeedback("+15 XP · CORRECT");
       try {
         confetti({
-          particleCount: 25,
-          spread: 45,
-          origin: { y: 0.65, x: 0.7 },
+          particleCount: 28,
+          spread: 50,
+          origin: { y: 0.65, x: 0.75 },
           colors: ["#10B981", "#F59E0B", "#3B82F6"],
         });
       } catch (_) {}
     } else {
-      setDemoFeedback("Incorrect");
+      setDemoFeedback("INCORRECT");
     }
 
-    // Auto advance after 1.8s
+    // Auto advance after 1.6s
     setTimeout(() => {
       setDemoIdx((prev) => (prev + 1) % DEMO_FLAGS.length);
       setDemoChosen(null);
       setDemoFeedback(null);
-    }, 1800);
+    }, 1600);
   };
 
   return (
-    <div className="w-full overflow-x-hidden">
-      {/* ── HERO SECTION (Two-Column Editorial Atlas Layout) ── */}
-      <section className="relative w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 lg:pt-16 pb-12 sm:pb-16 lg:pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 items-center">
-          
-          {/* LEFT: Headline, Differentiator & Dominant Primary CTA */}
-          <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-            {/* Tag badge */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 border-2 border-foreground bg-gold/20 text-[11px] font-extrabold uppercase tracking-wider text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]">
-              <span className="text-terra">★</span> WORLD GEOGRAPHY & FLAG MASTERY
-            </div>
+    <div className="w-full overflow-x-hidden bg-background text-foreground font-body">
 
-            {/* Fluid Responsive Headline */}
-            <h1 className="font-display font-black text-foreground tracking-tight leading-[1.06] text-[clamp(1.85rem,4.5vw,3.25rem)] max-w-xl">
-              LEARN EVERY FLAG. <br />
-              <span className="text-terra">
-                CONQUER THE MAP.
-              </span> <br />
-              NEVER FORGET.
-            </h1>
+      {/* ─────────────────────────────────────────────────────────────
+          1. HERO SECTION
+          Standardized 96px desktop / 48px mobile vertical rhythm
+      ───────────────────────────────────────────────────────────── */}
+      <section className="relative w-full py-12 md:py-24 border-b-2 border-foreground/15">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* Left Column: Headline, Narrative & Primary Actions */}
+            <div className="lg:col-span-7 flex flex-col items-start text-left">
+              
+              {/* Category Pill Tag */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 border-2 border-foreground bg-gold/20 text-xs font-black uppercase tracking-wider text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] mb-6">
+                <span className="text-terra">★</span>
+                <span>SPACED REPETITION FLAG ATLAS</span>
+              </div>
 
-            {/* Punchy description */}
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-lg leading-relaxed">
-              FlagAtlas turns world geography into an addictive, fast-paced game. 
-              Powered by spaced repetition, it predicts memory decay and brings flags 
-              back right before you forget them.
-            </p>
+              {/* Dominant Hero Headline (H1) */}
+              <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground tracking-tight leading-[1.08] mb-6">
+                LEARN EVERY FLAG. <br />
+                <span className="text-terra">CONQUER THE MAP.</span> <br />
+                NEVER FORGET.
+              </h1>
 
-            {/* Credibility Indicators: 2 quiet value points */}
-            <div className="flex items-center gap-3.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground pt-1">
-              <span className="flex items-center gap-1.5 text-foreground">
-                <span className="w-2 h-2 rounded-full bg-terra shrink-0" />
-                197 Countries
-              </span>
-              <span className="text-muted-foreground/40">•</span>
-              <span className="flex items-center gap-1.5 text-foreground">
-                <span className="w-2 h-2 rounded-full bg-forest shrink-0" />
-                Spaced Repetition
-              </span>
-            </div>
+              {/* Description constrained to optimal reading line-length */}
+              <p className="text-base sm:text-lg text-muted-foreground font-medium leading-relaxed max-w-[58ch] mb-8">
+                FlagAtlas transforms global geography into an addictive, systematic
+                trainer. Powered by adaptive spaced repetition, it predicts your memory
+                decay curve and tests flags at the exact moment before you forget them.
+              </p>
 
-            {/* Clear Primary & Secondary CTA Action Bar */}
-            <div className="pt-2 sm:pt-3 space-y-3 max-w-lg">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                {/* DOMINANT PRIMARY CTA */}
+              {/* Value Props & Indicators */}
+              <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground mb-8">
+                <div className="flex items-center gap-2 text-foreground">
+                  <span className="w-2.5 h-2.5 rounded-full bg-terra shrink-0" />
+                  <span>197 Sovereign Nations</span>
+                </div>
+                <div className="flex items-center gap-2 text-foreground">
+                  <span className="w-2.5 h-2.5 rounded-full bg-forest shrink-0" />
+                  <span>SM-2 Memory Decay Algorithm</span>
+                </div>
+              </div>
+
+              {/* Action Buttons: Unified Component Styles */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto mb-4">
                 <Link
                   to="/play/go-berserk"
-                  className="h-11 sm:h-12 px-6 sm:px-8 border-2 border-foreground bg-foreground text-background flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+                  className="h-12 px-8 border-2 border-foreground bg-foreground text-background font-bold text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
                 >
-                  <Play className="w-3.5 h-3.5 fill-current" /> Play Go Berserk
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>Play Go Berserk</span>
                 </Link>
 
-                {/* SECONDARY CTA */}
                 <Link
                   to="/atlas"
-                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground flex items-center justify-center gap-2 font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+                  className="h-12 px-7 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
                 >
-                  <Compass className="w-4 h-4 text-forest" /> Explore World Atlas
+                  <Compass className="w-4 h-4 text-forest" />
+                  <span>Explore World Atlas</span>
                 </Link>
               </div>
 
-              {/* Quiet Tertiary Footnote: No signup required + subtle Battle link */}
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground pt-1">
-                <span className="font-semibold flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  No signup or install required
-                </span>
-                <a
-                  href="#multiplayer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById("multiplayer")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="font-bold text-muted-foreground hover:text-terra inline-flex items-center gap-1 underline underline-offset-2 transition-colors cursor-pointer"
-                >
-                  Play with friends →
-                </a>
+              {/* Footnote reassurance */}
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Zero friction · Free forever · No account required to play</span>
               </div>
-            </div>
-          </div>
 
-          {/* RIGHT: Live Interactive Board Showcase */}
-          <div className="lg:col-span-5 flex justify-center w-full">
-            <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden w-full max-w-[300px] xs:max-w-[320px] sm:max-w-[350px] md:max-w-[370px]">
-              {/* Board Header */}
-              <div className="px-3 py-2 bg-foreground text-background flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-                  <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
-                    Interactive Demo
+            </div>
+
+            {/* Right Column: Live Interactive Flag Quiz Board */}
+            <div className="lg:col-span-5 flex justify-center w-full">
+              <div className="w-full max-w-[380px] border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] overflow-hidden">
+                
+                {/* Board Top Header */}
+                <div className="h-10 px-4 bg-foreground text-background flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider">
+                      Interactive Demo
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs text-gold font-bold">
+                    Score: {demoScore}
                   </span>
                 </div>
-                <span className="font-mono text-[10px] sm:text-[11px] text-gold font-bold">
-                  XP: {demoScore}
-                </span>
-              </div>
 
-              {/* Board Body */}
-              <div className="p-3 sm:p-3.5 space-y-2.5">
-                <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
-                  <span>Flag {demoIdx + 1} of {DEMO_FLAGS.length}</span>
-                  <span className="text-terra">{currentFlag.region}</span>
-                </div>
+                {/* Board Content */}
+                <div className="p-5 space-y-4">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                    <span>Card {demoIdx + 1} of {DEMO_FLAGS.length}</span>
+                    <span className="text-terra">{currentFlag.region}</span>
+                  </div>
 
-                {/* Flag Image Display */}
-                <div className="mx-auto w-full max-w-[160px] xs:max-w-[185px] sm:max-w-[210px] aspect-[3/2] border-2 border-foreground bg-muted overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] relative rounded-xs">
-                  <FlagImage
-                    code={currentFlag.code}
-                    alt={currentFlag.name}
-                    className="w-full h-full object-cover"
-                  />
-                  {demoFeedback && (
-                    <div className="absolute inset-0 bg-background/90 backdrop-blur-xs flex items-center justify-center p-1">
-                      <span className="font-display text-xs font-black text-foreground border-2 border-foreground bg-gold px-2.5 py-1 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] animate-bounce text-center">
-                        {demoFeedback}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                  {/* Flag Viewer */}
+                  <div className="mx-auto w-full aspect-[3/2] border-2 border-foreground bg-muted overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] relative">
+                    <FlagImage
+                      code={currentFlag.code}
+                      alt={currentFlag.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {demoFeedback && (
+                      <div className="absolute inset-0 bg-background/90 backdrop-blur-xs flex items-center justify-center p-2">
+                        <span className={`font-display text-sm font-black px-3 py-1.5 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                          demoFeedback.includes("CORRECT") ? "bg-emerald-400 text-foreground" : "bg-destructive text-destructive-foreground"
+                        }`}>
+                          {demoFeedback}
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
-                <p className="text-center font-display font-bold text-xs sm:text-[13px] text-foreground">
-                  Which nation's flag is this?
-                </p>
+                  <p className="text-center font-display font-bold text-sm text-foreground">
+                    Which nation does this flag belong to?
+                  </p>
 
-                {/* 4 Compact Choices */}
-                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                  {currentFlag.options.map((option, i) => {
-                    const isChosen = demoChosen === i;
-                    const isCorrect = i === currentFlag.correct;
-                    let btnStyle = "border-foreground bg-card hover:bg-muted text-foreground";
-                    if (demoChosen !== null) {
-                      if (isCorrect) {
-                        btnStyle = "border-emerald-600 bg-emerald-500 text-white font-black";
-                      } else if (isChosen) {
-                        btnStyle = "border-destructive bg-destructive text-white";
+                  {/* 4 Choices Grid */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {currentFlag.options.map((option, i) => {
+                      const isChosen = demoChosen === i;
+                      const isCorrect = i === currentFlag.correct;
+                      let btnStyle = "border-foreground bg-card hover:bg-muted text-foreground";
+                      if (demoChosen !== null) {
+                        if (isCorrect) {
+                          btnStyle = "border-emerald-600 bg-emerald-500 text-white font-black";
+                        } else if (isChosen) {
+                          btnStyle = "border-destructive bg-destructive text-white";
+                        }
                       }
-                    }
 
-                    return (
-                      <button
-                        key={option}
-                        disabled={demoChosen !== null}
-                        onClick={() => handleDemoPick(i)}
-                        className={`h-7.5 sm:h-8.5 px-2 border-2 font-bold text-[10px] sm:text-[11px] uppercase tracking-tight text-left flex items-center justify-between transition-transform active:scale-95 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${btnStyle}`}
-                      >
-                        <span className="truncate">{option}</span>
-                        {demoChosen !== null && isCorrect && (
-                          <CheckCircle2 className="w-3 h-3 shrink-0 ml-1" />
-                        )}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={option}
+                          disabled={demoChosen !== null}
+                          onClick={() => handleDemoPick(i)}
+                          className={`h-9 px-2.5 border-2 font-bold text-xs uppercase tracking-tight text-left flex items-center justify-between transition-transform active:scale-95 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] ${btnStyle}`}
+                        >
+                          <span className="truncate">{option}</span>
+                          {demoChosen !== null && isCorrect && (
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 ml-1" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Metadata & Next action */}
+                  <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground font-semibold border-t border-foreground/15">
+                    <span className="truncate">Capital: {currentFlag.capital}</span>
+                    <button
+                      onClick={() => {
+                        setDemoIdx((prev) => (prev + 1) % DEMO_FLAGS.length);
+                        setDemoChosen(null);
+                        setDemoFeedback(null);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-foreground hover:text-terra font-bold shrink-0 transition-colors"
+                    >
+                      <span>Skip</span>
+                      <RotateCcw className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="pt-1.5 flex items-center justify-between text-[10px] text-muted-foreground font-semibold border-t border-foreground/15">
-                  <span className="truncate mr-1">Capital: {currentFlag.capital}</span>
-                  <button
-                    onClick={() => {
-                      setDemoIdx((prev) => (prev + 1) % DEMO_FLAGS.length);
-                      setDemoChosen(null);
-                      setDemoFeedback(null);
-                    }}
-                    className="inline-flex items-center gap-1 text-foreground hover:text-terra font-bold shrink-0"
-                  >
-                    Next <RotateCcw className="w-2.5 h-2.5" />
-                  </button>
-                </div>
               </div>
             </div>
-          </div>
 
-        </div>
-      </section>
-
-      {/* ── PROCESS EXPLANATION: HOW FLAGATLAS WORKS (Quiet & Airy Divider) ── */}
-      <section className="w-full border-y-2 border-foreground bg-muted/30 py-5 sm:py-6 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-6">
-          <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
-            How FlagAtlas Works
-          </span>
-          <div className="flex flex-wrap items-center gap-x-6 sm:gap-x-8 gap-y-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground">
-            {STEPS.map((step, i) => (
-              <div key={step.step} className="flex items-center gap-2">
-                <span className="text-terra font-mono font-black">{step.step}</span>
-                <span>{step.label}</span>
-                {i < STEPS.length - 1 && (
-                  <span className="text-muted-foreground/40 ml-2 hidden sm:inline">→</span>
-                )}
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* ── PLAY WITH FRIENDS (Spacious Editorial Callout) ── */}
-      <section id="multiplayer" className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16 scroll-mt-6">
-        <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-8 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-12">
-          {/* Left: Eyebrow, Heading, Supporting Description */}
-          <div className="lg:max-w-xl xl:max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-terra mb-2 sm:mb-2.5">
-              <Swords className="w-3.5 h-3.5" /> Play With Friends
+      {/* ─────────────────────────────────────────────────────────────
+          2. HOW IT WORKS SECTION
+          Consistent 4-step progressive learning system
+      ───────────────────────────────────────────────────────────── */}
+      <section className="w-full py-12 md:py-24 bg-muted/20 border-b-2 border-foreground/15">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Section Header */}
+          <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-3">
+              <Sparkles className="w-4 h-4" />
+              <span>THE LEARNING ENGINE</span>
             </div>
-            <h2 className="font-display font-black text-foreground tracking-tight text-[clamp(1.35rem,3.2vw,2rem)] leading-tight mb-2.5 sm:mb-3">
-              PLAY WITH FRIENDS.
+            <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight mb-4">
+              HOW FLAGATLAS WORKS
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed max-w-lg">
-              Challenge friends to a real-time flag duel. Share a 4-letter room code,
-              race head-to-head through national flags, and find out who has the fastest recall.
+            <p className="text-base text-muted-foreground font-medium max-w-[55ch] mx-auto">
+              A systematic 4-step cognitive loop designed to convert short-term recognition
+              into permanent geographic instinct.
             </p>
           </div>
 
-          {/* Right: Un-squeezed Action Panel */}
-          <div className="shrink-0 flex flex-col items-start lg:items-end justify-center gap-2.5 w-full lg:w-auto">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-              <Link
-                to="/battle?action=create"
-                className="h-11 sm:h-12 px-6 border-2 border-foreground bg-foreground text-background flex items-center justify-center gap-2 font-black text-xs sm:text-sm uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform whitespace-nowrap"
-              >
-                <Users className="w-4 h-4" /> Create a Room
-              </Link>
-              <Link
-                to="/battle?action=join"
-                className="h-11 sm:h-12 px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground flex items-center justify-center gap-2 font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform whitespace-nowrap"
-              >
-                <Swords className="w-4 h-4 text-terra" /> Join a Room
-              </Link>
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-semibold">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>No signup required · 1v1 real-time</span>
-            </div>
+          {/* 4 Steps Equal-Height Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {HOW_IT_WORKS.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={step.step}
+                  className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-6 flex flex-col justify-between h-full"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="font-mono font-black text-lg text-terra">
+                        {step.step}
+                      </span>
+                      <div className="w-9 h-9 border-2 border-foreground rounded-none flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)]">
+                        <Icon className="w-4 h-4 text-forest" />
+                      </div>
+                    </div>
+                    <h3 className="font-display font-bold text-lg text-foreground mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
         </div>
       </section>
 
-      {/* ── 6 GAME MODES (Open Editorial Section Directly on Page Background) ── */}
-      <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16">
-        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-terra mb-2">
-            <Trophy className="w-3.5 h-3.5" /> 6 Ways to Train
+      {/* ─────────────────────────────────────────────────────────────
+          3. MULTIPLE WAYS TO PLAY (6 MODES GRID)
+          Uniform cards, identical widths, heights, paddings & buttons
+      ───────────────────────────────────────────────────────────── */}
+      <section className="w-full py-12 md:py-24 border-b-2 border-foreground/15">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Section Header */}
+          <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-3">
+              <Trophy className="w-4 h-4" />
+              <span>TRAINING REGIMES</span>
+            </div>
+            <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight mb-4">
+              MULTIPLE WAYS TO PLAY
+            </h2>
+            <p className="text-base text-muted-foreground font-medium max-w-[55ch] mx-auto">
+              From high-speed reflex drills to strategic stripe-by-stripe flag reconstruction,
+              pick the discipline that suits your current goals.
+            </p>
           </div>
-          <h2 className="font-display font-black text-foreground tracking-tight text-[clamp(1.5rem,3.6vw,2.25rem)]">
-            MULTIPLE WAYS TO PLAY.
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium mt-2 max-w-md mx-auto">
-            Once you're inside, choose the training mode that fits your focus.
-          </p>
-        </div>
 
-        {/* 3 columns × 2 rows Grid with Uniform Dimensions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {MODES_LIST.map((mode) => {
-            const Icon = mode.icon;
-            return (
-              <div
-                key={mode.path}
-                className="p-5 sm:p-6 border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="w-9 h-9 border-2 border-foreground rounded-lg flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] group-hover:rotate-6 transition-transform">
-                      <Icon className="w-4 h-4 text-foreground" />
-                    </span>
-                    <span className="text-[10.5px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-foreground/30 rounded bg-muted text-foreground">
-                      {mode.badge}
-                    </span>
+          {/* 3 columns × 2 rows CSS Grid with Identical Heights */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {GAME_MODES.map((mode) => {
+              const Icon = mode.icon;
+              return (
+                <div
+                  key={mode.path}
+                  className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-6 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform"
+                >
+                  {/* Card Content Top */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:rotate-6 transition-transform">
+                        <Icon className="w-5 h-5 text-forest" />
+                      </div>
+                      <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 border ${mode.badgeColor}`}>
+                        {mode.badge}
+                      </span>
+                    </div>
+
+                    <h3 className="font-display font-bold text-xl text-foreground mb-2">
+                      {mode.label}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {mode.desc}
+                    </p>
                   </div>
-                  <h3 className="font-display font-bold text-base sm:text-lg text-foreground mb-2">
-                    {mode.label}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {mode.desc}
-                  </p>
-                </div>
 
-                <div className="pt-5 mt-auto">
+                  {/* Card Footer Button */}
+                  <div className="pt-6 mt-auto">
+                    <Link
+                      to={mode.path}
+                      className="h-11 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-4 transition-colors"
+                    >
+                      <span>Launch Mode</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          4. PLAY WITH FRIENDS (MULTIPLAYER CALLOUT)
+          Balanced wide callout panel with clear action buttons
+      ───────────────────────────────────────────────────────────── */}
+      <section id="multiplayer" className="w-full py-12 md:py-24 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-12">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-6 sm:p-8 lg:p-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              
+              {/* Left Side: Callout text & details */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra">
+                  <Swords className="w-4 h-4" />
+                  <span>SYNCHRONOUS REAL-TIME MULTIPLAYER</span>
+                </div>
+                
+                <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight">
+                  PLAY WITH FRIENDS
+                </h2>
+                
+                <p className="text-base text-muted-foreground font-medium leading-relaxed max-w-[54ch]">
+                  Throw down the gauntlet in a live 1v1 flag duel. Generate a 4-letter room
+                  code, share it with anyone, and race side-by-side through synchronized flag
+                  rounds to 10 points. Peer-to-peer, latency-free, zero account creation.
+                </p>
+
+                <div className="pt-2 flex flex-wrap items-center gap-6 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="flex items-center gap-1.5 text-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    Instant room codes
+                  </span>
+                  <span className="flex items-center gap-1.5 text-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    First to 10 points
+                  </span>
+                  <span className="flex items-center gap-1.5 text-foreground">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    Real-time score sync
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Side: Dual Room CTAs with preview card */}
+              <div className="lg:col-span-5 flex flex-col items-stretch sm:items-center lg:items-end gap-4 w-full">
+                <div className="w-full sm:w-80 space-y-3">
                   <Link
-                    to={mode.path}
-                    className="inline-flex items-center justify-between w-full h-9 px-3.5 border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-xs font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] transition-colors"
+                    to="/battle?action=create"
+                    className="h-12 w-full border-2 border-foreground bg-foreground text-background font-bold text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
                   >
-                    <span>Play Mode</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <Users className="w-4 h-4" />
+                    <span>Create a Room</span>
+                  </Link>
+
+                  <Link
+                    to="/battle?action=join"
+                    className="h-12 w-full border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
+                  >
+                    <Swords className="w-4 h-4 text-terra" />
+                    <span>Join a Room</span>
                   </Link>
                 </div>
+
+                <div className="text-center lg:text-right w-full sm:w-80">
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Compatible across mobile, tablet, and desktop browsers
+                  </span>
+                </div>
               </div>
-            );
-          })}
+
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── THE SCIENCE OF MEMORY (Contained Feature Callout) ── */}
-      <section className="w-full border-t-2 border-foreground bg-muted/20 py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
-            <div className="lg:col-span-8 space-y-2.5">
-              <span className="text-[11px] font-extrabold uppercase tracking-widest text-terra flex items-center gap-1.5">
-                <Brain className="w-3.5 h-3.5 shrink-0" /> The Science of Memory
-              </span>
-              <h3 className="font-display font-black text-lg sm:text-2xl text-foreground leading-snug">
-                How FlagAtlas turns short-term memory into permanent recall.
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-2xl pt-0.5">
-                Most trivia apps quiz you once and move on. FlagAtlas runs an adapted 
-                spaced repetition algorithm: every nation has an ease score. 
-                Correct answers extend intervals, while misses reappear tomorrow. 
-                Three consecutive reviews unlock permanent mastery.
+      {/* ─────────────────────────────────────────────────────────────
+          5. THE SCIENCE OF MEMORY & RETENTION METRICS
+          Evidence-based spaced repetition breakdown
+      ───────────────────────────────────────────────────────────── */}
+      <section className="w-full py-12 md:py-24 border-b-2 border-foreground/15">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-12">
+            
+            <div className="lg:col-span-8 space-y-4">
+              <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra">
+                <Brain className="w-4 h-4" />
+                <span>SPACED REPETITION & COGNITIVE SCIENCE</span>
+              </div>
+              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight">
+                THE SCIENCE OF MEMORY
+              </h2>
+              <p className="text-base text-muted-foreground font-medium leading-relaxed max-w-[65ch]">
+                Standard trivia tests you once and forgets about you. FlagAtlas employs an adapted
+                SuperMemo algorithm: every nation maintains a personalized ease factor. Correct
+                recalls exponentially extend review intervals, while misses return for immediate review.
+                Three successive verified intervals unlock permanent mastery.
               </p>
             </div>
-            <div className="lg:col-span-4 text-center p-5 sm:p-6 border-2 border-foreground bg-muted/40 rounded-xl space-y-1.5">
-              <div className="font-display text-3xl sm:text-4xl font-extrabold text-foreground">
-                197
-              </div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                Flags to Master
-              </div>
-              <div className="pt-1.5">
-                <Link
-                  to="/review"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-tight text-terra hover:underline"
-                >
-                  <Layers className="w-3.5 h-3.5" /> Review Deck →
-                </Link>
-              </div>
+
+            <div className="lg:col-span-4 flex lg:justify-end">
+              <Link
+                to="/review"
+                className="h-12 px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center gap-2.5"
+              >
+                <Layers className="w-4 h-4 text-terra" />
+                <span>Open Review Deck</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
+
           </div>
+
+          {/* 4 Consistent Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {STATS.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div
+                  key={stat.label}
+                  className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-6 flex flex-col justify-between h-full"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-display font-black text-3xl sm:text-4xl text-foreground">
+                      {stat.value}
+                    </span>
+                    <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)]">
+                      <Icon className="w-4 h-4 text-forest" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm uppercase tracking-wider text-foreground mb-1">
+                      {stat.label}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {stat.detail}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
         </div>
       </section>
 
-      {/* ── FINAL CALL TO ACTION (Clean, Open, Direct) ── */}
-      <section className="w-full py-16 sm:py-20 lg:py-24 px-4 text-center">
-        <div className="max-w-xl mx-auto space-y-4">
-          <h2 className="font-display font-black text-foreground tracking-tight text-[clamp(1.5rem,4vw,2.25rem)]">
+      {/* ─────────────────────────────────────────────────────────────
+          6. FINAL CALL TO ACTION
+          Clear, bold, symmetrical closing invite
+      ───────────────────────────────────────────────────────────── */}
+      <section className="w-full py-16 md:py-24 bg-muted/15">
+        <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          
+          <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-4">
+            <Flame className="w-4 h-4" />
+            <span>START PLAYING NOW</span>
+          </div>
+
+          <h2 className="font-display font-black text-2xl sm:text-3xl md:text-5xl text-foreground tracking-tight leading-tight mb-4">
             READY TO HUMBLE YOUR GEOGRAPHY?
           </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-md mx-auto">
-            Jump in right now — no signup or install required.
+
+          <p className="text-base sm:text-lg text-muted-foreground font-medium max-w-[50ch] mx-auto mb-8 leading-relaxed">
+            Jump in right now. Choose a mode, color your map, and discover how quickly
+            all 197 flags become second nature.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/play/go-berserk"
-              className="inline-flex items-center justify-center gap-2 border-2 border-foreground bg-foreground text-background px-7 h-11 sm:h-12 w-full sm:w-auto font-black text-xs sm:text-sm uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
+              className="h-12 px-8 w-full sm:w-auto border-2 border-foreground bg-foreground text-background font-bold text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
             >
-              <Play className="w-3.5 h-3.5 fill-current" /> Play Go Berserk
+              <Play className="w-4 h-4 fill-current" />
+              <span>Play Go Berserk</span>
             </Link>
+
             <Link
               to="/atlas"
-              className="inline-flex items-center justify-center gap-2 border-2 border-foreground bg-card hover:bg-muted text-foreground px-6 h-11 sm:h-12 w-full sm:w-auto font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
+              className="h-12 px-7 w-full sm:w-auto border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
             >
-              <MapPin className="w-3.5 h-3.5" /> Explore World Atlas
+              <Compass className="w-4 h-4 text-forest" />
+              <span>Explore World Atlas</span>
             </Link>
           </div>
+
         </div>
       </section>
+
     </div>
   );
 }
-
