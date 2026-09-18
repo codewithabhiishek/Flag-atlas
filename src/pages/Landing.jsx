@@ -15,7 +15,6 @@ import {
   Layers,
   MapPin,
   Play,
-  RotateCcw,
   Users,
   Repeat,
   Flame,
@@ -174,7 +173,7 @@ export default function Landing() {
           1. HERO SECTION
           Dominant headline, concise explanation, clear dual CTA, supporting demo
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-8 md:py-16 border-b-2 border-foreground/15">
+      <section className="relative w-full py-8 md:py-14 border-b-2 border-foreground/15">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
@@ -230,7 +229,7 @@ export default function Landing() {
 
             {/* Right Column: Supporting Interactive Demo */}
             <div className="lg:col-span-5 flex justify-center w-full">
-              <div className="w-full max-w-[360px] border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] overflow-hidden">
+              <div className="w-full max-w-[320px] sm:max-w-[360px] border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] overflow-hidden">
                 
                 {/* Board Top Header */}
                 <div className="h-9 px-3.5 bg-foreground text-background flex items-center justify-between">
@@ -260,63 +259,65 @@ export default function Landing() {
                       className="w-full h-full object-cover"
                     />
                     {demoFeedback && (
-                      <div className="absolute inset-0 bg-background/90 backdrop-blur-xs flex items-center justify-center p-2">
-                        <span className={`font-display text-xs sm:text-sm font-black px-3 py-1 border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                          demoFeedback.includes("CORRECT") ? "bg-emerald-400 text-foreground" : "bg-destructive text-destructive-foreground"
-                        }`}>
-                          {demoFeedback}
-                        </span>
+                      <div
+                        className={`absolute inset-0 flex items-center justify-center font-black text-xs sm:text-sm tracking-wider uppercase border-2 ${
+                          demoFeedback.includes("CORRECT")
+                            ? "bg-emerald-600/95 text-white border-emerald-800"
+                            : "bg-destructive/95 text-white border-destructive"
+                        }`}
+                      >
+                        {demoFeedback}
                       </div>
                     )}
                   </div>
 
-                  <p className="text-center font-display font-bold text-xs sm:text-sm text-foreground">
-                    Which nation does this flag belong to?
-                  </p>
-
-                  {/* 4 Answer Options */}
-                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                    {currentFlag.options.map((option, i) => {
-                      const isChosen = demoChosen === i;
-                      const isCorrect = i === currentFlag.correct;
-                      let btnStyle = "border-foreground bg-card hover:bg-muted text-foreground";
-                      if (demoChosen !== null) {
-                        if (isCorrect) {
-                          btnStyle = "border-emerald-600 bg-emerald-500 text-white font-black";
-                        } else if (isChosen) {
-                          btnStyle = "border-destructive bg-destructive text-white";
+                  {/* 4-Option Multiple Choice Grid */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Identify this flag:
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {currentFlag.options.map((opt, i) => {
+                        let btnStyle = "border-foreground bg-card hover:bg-muted text-foreground";
+                        if (demoChosen !== null) {
+                          if (i === currentFlag.correct) {
+                            btnStyle = "border-emerald-600 bg-emerald-500 text-white font-black";
+                          } else if (i === demoChosen) {
+                            btnStyle = "border-destructive bg-destructive text-white";
+                          } else {
+                            btnStyle = "border-foreground/30 opacity-40";
+                          }
                         }
-                      }
 
-                      return (
-                        <button
-                          key={option}
-                          disabled={demoChosen !== null}
-                          onClick={() => handleDemoPick(i)}
-                          className={`h-8.5 sm:h-9 px-2.5 border-2 font-bold text-xs uppercase tracking-tight text-left flex items-center justify-between transition-transform active:scale-95 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] ${btnStyle}`}
-                        >
-                          <span className="truncate">{option}</span>
-                          {demoChosen !== null && isCorrect && (
-                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 ml-1" />
-                          )}
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={opt}
+                            disabled={demoChosen !== null}
+                            onClick={() => handleDemoPick(i)}
+                            className={`h-8 sm:h-9 px-2.5 border-2 font-bold text-xs uppercase tracking-tight text-left flex items-center justify-between transition-transform active:scale-95 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] ${btnStyle}`}
+                          >
+                            <span className="truncate">{opt}</span>
+                            <span className="font-mono text-[10px] opacity-70 ml-1 shrink-0">
+                              {i + 1}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
-                  {/* Footer metadata */}
-                  <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground font-semibold border-t border-foreground/15">
-                    <span className="truncate">Capital: {currentFlag.capital}</span>
+                  {/* Demo Quick Controls */}
+                  <div className="pt-2 border-t border-foreground/15 flex items-center justify-between text-xs text-muted-foreground font-semibold">
+                    <span>Capital: <strong className="text-foreground">{currentFlag.capital}</strong></span>
                     <button
                       onClick={() => {
                         setDemoIdx((prev) => (prev + 1) % DEMO_FLAGS.length);
                         setDemoChosen(null);
                         setDemoFeedback(null);
                       }}
-                      className="inline-flex items-center gap-1 text-foreground hover:text-terra font-bold shrink-0 transition-colors"
+                      className="hover:text-foreground text-terra underline text-[11px] font-bold uppercase tracking-wider"
                     >
-                      <span>Skip</span>
-                      <RotateCcw className="w-3 h-3" />
+                      Skip Flag →
                     </button>
                   </div>
                 </div>
@@ -333,11 +334,11 @@ export default function Landing() {
           Immediate decision: Play Solo vs Play with Friends
           Tighter internal spacing, clear multiplayer hierarchy
       ───────────────────────────────────────────────────────────── */}
-      <section id="multiplayer" className="w-full py-10 md:py-16 bg-muted/25 border-b-2 border-foreground/15 scroll-mt-14">
+      <section id="multiplayer" className="w-full py-8 md:py-14 bg-muted/25 border-b-2 border-foreground/15 scroll-mt-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-8 md:mb-10">
+          <div className="text-center max-w-2xl mx-auto mb-7 md:mb-9">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
               <Swords className="w-4 h-4" />
               <span>HOW DO YOU WANT TO PLAY?</span>
@@ -354,7 +355,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch">
             
             {/* Solo Experience Card */}
-            <div className="lg:col-span-5 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-5 sm:p-6 flex flex-col justify-between">
+            <div className="lg:col-span-5 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-forest/30 bg-forest/15 text-forest">
@@ -366,7 +367,7 @@ export default function Landing() {
                 <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
                   Play Solo
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 sm:mb-5">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
                   Explore 197 sovereign nations with spaced repetition. Learn capitals, regions,
                   and coat-of-arms details as each correct recall colors your map.
                 </p>
@@ -387,7 +388,7 @@ export default function Landing() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-foreground/15 flex flex-col sm:flex-row gap-2.5">
+              <div className="pt-3.5 border-t border-foreground/15 mt-auto flex flex-col sm:flex-row gap-2.5">
                 <Link
                   to="/play"
                   className="h-10 px-4 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 flex-1 text-center"
@@ -406,7 +407,7 @@ export default function Landing() {
             </div>
 
             {/* Multiplayer Battle Card */}
-            <div className="lg:col-span-7 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-5 sm:p-6 flex flex-col justify-between">
+            <div className="lg:col-span-7 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-terra/30 bg-terra/15 text-terra">
@@ -418,12 +419,12 @@ export default function Landing() {
                 <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
                   Play with Friends
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-3.5">
                   Synchronized head-to-head flag duel. Share a 4-letter room code and race to 10 points in real time. Zero signup required.
                 </p>
 
                 {/* Direct Room Entry Box: Clear Primary & Secondary Hierarchy */}
-                <div className="bg-background border-2 border-foreground p-3.5 sm:p-4 mb-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
+                <div className="bg-background border-2 border-foreground p-3 sm:p-4 mb-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2.5 flex items-center justify-between">
                     <span>Instant Room Entry</span>
                     <span className="text-terra">1v1 Synchronized</span>
@@ -457,7 +458,7 @@ export default function Landing() {
                       onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
                       placeholder="ENTER 4-LETTER CODE"
                       aria-label="Enter 4-letter room code"
-                      className="h-9 px-3 bg-card border-2 border-foreground font-mono text-xs font-bold uppercase tracking-wider text-foreground placeholder:text-muted-foreground/60 flex-1 focus:outline-none focus:ring-2 focus:ring-terra"
+                      className="h-9 px-3 bg-card border-2 border-foreground font-mono text-xs font-bold uppercase tracking-wider text-foreground placeholder:text-muted-foreground/60 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-terra"
                     />
                     <button
                       type="submit"
@@ -470,16 +471,16 @@ export default function Landing() {
               </div>
 
               {/* Tertiary Step Indicator */}
-              <div className="pt-2.5 border-t border-foreground/15 flex items-center justify-between text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                <span className="flex items-center gap-1">
+              <div className="pt-2.5 border-t border-foreground/15 flex items-center justify-between text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground gap-1">
+                <span className="flex items-center gap-1 shrink-0">
                   <span className="font-mono text-terra">01</span> Create / Join
                 </span>
-                <span>→</span>
-                <span className="flex items-center gap-1">
+                <span className="shrink-0">→</span>
+                <span className="flex items-center gap-1 shrink-0">
                   <span className="font-mono text-terra">02</span> Room Code
                 </span>
-                <span>→</span>
-                <span className="flex items-center gap-1">
+                <span className="shrink-0">→</span>
+                <span className="flex items-center gap-1 shrink-0">
                   <span className="font-mono text-terra">03</span> Race to 10 Pts
                 </span>
               </div>
@@ -495,11 +496,11 @@ export default function Landing() {
           Distinct exploration: World Atlas, Flag Games, 1v1 Battle
           Compact, equal-height, perfectly aligned CTA cards
       ───────────────────────────────────────────────────────────── */}
-      <section id="experiences" className="w-full py-10 md:py-16 border-b-2 border-foreground/15 scroll-mt-14">
+      <section id="experiences" className="w-full py-8 md:py-14 border-b-2 border-foreground/15 scroll-mt-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-8 md:mb-10">
+          <div className="text-center max-w-2xl mx-auto mb-7 md:mb-9">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
               <Trophy className="w-4 h-4" />
               <span>WHAT DO YOU WANT TO EXPLORE?</span>
@@ -516,9 +517,9 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             
             {/* Experience 1: World Atlas */}
-            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
-              <div>
-                <div className="flex items-center justify-between mb-3.5">
+            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-3">
                   <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:rotate-6 transition-transform">
                     <Compass className="w-4.5 h-4.5 text-forest" />
                   </div>
@@ -529,14 +530,14 @@ export default function Landing() {
                 <h3 className="font-display font-bold text-lg sm:text-xl text-foreground mb-1.5">
                   World Atlas
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
                   Interactive global territory map. Inspect capitals, flags, and regional groups as each mastered country permanently lights up on your map.
                 </p>
               </div>
-              <div className="pt-4 border-t border-foreground/15 mt-auto">
+              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
                 <Link
                   to="/atlas"
-                  className="h-9.5 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
+                  className="h-9 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
                 >
                   <span>Explore World Atlas</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -545,9 +546,9 @@ export default function Landing() {
             </div>
 
             {/* Experience 2: Flag Games */}
-            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
-              <div>
-                <div className="flex items-center justify-between mb-3.5">
+            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-3">
                   <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:rotate-6 transition-transform">
                     <Sparkles className="w-4.5 h-4.5 text-forest" />
                   </div>
@@ -558,14 +559,14 @@ export default function Landing() {
                 <h3 className="font-display font-bold text-lg sm:text-xl text-foreground mb-1.5">
                   Flag Games
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
                   5 specialized training regimes: the 197-nation Go Berserk marathon, 45-second blitz Speed Run, obscured Fragments, Pure Recall, and Flag Builder.
                 </p>
               </div>
-              <div className="pt-4 border-t border-foreground/15 mt-auto">
+              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
                 <Link
                   to="/play"
-                  className="h-9.5 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
+                  className="h-9 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
                 >
                   <span>Choose Game Mode</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -574,9 +575,9 @@ export default function Landing() {
             </div>
 
             {/* Experience 3: 1v1 Battle */}
-            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
-              <div>
-                <div className="flex items-center justify-between mb-3.5">
+            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
+              <div className="flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-3">
                   <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:rotate-6 transition-transform">
                     <Swords className="w-4.5 h-4.5 text-terra" />
                   </div>
@@ -587,14 +588,14 @@ export default function Landing() {
                 <h3 className="font-display font-bold text-lg sm:text-xl text-foreground mb-1.5">
                   1v1 Battle
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
                   Head-to-head live multiplayer duel. Synchronized flag prompts, 4-letter room codes, instant peer connectivity, and a live race to 10 points.
                 </p>
               </div>
-              <div className="pt-4 border-t border-foreground/15 mt-auto">
+              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
                 <Link
                   to="/battle"
-                  className="h-9.5 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
+                  className="h-9 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
                 >
                   <span>Battle Arena</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -611,11 +612,11 @@ export default function Landing() {
           4. HOW FLAGATLAS WORKS
           Progressive 4-step cognitive loop — tight, editorial presentation
       ───────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="w-full py-10 md:py-16 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-14">
+      <section id="how-it-works" className="w-full py-8 md:py-14 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-8 md:mb-10">
+          <div className="text-center max-w-2xl mx-auto mb-7 md:mb-9">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
               <Sparkles className="w-4 h-4" />
               <span>THE LEARNING LOOP</span>
@@ -665,7 +666,7 @@ export default function Landing() {
           5. MEMORY / LEARNING DIFFERENTIATION
           Factual spaced repetition mechanics, no unbacked stats
       ───────────────────────────────────────────────────────────── */}
-      <section className="w-full py-10 md:py-16 border-b-2 border-foreground/15">
+      <section className="w-full py-8 md:py-14 border-b-2 border-foreground/15">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8">
@@ -689,7 +690,7 @@ export default function Landing() {
             <div className="lg:col-span-4 flex lg:justify-end">
               <Link
                 to="/review"
-                className="h-10 px-4.5 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center gap-2"
+                className="h-9 px-4 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center gap-2"
               >
                 <Layers className="w-4 h-4 text-terra" />
                 <span>Open Review Deck</span>
@@ -736,7 +737,7 @@ export default function Landing() {
           6. FINAL CALL TO ACTION
           Single, high-impact closing section
       ───────────────────────────────────────────────────────────── */}
-      <section className="w-full py-12 md:py-18 bg-muted/15">
+      <section className="w-full py-10 md:py-16 bg-muted/15">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           
           <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2.5">
