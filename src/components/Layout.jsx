@@ -206,6 +206,16 @@ export default function Layout() {
 
               {/* Desktop User Level / Streak & Theme & Feedback (Harmonious group) */}
               <div className="hidden lg:flex items-center gap-2.5 pl-3 border-l-2 border-foreground">
+                <Link
+                  to="/atlas"
+                  className="inline-flex items-center gap-1.5 px-2.5 h-8 border-2 border-foreground bg-card hover:bg-muted text-xs font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform mr-1"
+                  title="Atlas progress — click to open World Atlas"
+                >
+                  <Compass className="w-3.5 h-3.5 text-forest" />
+                  <span className="text-[10px] text-muted-foreground">Atlas</span>
+                  <span className="font-extrabold text-foreground">{masteredCount(state.flags)}/197</span>
+                </Link>
+
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   onClick={triggerStreakConfetti}
@@ -264,11 +274,12 @@ export default function Layout() {
               {/* Mobile Right Controls (< md) */}
               <div className="flex md:hidden items-center gap-1.5">
                 <Link
-                  to="/play"
-                  className="h-8 px-2.5 border-2 border-foreground bg-terra text-white inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
+                  to="/atlas"
+                  className="h-8 px-2 border-2 border-foreground bg-card text-foreground inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
+                  title="Atlas progress"
                 >
-                  <Play className="w-2.5 h-2.5 fill-current" />
-                  <span>Play</span>
+                  <Compass className="w-3 h-3 text-forest" />
+                  <span>{masteredCount(state.flags)}/197</span>
                 </Link>
 
                 <button

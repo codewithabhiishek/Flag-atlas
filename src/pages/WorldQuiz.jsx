@@ -172,11 +172,34 @@ export default function WorldQuiz() {
           })}
         </div>
         {chosen !== null && (
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
-            <p className="text-sm text-muted-foreground">
-              {chosen === flag.code ? "Correct — +10 XP" : `The answer was ${flag.name}.`}
-            </p>
-            <button type="button" data-sound="advance" onClick={next} className="h-10 shrink-0 border-2 border-foreground bg-foreground px-4 text-sm font-bold text-background">
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t-2 border-foreground/20 pt-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={cn(
+                  "text-xs font-black uppercase tracking-wider px-2 py-0.5 border-2 rounded",
+                  chosen === flag.code
+                    ? "border-emerald-600 bg-emerald-500/20 text-emerald-800 dark:text-emerald-300"
+                    : "border-destructive bg-destructive/20 text-destructive dark:text-rose-400"
+                )}>
+                  {chosen === flag.code ? "Correct · +10 XP" : "Incorrect"}
+                </span>
+                <span className="text-xs font-bold uppercase tracking-tight text-forest">
+                  {chosen === flag.code ? "Added to Atlas Progress" : "Atlas Progress Updated"}
+                </span>
+              </div>
+              <div className="text-sm font-bold text-foreground">
+                {flag.name}
+                <span className="text-muted-foreground font-semibold ml-1.5 text-xs sm:text-sm">
+                  · {flag.region}{flag.capital ? ` · Capital: ${flag.capital}` : ""}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              data-sound="advance"
+              onClick={next}
+              className="h-10 shrink-0 border-2 border-foreground bg-foreground px-5 text-sm font-bold text-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform self-end sm:self-center"
+            >
               Next →
             </button>
           </div>

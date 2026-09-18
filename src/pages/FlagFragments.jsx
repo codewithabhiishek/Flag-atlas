@@ -179,26 +179,37 @@ export default function FlagFragments() {
         </div>
       </div>
       {outcome && (
-        <div className="mt-4 text-center">
-          <p
-            className={cn(
-              "text-sm font-medium",
-              outcome === "win" ? "text-forest" : "text-destructive",
-            )}
-            role="status"
-            aria-live="polite"
-          >
-            {outcome === "win"
-              ? `Correct! +${earnedXp} XP`
-              : `Answer: ${flag.name}`}
-          </p>
-          <button
-            type="button"
-            onClick={next}
-            className="mt-3 px-5 h-10 rounded-md bg-forest text-primary-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {idx + 1 >= queue.length ? "Finish" : "Next flag"}
-          </button>
+        <div className="mt-4 border-2 border-foreground bg-card p-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1 text-left">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={cn(
+                  "text-xs font-black uppercase tracking-wider px-2 py-0.5 border-2 rounded",
+                  outcome === "win"
+                    ? "border-emerald-600 bg-emerald-500/20 text-emerald-800 dark:text-emerald-300"
+                    : "border-destructive bg-destructive/20 text-destructive dark:text-rose-400"
+                )}>
+                  {outcome === "win" ? `Correct · +${earnedXp} XP` : "Incorrect"}
+                </span>
+                <span className="text-xs font-bold uppercase tracking-tight text-forest">
+                  {outcome === "win" ? "Added to Atlas Progress" : "Atlas Progress Updated"}
+                </span>
+              </div>
+              <div className="text-sm font-bold text-foreground">
+                {flag.name}
+                <span className="text-muted-foreground font-semibold ml-1.5 text-xs sm:text-sm">
+                  · {flag.region}{flag.capital ? ` · Capital: ${flag.capital}` : ""}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={next}
+              className="h-10 shrink-0 border-2 border-foreground bg-foreground px-5 text-sm font-bold text-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform self-end sm:self-center"
+            >
+              {idx + 1 >= queue.length ? "Finish →" : "Next flag →"}
+            </button>
+          </div>
         </div>
       )}
     </ModeShell>

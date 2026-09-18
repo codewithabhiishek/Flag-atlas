@@ -393,10 +393,10 @@ export default function Battle() {
       <div className="mx-auto max-w-3xl px-3 sm:px-4 py-6">
         <div className="flex items-center justify-between mb-4">
           <Link
-            to="/"
+            to="/atlas"
             className="inline-flex items-center gap-1.5 border-2 border-foreground bg-card px-3 h-8 text-sm font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
           >
-            <ArrowLeft className="w-4 h-4" /> Map
+            <ArrowLeft className="w-4 h-4" /> Atlas
           </Link>
           <span className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
             Synchronous Multiplayer
@@ -596,10 +596,10 @@ export default function Battle() {
               <RotateCcw className="w-4 h-4" /> Rematch
             </button>
             <Link
-              to="/"
+              to="/atlas"
               className="inline-flex items-center border-2 border-foreground bg-card px-5 h-11 text-sm font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
             >
-              Back to map
+              Back to Atlas
             </Link>
           </div>
         </div>

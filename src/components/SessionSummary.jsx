@@ -23,10 +23,10 @@ export default function SessionSummary({ correct, total, xp, timeMs, onAgain, ex
         {extra}
         <div className="flex flex-wrap gap-2 justify-center mt-6">
           <Link
-            to="/"
-            className="inline-flex items-center border-2 border-foreground bg-card px-4 h-10 text-sm font-bold uppercase tracking-tight hover:bg-muted"
+            to="/atlas"
+            className="inline-flex items-center border-2 border-foreground bg-card px-4 h-10 text-sm font-bold uppercase tracking-tight hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
           >
-            Back to map
+            Back to Atlas
           </Link>
           <button
             onClick={onAgain}

@@ -306,10 +306,10 @@ export default function SpeedRun() {
             {/* Action Buttons — Symmetrical & Bold */}
             <div className="grid grid-cols-2 gap-3">
               <Link
-                to="/"
-                className="inline-flex items-center justify-center border-2 border-foreground bg-card h-11 text-sm font-bold uppercase tracking-tight rounded-lg hover:bg-muted active:translate-y-0.5 transition-all"
+                to="/atlas"
+                className="inline-flex items-center justify-center border-2 border-foreground bg-card h-11 text-sm font-bold uppercase tracking-tight rounded-lg hover:bg-muted active:translate-y-0.5 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)]"
               >
-                Back to Map
+                Back to Atlas
               </Link>
               <button
                 onClick={restart}

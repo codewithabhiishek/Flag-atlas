@@ -18,7 +18,7 @@ export default function ModePicker() {
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
-      <Link to="/" className="inline-flex h-10 items-center gap-2 border-2 border-foreground bg-card px-3 text-sm font-bold uppercase tracking-tight hover:bg-muted">
+      <Link to="/atlas" className="inline-flex h-10 items-center gap-2 border-2 border-foreground bg-card px-3 text-sm font-bold uppercase tracking-tight hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
         <ArrowLeft className="h-4 w-4" /> Back to Atlas
       </Link>
       <section className="mt-5 border-2 border-foreground bg-card p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:p-8">

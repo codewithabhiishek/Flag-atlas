@@ -146,10 +146,10 @@ export default function Dashboard() {
 
       <div className="mt-6 text-center">
         <Link
-          to="/"
-          className="text-sm text-muted-foreground hover:text-forest"
+          to="/atlas"
+          className="text-sm font-semibold text-muted-foreground hover:text-forest"
         >
-          ← Back to map
+          ← Back to Atlas
         </Link>
       </div>
     </div>
