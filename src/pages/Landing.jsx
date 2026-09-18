@@ -173,7 +173,7 @@ export default function Landing() {
           1. HERO SECTION
           Dominant headline, concise explanation, clear dual CTA, supporting demo
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative w-full py-8 md:py-14 border-b-2 border-foreground/15">
+      <section className="relative w-full py-8 md:py-12 border-b-2 border-foreground/15">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
@@ -334,11 +334,11 @@ export default function Landing() {
           Immediate decision: Play Solo vs Play with Friends
           Tighter internal spacing, clear multiplayer hierarchy
       ───────────────────────────────────────────────────────────── */}
-      <section id="multiplayer" className="w-full py-8 md:py-14 bg-muted/25 border-b-2 border-foreground/15 scroll-mt-14">
+      <section id="multiplayer" className="w-full py-8 md:py-12 bg-muted/25 border-b-2 border-foreground/15 scroll-mt-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-7 md:mb-9">
+          <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
               <Swords className="w-4 h-4" />
               <span>HOW DO YOU WANT TO PLAY?</span>
@@ -458,11 +458,11 @@ export default function Landing() {
                       onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
                       placeholder="ENTER 4-LETTER CODE"
                       aria-label="Enter 4-letter room code"
-                      className="h-9 px-3 bg-card border-2 border-foreground font-mono text-xs font-bold uppercase tracking-wider text-foreground placeholder:text-muted-foreground/60 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-terra"
+                      className="h-9 px-2.5 sm:px-3 bg-card border-2 border-foreground font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground placeholder:text-muted-foreground/60 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-terra"
                     />
                     <button
                       type="submit"
-                      className="h-9 px-3.5 border-2 border-foreground bg-terra text-white font-bold text-xs uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0"
+                      className="h-9 px-3 sm:px-3.5 border-2 border-foreground bg-terra text-white font-bold text-xs uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0 whitespace-nowrap"
                     >
                       Enter Room
                     </button>
@@ -475,13 +475,13 @@ export default function Landing() {
                 <span className="flex items-center gap-1 shrink-0">
                   <span className="font-mono text-terra">01</span> Create / Join
                 </span>
-                <span className="shrink-0">→</span>
+                <span className="shrink-0 opacity-50">→</span>
                 <span className="flex items-center gap-1 shrink-0">
                   <span className="font-mono text-terra">02</span> Room Code
                 </span>
-                <span className="shrink-0">→</span>
+                <span className="shrink-0 opacity-50">→</span>
                 <span className="flex items-center gap-1 shrink-0">
-                  <span className="font-mono text-terra">03</span> Race to 10 Pts
+                  <span className="font-mono text-terra">03</span> Race to 10
                 </span>
               </div>
             </div>
@@ -496,11 +496,11 @@ export default function Landing() {
           Distinct exploration: World Atlas, Flag Games, 1v1 Battle
           Compact, equal-height, perfectly aligned CTA cards
       ───────────────────────────────────────────────────────────── */}
-      <section id="experiences" className="w-full py-8 md:py-14 border-b-2 border-foreground/15 scroll-mt-14">
+      <section id="experiences" className="w-full py-8 md:py-12 border-b-2 border-foreground/15 scroll-mt-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-7 md:mb-9">
+          <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
               <Trophy className="w-4 h-4" />
               <span>WHAT DO YOU WANT TO EXPLORE?</span>
@@ -612,11 +612,11 @@ export default function Landing() {
           4. HOW FLAGATLAS WORKS
           Progressive 4-step cognitive loop — tight, editorial presentation
       ───────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="w-full py-8 md:py-14 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-14">
+      <section id="how-it-works" className="w-full py-8 md:py-12 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-7 md:mb-9">
+          <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
               <Sparkles className="w-4 h-4" />
               <span>THE LEARNING LOOP</span>
@@ -666,12 +666,11 @@ export default function Landing() {
           5. MEMORY / LEARNING DIFFERENTIATION
           Factual spaced repetition mechanics, no unbacked stats
       ───────────────────────────────────────────────────────────── */}
-      <section className="w-full py-8 md:py-14 border-b-2 border-foreground/15">
+      <section className="w-full py-8 md:py-12 border-b-2 border-foreground/15">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center mb-8">
-            
-            <div className="lg:col-span-8 space-y-2">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-7">
+            <div className="max-w-2xl space-y-1.5">
               <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra">
                 <Brain className="w-4 h-4" />
                 <span>SPACED REPETITION MECHANICS</span>
@@ -679,7 +678,7 @@ export default function Landing() {
               <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight">
                 THE SCIENCE OF RETENTION
               </h2>
-              <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-[62ch]">
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium leading-relaxed">
                 Standard trivia tests you once and forgets about you. FlagAtlas adapts the SuperMemo
                 SM-2 interval curve: every nation maintains a personalized ease factor. Correct
                 recalls progressively extend review intervals, while misses return immediately
@@ -687,7 +686,7 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="lg:col-span-4 flex lg:justify-end">
+            <div className="shrink-0">
               <Link
                 to="/review"
                 className="h-9 px-4 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center gap-2"
@@ -697,7 +696,6 @@ export default function Landing() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-
           </div>
 
           {/* 4 Factual Pillars */}
@@ -737,19 +735,19 @@ export default function Landing() {
           6. FINAL CALL TO ACTION
           Single, high-impact closing section
       ───────────────────────────────────────────────────────────── */}
-      <section className="w-full py-10 md:py-16 bg-muted/15">
+      <section className="w-full py-8 md:py-12 bg-muted/15">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           
-          <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2.5">
+          <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2">
             <Flame className="w-4 h-4" />
             <span>START PLAYING NOW</span>
           </div>
 
-          <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-foreground tracking-tight leading-tight mb-3">
+          <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-foreground tracking-tight leading-tight mb-2.5">
             READY TO HUMBLE YOUR GEOGRAPHY?
           </h2>
 
-          <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium max-w-[50ch] mx-auto mb-6 sm:mb-7 leading-relaxed">
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium max-w-[50ch] mx-auto mb-5 sm:mb-6 leading-relaxed">
             Jump in right now. Pick a solo discipline, color your map, or challenge a friend in a live 1v1 battle.
           </p>
 
