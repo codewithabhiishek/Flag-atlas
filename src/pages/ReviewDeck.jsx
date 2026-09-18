@@ -148,10 +148,10 @@ export default function ReviewDeck() {
             Cards appear here when they're due for spaced repetition or if your accuracy on them is below 60%.
           </p>
           <Link
-            to="/"
+            to="/atlas"
             className="inline-block px-4 py-2 rounded-md bg-forest text-primary-foreground text-sm font-medium"
           >
-            Back to Map
+            Back to Atlas
           </Link>
         </div>
       </ModeShell>
