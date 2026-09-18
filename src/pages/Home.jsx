@@ -3,10 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useGsapScrollReveal } from "@/lib/gsapScroll";
 import { HomeSkeleton } from "@/components/Skeletons";
 import {
-  Sparkles,
-  Zap,
-  Eye,
-  Palette,
   ArrowRight,
   Swords,
   Flame,
@@ -42,53 +38,6 @@ import { cn } from "@/lib/utils";
 import { playUiSound } from "@/lib/sounds";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 
-const MODES = [
-  {
-    key: "world-quiz",
-    path: "/play/go-berserk",
-    label: "Go Berserk",
-    desc: "The full 197-country flag marathon",
-    icon: Globe,
-    accent: "bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/30",
-    iconBg: "bg-violet-500/15",
-  },
-  {
-    key: "fragments",
-    path: "/play/fragments",
-    label: "Fragments",
-    desc: "Guess the blurred flag",
-    icon: Sparkles,
-    accent: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30",
-    iconBg: "bg-emerald-500/15",
-  },
-  {
-    key: "speed",
-    path: "/play/speed",
-    label: "Speed Run",
-    desc: "45-second reflex blitz",
-    icon: Zap,
-    accent: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
-    iconBg: "bg-amber-500/15",
-  },
-  {
-    key: "recall",
-    path: "/play/recall",
-    label: "Recall",
-    desc: "Pure visual memory",
-    icon: Eye,
-    accent: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/30",
-    iconBg: "bg-sky-500/15",
-  },
-  {
-    key: "builder",
-    path: "/play/builder",
-    label: "Builder",
-    desc: "Design your own flag",
-    icon: Palette,
-    accent: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30",
-    iconBg: "bg-rose-500/15",
-  },
-];
 
 function AtlasLegendItem({ markerClassName, label, description }) {
   return (
@@ -639,41 +588,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 4. Game Modes ── */}
-      <section data-reveal data-reveal-delay="0.04" className="-mt-1">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl font-bold text-foreground">Game Modes</h2>
-          <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Pick your style</span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {MODES.map((md, i) => (
-            <motion.div
-              key={md.key}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.18 + i * 0.05 }}
-              whileHover={{ y: -3, scale: 1.02 }}
-            >
-              <Link
-                to={md.path}
-                className={cn(
-                  "atlas-card p-4 border-2 border-foreground flex flex-col gap-2 h-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] group transition-colors",
-                  md.accent,
-                )}
-              >
-                <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center border-2 border-foreground group-hover:rotate-6 transition-transform", md.iconBg)}>
-                  <md.icon className="w-4 h-4 text-foreground" />
-                </div>
-                <div>
-                  <p className="font-display text-base font-bold text-foreground leading-tight">{md.label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{md.desc}</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-foreground opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all mt-auto self-end" />
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+
+
 
       {/* ── 5. Regional Progress — compact strips ── */}
       <section data-reveal data-reveal-delay="0.06">

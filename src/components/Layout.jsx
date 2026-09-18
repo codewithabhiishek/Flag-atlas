@@ -423,9 +423,7 @@ export default function Layout() {
           <p className="text-[10.5px] sm:text-xs font-bold uppercase leading-relaxed tracking-wider">
             FlagAtlas · explore the world, master every flag
           </p>
-          <p className="text-[10px] sm:text-[11px] font-bold uppercase leading-relaxed tracking-wider">
-            🌍 197 countries to master
-          </p>
+
           <p className="pt-0.5 text-[10.5px] sm:text-xs font-medium normal-case leading-relaxed">
             <a
               href="https://abhiishek.is-a.dev/"

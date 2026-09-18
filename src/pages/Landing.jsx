@@ -7,14 +7,12 @@ import {
   Zap,
   Eye,
   Swords,
-  CheckCircle2,
   ArrowRight,
   ShieldCheck,
   Brain,
   Layers,
   MapPin,
   Play,
-  Users,
   Repeat,
   Flame,
   Award,
@@ -128,9 +126,6 @@ export default function Landing() {
   const [demoScore, setDemoScore] = useState(140);
   const [demoFeedback, setDemoFeedback] = useState(null);
 
-  // Quick Room Code Input State
-  const [roomCodeInput, setRoomCodeInput] = useState("");
-
   const currentFlag = DEMO_FLAGS[demoIdx];
 
   const handleDemoPick = (index) => {
@@ -159,15 +154,6 @@ export default function Landing() {
     }, 1600);
   };
 
-  const handleJoinByCode = (e) => {
-    e.preventDefault();
-    const cleanCode = roomCodeInput.trim().toUpperCase();
-    if (cleanCode.length > 0) {
-      navigate(`/battle?room=${cleanCode}`);
-    } else {
-      navigate(`/battle?action=join`);
-    }
-  };
 
   return (
     <div className="w-full overflow-x-hidden bg-background text-foreground font-body">
@@ -344,159 +330,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────
-          2. WHERE DO YOU WANT TO GO?
-          Three equal entry points: Play Solo / Play With Friends / Explore
-      ───────────────────────────────────────────────────────────── */}
-      <section id="multiplayer" className="w-full py-8 md:py-12 bg-muted/25 border-b-2 border-foreground/15 scroll-mt-14">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
-            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
-              <Compass className="w-4 h-4" />
-              <span>WHERE DO YOU WANT TO GO?</span>
-            </div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight">
-              CHOOSE YOUR PATH
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium mt-1.5">
-              Train solo, challenge a friend head-to-head, or enter the full FlagAtlas experience.
-            </p>
-          </div>
 
-          {/* Three-Card Decision Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-stretch">
-
-            {/* Card 1: Play Solo */}
-            <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-forest/30 bg-forest/15 text-forest">
-                    Solo Training
-                  </span>
-                  <Play className="w-4 h-4 text-forest fill-forest" />
-                </div>
-
-                <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
-                  Play Solo
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
-                  Explore 197 sovereign nations with spaced repetition. Learn capitals, regions,
-                  and coat-of-arms details as each correct recall colors your map.
-                </p>
-
-                <div className="space-y-2 text-xs font-bold uppercase tracking-wider text-muted-foreground mb-5">
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>5 game modes — Go Berserk, Speed Run, Fragments</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Adaptive spaced repetition review queue</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>XP, levels &amp; streak tracking</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
-                <Link
-                  to="/play"
-                  className="h-10 w-full px-4 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
-                >
-                  <Play className="w-3 h-3 fill-current" />
-                  <span>Launch Solo Modes</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Card 2: Play with Friends */}
-            <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-terra/30 bg-terra/15 text-terra">
-                    Live 1v1 Multiplayer
-                  </span>
-                  <Swords className="w-4 h-4 text-terra" />
-                </div>
-
-                <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
-                  Play with Friends
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-3.5">
-                  Synchronized head-to-head flag duel. Share a 4-letter room code and race to 10 points in real time. Zero signup required.
-                </p>
-
-                {/* Direct Room Entry Box */}
-                <div className="bg-background border-2 border-foreground p-3 sm:p-4 mb-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2.5 flex items-center justify-between">
-                    <span>Instant Room Entry</span>
-                    <span className="text-terra">1v1 Synchronized</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-2.5">
-                    <Link
-                      to="/battle?action=create"
-                      className="h-10 px-3 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-1.5 text-center"
-                    >
-                      <Users className="w-3 h-3" />
-                      <span>Create →</span>
-                    </Link>
-
-                    <Link
-                      to="/battle?action=join"
-                      className="h-10 px-3 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-1.5 text-center"
-                    >
-                      <Swords className="w-3 h-3 text-terra" />
-                      <span>Join</span>
-                    </Link>
-                  </div>
-
-                  <form onSubmit={handleJoinByCode} className="flex gap-2">
-                    <input
-                      type="text"
-                      maxLength={4}
-                      value={roomCodeInput}
-                      onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
-                      placeholder="ENTER 4-LETTER CODE"
-                      aria-label="Enter 4-letter room code"
-                      className="h-9 px-2.5 bg-card border-2 border-foreground font-mono text-[11px] font-bold uppercase tracking-wider text-foreground placeholder:text-muted-foreground/60 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-terra"
-                    />
-                    <button
-                      type="submit"
-                      className="h-9 px-3 border-2 border-foreground bg-terra text-white font-bold text-xs uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0 whitespace-nowrap"
-                    >
-                      Enter
-                    </button>
-                  </form>
-                </div>
-              </div>
-
-              {/* Step Indicator */}
-              <div className="pt-2.5 border-t border-foreground/15 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground gap-1">
-                <span className="flex items-center gap-1 shrink-0">
-                  <span className="font-mono text-terra">01</span> Create / Join
-                </span>
-                <span className="shrink-0 opacity-50">→</span>
-                <span className="flex items-center gap-1 shrink-0">
-                  <span className="font-mono text-terra">02</span> Room Code
-                </span>
-                <span className="shrink-0 opacity-50">→</span>
-                <span className="flex items-center gap-1 shrink-0">
-                  <span className="font-mono text-terra">03</span> Race to 10
-                </span>
-              </div>
-            </div>
-
-
-
-          </div>
-
-        </div>
-      </section>
 
       {/* ─────────────────────────────────────────────────────────────
           3. HOW FLAGATLAS WORKS
@@ -612,15 +446,10 @@ export default function Landing() {
             <div className="lg:col-span-7">
               <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] overflow-hidden">
                 {/* Map header bar */}
-                <div className="h-8 px-3.5 bg-foreground text-background flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Compass className="w-3 h-3 text-gold" />
-                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider">
-                      World Atlas
-                    </span>
-                  </div>
-                  <span className="font-mono text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-                    197 nations
+                <div className="h-8 px-3.5 bg-foreground text-background flex items-center gap-2">
+                  <Compass className="w-3 h-3 text-gold" />
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-wider">
+                    World Atlas
                   </span>
                 </div>
                 {/* Map body */}
