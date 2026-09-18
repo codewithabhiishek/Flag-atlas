@@ -366,7 +366,7 @@ export default function Landing() {
           </div>
 
           {/* Three-Card Decision Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 items-stretch">
 
             {/* Card 1: Play Solo */}
             <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
@@ -491,50 +491,7 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Card 3: Explore FlagAtlas */}
-            <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-gold/40 bg-gold/15 text-foreground">
-                    Full Product
-                  </span>
-                  <Compass className="w-4 h-4 text-forest" />
-                </div>
 
-                <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
-                  Explore FlagAtlas
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
-                  Enter the full FlagAtlas application. View your world map, track progress by region, use your review deck, and access every game mode from one place.
-                </p>
-
-                <div className="space-y-2 text-xs font-bold uppercase tracking-wider text-muted-foreground mb-5">
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Interactive world map — territories light up as you master them</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Progress by region, passport stamps &amp; Explorer rank</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Daily challenge, stats &amp; full game mode dashboard</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
-                <Link
-                  to="/atlas"
-                  className="h-10 w-full px-4 border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-all inline-flex items-center justify-center gap-2"
-                >
-                  <Compass className="w-3.5 h-3.5 text-forest" />
-                  <span>Open World Atlas</span>
-                  <ArrowRight className="w-3.5 h-3.5 ml-auto" />
-                </Link>
-              </div>
-            </div>
 
           </div>
 
