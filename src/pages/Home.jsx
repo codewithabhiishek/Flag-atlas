@@ -16,6 +16,7 @@ import {
   BarChart2,
   Globe,
   History,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -466,7 +467,7 @@ export default function Home() {
             {/* Live stat pills — update as user plays */}
             <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
               <motion.span
-                key={mastered}
+                key={`mastered-${mastered}`}
                 initial={{ scale: 1.15 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
@@ -483,7 +484,7 @@ export default function Home() {
                 <strong>{state.streak}</strong>-day streak
               </span>
               <motion.span
-                key={acc}
+                key={`acc-${acc}`}
                 initial={{ scale: 1.1 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
