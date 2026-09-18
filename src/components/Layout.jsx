@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
-import { Moon, Sun, Compass, BarChart3, Layers, Swords, Flame, Sparkles, Menu, X, Play } from "lucide-react";
+import { Moon, Sun, Compass, BarChart3, Layers, Swords, Flame, Sparkles, Menu, X, Play, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useProgress } from "@/lib/ProgressContext";
@@ -100,12 +100,12 @@ export default function Layout() {
               </nav>
 
               {/* Landing Right Controls: Desktop */}
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2.5">
                 <motion.button
                   whileTap={{ scale: 0.9, rotate: 180 }}
                   whileHover={{ scale: 1.05 }}
                   onClick={() => setDark((d) => !d)}
-                  className="w-8.5 h-8.5 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted bg-card shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] transition-colors"
+                  className="w-9 h-9 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted bg-card shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] transition-colors shrink-0"
                   aria-label="Toggle theme"
                 >
                   {dark ? (
@@ -115,35 +115,35 @@ export default function Layout() {
                   )}
                 </motion.button>
 
-                <FeedbackButton className="h-8.5 px-3 inline-flex items-center gap-1.5 border-2 border-foreground bg-card hover:bg-muted text-foreground text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] transition-all" />
+                <FeedbackButton className="h-9 px-3.5 inline-flex items-center gap-1.5 border-2 border-foreground bg-card hover:bg-muted text-foreground text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] transition-all shrink-0" />
 
                 <Link
                   to="/play"
-                  className="h-8.5 px-4 inline-flex items-center gap-1.5 border-2 border-foreground bg-foreground text-background text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+                  className="h-9.5 px-4.5 sm:px-5 inline-flex items-center gap-2 border-2 border-foreground bg-foreground text-background text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0"
                 >
                   <span>Play Now</span>
-                  <Play className="w-3 h-3 fill-current" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
               {/* Landing Right Controls: Mobile (< md) */}
-              <div className="flex md:hidden items-center gap-1.5">
+              <div className="flex md:hidden items-center gap-2">
                 <button
                   onClick={() => setDark((d) => !d)}
-                  className="w-8 h-8 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] bg-card"
+                  className="w-8 h-8 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] bg-card shrink-0"
                   aria-label="Toggle theme"
                 >
                   {dark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-foreground" />}
                 </button>
 
-                <FeedbackButton className="h-8 px-2 inline-flex items-center gap-1 border-2 border-foreground bg-card text-foreground text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]" />
+                <FeedbackButton className="h-8 px-2.5 inline-flex items-center gap-1 border-2 border-foreground bg-card text-foreground text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0" />
 
                 <Link
                   to="/play"
-                  className="h-8 px-2.5 border-2 border-foreground bg-foreground text-background inline-flex items-center gap-1 text-xs font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
+                  className="h-8.5 px-3 border-2 border-foreground bg-foreground text-background inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0"
                 >
-                  <Play className="w-2.5 h-2.5 fill-current" />
                   <span>Play</span>
+                  <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
             </>
