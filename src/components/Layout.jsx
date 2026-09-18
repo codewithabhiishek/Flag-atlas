@@ -119,7 +119,7 @@ export default function Layout() {
 
                 <Link
                   to="/play"
-                  className="h-9 px-4 sm:px-5 inline-flex items-center gap-1.5 border-2 border-foreground bg-foreground hover:bg-foreground/90 text-background text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0"
+                  className="h-9 px-4 sm:px-5 inline-flex items-center gap-1.5 border-2 border-foreground bg-terra hover:bg-terra/90 text-white text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all shrink-0"
                 >
                   <span>Play Now</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
@@ -140,7 +140,7 @@ export default function Layout() {
 
                 <Link
                   to="/play"
-                  className="h-8 px-3 border-2 border-foreground bg-foreground text-background inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0"
+                  className="h-8 px-3 border-2 border-foreground bg-terra text-white inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0"
                 >
                   <span>Play</span>
                   <ArrowRight className="w-3 h-3 ml-0.5" />
@@ -199,7 +199,7 @@ export default function Layout() {
                   whileTap={{ scale: 0.9, rotate: 180 }}
                   whileHover={{ scale: 1.08 }}
                   onClick={() => setDark((d) => !d)}
-                  className="w-8.5 h-8.5 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] transition-colors"
+                  className="w-8 h-8 sm:w-9 sm:h-9 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] transition-colors"
                   aria-label="Toggle theme"
                 >
                   <AnimatePresence mode="wait" initial={false}>
@@ -227,14 +227,14 @@ export default function Layout() {
                   </AnimatePresence>
                 </motion.button>
 
-                <FeedbackButton className="h-8.5 px-2.5 inline-flex items-center gap-1.5 border-2 border-foreground bg-card hover:bg-muted text-foreground transition-all text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]" />
+                <FeedbackButton className="h-8 sm:h-9 px-2.5 inline-flex items-center gap-1.5 border-2 border-foreground bg-card hover:bg-muted text-foreground transition-all text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]" />
               </div>
 
               {/* Mobile Right Controls (< md) */}
               <div className="flex md:hidden items-center gap-1.5">
                 <Link
                   to="/play"
-                  className="h-7.5 px-2 border-2 border-foreground bg-foreground text-background inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
+                  className="h-8 px-2.5 border-2 border-foreground bg-terra text-white inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
                 >
                   <Play className="w-2.5 h-2.5 fill-current" />
                   <span>Play</span>
@@ -242,7 +242,7 @@ export default function Layout() {
 
                 <button
                   onClick={() => setDark((d) => !d)}
-                  className="w-7.5 h-7.5 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] bg-card"
+                  className="w-8 h-8 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] bg-card"
                   aria-label="Toggle theme"
                 >
                   {dark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-foreground" />}
