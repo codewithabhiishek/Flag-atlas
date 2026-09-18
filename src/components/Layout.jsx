@@ -119,10 +119,10 @@ export default function Layout() {
 
                 <Link
                   to="/play"
-                  className="h-9.5 px-4.5 sm:px-5 inline-flex items-center gap-2 border-2 border-foreground bg-foreground text-background text-xs font-black uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2.5px_2.5px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0"
+                  className="h-9 px-4 sm:px-5 inline-flex items-center gap-1.5 border-2 border-foreground bg-foreground hover:bg-foreground/90 text-background text-xs font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0"
                 >
                   <span>Play Now</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
                 </Link>
               </div>
 
@@ -140,10 +140,10 @@ export default function Layout() {
 
                 <Link
                   to="/play"
-                  className="h-8.5 px-3 border-2 border-foreground bg-foreground text-background inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0"
+                  className="h-8 px-3 border-2 border-foreground bg-foreground text-background inline-flex items-center gap-1 text-xs font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0"
                 >
                   <span>Play</span>
-                  <ArrowRight className="w-3 h-3" />
+                  <ArrowRight className="w-3 h-3 ml-0.5" />
                 </Link>
               </div>
             </>
