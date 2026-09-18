@@ -69,7 +69,7 @@ export default function Layout() {
             ───────────────────────────────────────────────────────────── */
             <>
               {/* LEFT GROUP: Brand + Navigation */}
-              <div className="flex items-center gap-5 sm:gap-7">
+              <div className="flex items-center gap-6 sm:gap-8">
                 <NavLink
                   to="/"
                   className="group flex items-center gap-1.5 sm:gap-2 font-display font-black text-sm sm:text-base md:text-lg text-foreground tracking-tight shrink-0"
