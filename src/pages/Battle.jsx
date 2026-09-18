@@ -109,6 +109,15 @@ export default function Battle() {
     }
   }, [actionParam, code]);
 
+  const localRoundStartedAtRef = useRef(Date.now());
+
+  // Record exact local arrival timestamp when a new question round starts to avoid clock skew
+  useEffect(() => {
+    if (status === "playing" && roundPhase === "question") {
+      localRoundStartedAtRef.current = Date.now();
+    }
+  }, [status, roundPhase, currentRound, roundStartedAt]);
+
   // Synchronized countdown timer for the active question round
   useEffect(() => {
     if (status !== "playing" || roundPhase !== "question") {
@@ -116,13 +125,14 @@ export default function Battle() {
       return;
     }
     const updateCountdown = () => {
-      const remaining = Math.max(0, roundDurationMs - (Date.now() - roundStartedAt));
+      const elapsed = Date.now() - localRoundStartedAtRef.current;
+      const remaining = Math.max(0, roundDurationMs - elapsed);
       setTimeLeftMs(remaining);
     };
     updateCountdown();
     const interval = setInterval(updateCountdown, 60);
     return () => clearInterval(interval);
-  }, [status, roundPhase, roundStartedAt, roundDurationMs]);
+  }, [status, roundPhase, currentRound, roundDurationMs]);
 
   // Reset local answer pick when advancing to a new question round
   useEffect(() => {
@@ -564,26 +574,30 @@ export default function Battle() {
               <div
                 key={r.seat}
                 className={cn(
-                  "flex items-center gap-3 border-2 border-foreground px-4 py-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]",
+                  "border-2 border-foreground px-3.5 py-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]",
                   r.rank === 1 ? "bg-terra font-bold text-foreground" : "bg-card",
                 )}
               >
-                <span className="font-display text-2xl w-8">
-                  #{r.rank}
-                </span>
-                <span className="flex-1 font-bold uppercase tracking-tight truncate">
-                  {r.name}
-                  {r.seat === mySeat && " (you)"}
-                </span>
-                <span className="text-sm font-bold">{r.correct} correct</span>
-                <span className="text-sm font-black text-foreground">
-                  {r.score} pts
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {r.averageAnswerMs
-                    ? `${(r.averageAnswerMs / 1000).toFixed(1)}s avg`
-                    : "—"}
-                </span>
+                <div className="flex items-center gap-2.5">
+                  <span className="font-display text-xl sm:text-2xl w-7 shrink-0">
+                    #{r.rank}
+                  </span>
+                  <span className="flex-1 font-bold uppercase tracking-tight truncate min-w-0 text-sm sm:text-base">
+                    {r.name}
+                    {r.seat === mySeat && " (you)"}
+                  </span>
+                  <span className="text-sm sm:text-base font-black text-foreground shrink-0">
+                    {r.score} pts
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-1.5 pl-9 font-semibold">
+                  <span>{r.correct} correct</span>
+                  <span>
+                    {r.averageAnswerMs
+                      ? `${(r.averageAnswerMs / 1000).toFixed(1)}s avg`
+                      : "—"}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -732,7 +746,7 @@ export default function Battle() {
                 <span className="w-6 h-6 border-2 border-foreground bg-terra inline-flex items-center justify-center text-xs font-bold shrink-0">
                   {p.seat}
                 </span>
-                <span className="font-bold uppercase tracking-tight text-sm truncate">
+                <span className="font-bold uppercase tracking-tight text-sm truncate min-w-0 flex-1">
                   {p.name || `Player ${p.seat}`}
                 </span>
                 {p.seat === hostSeat && (
@@ -744,7 +758,7 @@ export default function Battle() {
                   </span>
                 )}
                 {p.seat === mySeat && (
-                  <span className="text-xs text-muted-foreground font-semibold">(you)</span>
+                  <span className="text-xs text-muted-foreground font-semibold shrink-0">(you)</span>
                 )}
                 <span
                   className={cn(
@@ -753,7 +767,7 @@ export default function Battle() {
                   )}
                 >
                   {p.ready ? <Check className="w-3.5 h-3.5" /> : <Circle className="w-3 h-3" />}
-                  {p.ready ? "Ready" : "Not ready"}
+                  <span className="hidden xs:inline">{p.ready ? "Ready" : "Not ready"}</span>
                 </span>
                 {isHost && p.seat !== mySeat && (
                   <button
@@ -762,7 +776,7 @@ export default function Battle() {
                     className="inline-flex items-center gap-1 border border-destructive px-2 py-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive hover:text-destructive-foreground shrink-0"
                     aria-label={`Remove ${p.name}`}
                   >
-                    <UserMinus className="w-3 h-3" /> Remove
+                    <UserMinus className="w-3 h-3" /> <span className="hidden sm:inline">Remove</span>
                   </button>
                 )}
               </li>
