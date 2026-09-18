@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   ArrowRight,
   ShieldCheck,
-  Trophy,
   Brain,
   Layers,
   MapPin,
@@ -21,8 +20,12 @@ import {
   Award,
   BookOpen,
 } from "lucide-react";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import FlagImage from "@/components/FlagImage";
 import confetti from "canvas-confetti";
+
+const GEO_URL =
+  "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 // Showcase flags for the interactive demo card
 const DEMO_FLAGS = [
@@ -200,8 +203,8 @@ export default function Landing() {
                 flags at the exact moment before you forget them.
               </p>
 
-              {/* Clear Decision CTAs */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mb-5">
+              {/* Primary CTAs */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mb-3">
                 <Link
                   to="/play"
                   className="h-11 sm:h-12 px-6 sm:px-7 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
@@ -210,13 +213,25 @@ export default function Landing() {
                   <span>Play Solo</span>
                 </Link>
 
-                <a
-                  href="#multiplayer"
+                <Link
+                  to="/battle"
                   className="h-11 sm:h-12 px-6 sm:px-7 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
                 >
                   <Swords className="w-4 h-4 text-terra" />
                   <span>Play with Friends</span>
-                </a>
+                </Link>
+              </div>
+
+              {/* Tertiary Explore CTA */}
+              <div className="mb-5">
+                <Link
+                  to="/atlas"
+                  className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group"
+                >
+                  <Compass className="w-3.5 h-3.5 text-forest shrink-0" />
+                  <span>Explore the World Atlas</span>
+                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
               </div>
 
               {/* Assurance Subtitle */}
@@ -330,9 +345,8 @@ export default function Landing() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. CHOOSE YOUR ARENA ("HOW DO YOU WANT TO PLAY?")
-          Immediate decision: Play Solo vs Play with Friends
-          Tighter internal spacing, clear multiplayer hierarchy
+          2. WHERE DO YOU WANT TO GO?
+          Three equal entry points: Play Solo / Play With Friends / Explore
       ───────────────────────────────────────────────────────────── */}
       <section id="multiplayer" className="w-full py-8 md:py-12 bg-muted/25 border-b-2 border-foreground/15 scroll-mt-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -340,28 +354,28 @@ export default function Landing() {
           {/* Section Header */}
           <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
-              <Swords className="w-4 h-4" />
-              <span>HOW DO YOU WANT TO PLAY?</span>
+              <Compass className="w-4 h-4" />
+              <span>WHERE DO YOU WANT TO GO?</span>
             </div>
             <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight">
-              CHOOSE YOUR ARENA
+              CHOOSE YOUR PATH
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium mt-1.5">
-              Pick your format: master flags solo at your own pace, or duel a friend in real time.
+              Train solo, challenge a friend head-to-head, or enter the full FlagAtlas experience.
             </p>
           </div>
 
-          {/* Dual Decision Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch">
-            
-            {/* Solo Experience Card */}
-            <div className="lg:col-span-5 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
+          {/* Three-Card Decision Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 items-stretch">
+
+            {/* Card 1: Play Solo */}
+            <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-forest/30 bg-forest/15 text-forest">
                     Solo Training
                   </span>
-                  <Compass className="w-4.5 h-4.5 text-forest" />
+                  <Play className="w-4 h-4 text-forest fill-forest" />
                 </div>
 
                 <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
@@ -375,45 +389,38 @@ export default function Landing() {
                 <div className="space-y-2 text-xs font-bold uppercase tracking-wider text-muted-foreground mb-5">
                   <div className="flex items-center gap-2 text-foreground">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>5 Game Modes (Go Berserk, Speed Run, Fragments)</span>
+                    <span>5 game modes — Go Berserk, Speed Run, Fragments</span>
                   </div>
                   <div className="flex items-center gap-2 text-foreground">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Interactive World Atlas territorial coloring</span>
+                    <span>Adaptive spaced repetition review queue</span>
                   </div>
                   <div className="flex items-center gap-2 text-foreground">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Personalized spaced repetition review queue</span>
+                    <span>XP, levels &amp; streak tracking</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-3.5 border-t border-foreground/15 mt-auto flex flex-col sm:flex-row gap-2.5">
+              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
                 <Link
                   to="/play"
-                  className="h-10 px-4 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 flex-1 text-center"
+                  className="h-10 w-full px-4 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
                 >
                   <Play className="w-3 h-3 fill-current" />
                   <span>Launch Solo Modes</span>
                 </Link>
-                <Link
-                  to="/atlas"
-                  className="h-10 px-4 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
-                >
-                  <Compass className="w-3.5 h-3.5 text-forest" />
-                  <span>Atlas</span>
-                </Link>
               </div>
             </div>
 
-            {/* Multiplayer Battle Card */}
-            <div className="lg:col-span-7 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
+            {/* Card 2: Play with Friends */}
+            <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-terra/30 bg-terra/15 text-terra">
                     Live 1v1 Multiplayer
                   </span>
-                  <Swords className="w-4.5 h-4.5 text-terra" />
+                  <Swords className="w-4 h-4 text-terra" />
                 </div>
 
                 <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
@@ -423,33 +430,31 @@ export default function Landing() {
                   Synchronized head-to-head flag duel. Share a 4-letter room code and race to 10 points in real time. Zero signup required.
                 </p>
 
-                {/* Direct Room Entry Box: Clear Primary & Secondary Hierarchy */}
+                {/* Direct Room Entry Box */}
                 <div className="bg-background border-2 border-foreground p-3 sm:p-4 mb-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2.5 flex items-center justify-between">
                     <span>Instant Room Entry</span>
                     <span className="text-terra">1v1 Synchronized</span>
                   </div>
 
-                  {/* Primary Actions: Create vs Join */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-2.5">
+                  <div className="grid grid-cols-2 gap-2 mb-2.5">
                     <Link
                       to="/battle?action=create"
-                      className="h-10 px-4 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 text-center"
+                      className="h-10 px-3 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-1.5 text-center"
                     >
-                      <Users className="w-3.5 h-3.5" />
-                      <span>Create a Room →</span>
+                      <Users className="w-3 h-3" />
+                      <span>Create →</span>
                     </Link>
 
                     <Link
                       to="/battle?action=join"
-                      className="h-10 px-4 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 text-center"
+                      className="h-10 px-3 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-1.5 text-center"
                     >
-                      <Swords className="w-3.5 h-3.5 text-terra" />
-                      <span>Join a Room</span>
+                      <Swords className="w-3 h-3 text-terra" />
+                      <span>Join</span>
                     </Link>
                   </div>
 
-                  {/* Secondary Action: Inline Room Code Jump */}
                   <form onSubmit={handleJoinByCode} className="flex gap-2">
                     <input
                       type="text"
@@ -458,20 +463,20 @@ export default function Landing() {
                       onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
                       placeholder="ENTER 4-LETTER CODE"
                       aria-label="Enter 4-letter room code"
-                      className="h-9 px-2.5 sm:px-3 bg-card border-2 border-foreground font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground placeholder:text-muted-foreground/60 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-terra"
+                      className="h-9 px-2.5 bg-card border-2 border-foreground font-mono text-[11px] font-bold uppercase tracking-wider text-foreground placeholder:text-muted-foreground/60 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-terra"
                     />
                     <button
                       type="submit"
-                      className="h-9 px-3 sm:px-3.5 border-2 border-foreground bg-terra text-white font-bold text-xs uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0 whitespace-nowrap"
+                      className="h-9 px-3 border-2 border-foreground bg-terra text-white font-bold text-xs uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform shrink-0 whitespace-nowrap"
                     >
-                      Enter Room
+                      Enter
                     </button>
                   </form>
                 </div>
               </div>
 
-              {/* Tertiary Step Indicator */}
-              <div className="pt-2.5 border-t border-foreground/15 flex items-center justify-between text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground gap-1">
+              {/* Step Indicator */}
+              <div className="pt-2.5 border-t border-foreground/15 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground gap-1">
                 <span className="flex items-center gap-1 shrink-0">
                   <span className="font-mono text-terra">01</span> Create / Join
                 </span>
@@ -486,119 +491,47 @@ export default function Landing() {
               </div>
             </div>
 
-          </div>
-
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          3. CHOOSE YOUR EXPERIENCE ("WHAT DO YOU WANT TO EXPLORE?")
-          Distinct exploration: World Atlas, Flag Games, 1v1 Battle
-          Compact, equal-height, perfectly aligned CTA cards
-      ───────────────────────────────────────────────────────────── */}
-      <section id="experiences" className="w-full py-8 md:py-12 border-b-2 border-foreground/15 scroll-mt-14">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
-            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
-              <Trophy className="w-4 h-4" />
-              <span>WHAT DO YOU WANT TO EXPLORE?</span>
-            </div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight">
-              CHOOSE YOUR EXPERIENCE
-            </h2>
-            <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium mt-1.5">
-              FlagAtlas contains multiple ways to learn and compete. Explore the core modes below.
-            </p>
-          </div>
-
-          {/* Primary FlagAtlas Experiences Grid (3 Core Experiences) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            
-            {/* Experience 1: World Atlas */}
-            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
-              <div className="flex-1 flex flex-col">
+            {/* Card 3: Explore FlagAtlas */}
+            <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 lg:p-6 flex flex-col justify-between h-full">
+              <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:rotate-6 transition-transform">
-                    <Compass className="w-4.5 h-4.5 text-forest" />
-                  </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border border-forest/30 bg-forest/15 text-forest">
-                    Explore
+                  <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-gold/40 bg-gold/15 text-foreground">
+                    Full Product
                   </span>
+                  <Compass className="w-4 h-4 text-forest" />
                 </div>
-                <h3 className="font-display font-bold text-lg sm:text-xl text-foreground mb-1.5">
-                  World Atlas
+
+                <h3 className="font-display font-black text-xl sm:text-2xl text-foreground mb-2">
+                  Explore FlagAtlas
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
-                  Interactive global territory map. Inspect capitals, flags, and regional groups as each mastered country permanently lights up on your map.
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
+                  Enter the full FlagAtlas application. View your world map, track progress by region, use your review deck, and access every game mode from one place.
                 </p>
+
+                <div className="space-y-2 text-xs font-bold uppercase tracking-wider text-muted-foreground mb-5">
+                  <div className="flex items-center gap-2 text-foreground">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Interactive world map — territories light up as you master them</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-foreground">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Progress by region, passport stamps &amp; Explorer rank</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-foreground">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Daily challenge, stats &amp; full game mode dashboard</span>
+                  </div>
+                </div>
               </div>
+
               <div className="pt-3.5 border-t border-foreground/15 mt-auto">
                 <Link
                   to="/atlas"
-                  className="h-9 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
+                  className="h-10 w-full px-4 border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-all inline-flex items-center justify-center gap-2"
                 >
-                  <span>Explore World Atlas</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Experience 2: Flag Games */}
-            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
-              <div className="flex-1 flex flex-col">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:rotate-6 transition-transform">
-                    <Sparkles className="w-4.5 h-4.5 text-forest" />
-                  </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border border-foreground/30 bg-gold/20 text-foreground">
-                    Play
-                  </span>
-                </div>
-                <h3 className="font-display font-bold text-lg sm:text-xl text-foreground mb-1.5">
-                  Flag Games
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
-                  5 specialized training regimes: the 197-nation Go Berserk marathon, 45-second blitz Speed Run, obscured Fragments, Pure Recall, and Flag Builder.
-                </p>
-              </div>
-              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
-                <Link
-                  to="/play"
-                  className="h-9 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
-                >
-                  <span>Choose Game Mode</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Experience 3: 1v1 Battle */}
-            <div className="border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] p-4 sm:p-5 flex flex-col justify-between h-full group hover:-translate-y-1 transition-transform">
-              <div className="flex-1 flex flex-col">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:rotate-6 transition-transform">
-                    <Swords className="w-4.5 h-4.5 text-terra" />
-                  </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 border border-terra/30 bg-terra/15 text-terra">
-                    Battle
-                  </span>
-                </div>
-                <h3 className="font-display font-bold text-lg sm:text-xl text-foreground mb-1.5">
-                  1v1 Battle
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
-                  Head-to-head live multiplayer duel. Synchronized flag prompts, 4-letter room codes, instant peer connectivity, and a live race to 10 points.
-                </p>
-              </div>
-              <div className="pt-3.5 border-t border-foreground/15 mt-auto">
-                <Link
-                  to="/battle"
-                  className="h-9 w-full border-2 border-foreground bg-card hover:bg-foreground hover:text-background text-foreground font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] inline-flex items-center justify-between px-3.5 transition-colors"
-                >
-                  <span>Battle Arena</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <Compass className="w-3.5 h-3.5 text-forest" />
+                  <span>Open World Atlas</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-auto" />
                 </Link>
               </div>
             </div>
@@ -609,7 +542,7 @@ export default function Landing() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          4. HOW FLAGATLAS WORKS
+          3. HOW FLAGATLAS WORKS
           Progressive 4-step cognitive loop — tight, editorial presentation
       ───────────────────────────────────────────────────────────── */}
       <section id="how-it-works" className="w-full py-8 md:py-12 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-14">
@@ -657,6 +590,131 @@ export default function Landing() {
                 </div>
               );
             })}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          4. ATLAS PREVIEW TEASER
+          Static world map silhouette — communicates the core product concept
+          without duplicating the full /atlas page
+      ───────────────────────────────────────────────────────────── */}
+      <section className="w-full py-8 md:py-12 border-b-2 border-foreground/15">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Two-column: text left, map right */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+
+            {/* Left: Narrative */}
+            <div className="lg:col-span-5 flex flex-col">
+              <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2">
+                <Compass className="w-4 h-4" />
+                <span>THE WORLD ATLAS</span>
+              </div>
+              <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight mb-4">
+                YOUR TERRITORY<br />EXPANDS WITH<br />
+                <span className="text-terra">EVERY FLAG MASTERED</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed mb-6">
+                As you master each nation's flag, its territory permanently lights up on
+                your personal world map. 197 countries. Every one a milestone.
+                The Atlas is the visual record of your geographic knowledge.
+              </p>
+
+              {/* Colour legend */}
+              <div className="flex flex-col gap-2 mb-7 text-xs font-bold uppercase tracking-wider">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-4 h-4 shrink-0 border-2 border-foreground bg-[hsl(var(--forest))]" />
+                  <span className="text-foreground">Mastered</span>
+                  <span className="text-muted-foreground font-normal normal-case">— permanently colored</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-4 h-4 shrink-0 border-2 border-foreground bg-[hsl(var(--terra))]" />
+                  <span className="text-foreground">Learning</span>
+                  <span className="text-muted-foreground font-normal normal-case">— in progress</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-4 h-4 shrink-0 border-2 border-foreground bg-muted" />
+                  <span className="text-foreground">Unexplored</span>
+                  <span className="text-muted-foreground font-normal normal-case">— not studied yet</span>
+                </div>
+              </div>
+
+              <Link
+                to="/atlas"
+                className="self-start h-10 px-5 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center gap-2"
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span>Explore the Atlas</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Right: Static map preview */}
+            <div className="lg:col-span-7">
+              <div className="border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] overflow-hidden">
+                {/* Map header bar */}
+                <div className="h-8 px-3.5 bg-foreground text-background flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Compass className="w-3 h-3 text-gold" />
+                    <span className="font-mono text-[11px] font-bold uppercase tracking-wider">
+                      World Atlas
+                    </span>
+                  </div>
+                  <span className="font-mono text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
+                    197 nations
+                  </span>
+                </div>
+                {/* Map body */}
+                <div className="relative w-full" style={{ aspectRatio: "1.8 / 1" }}>
+                  <ComposableMap
+                    projection="geoNaturalEarth1"
+                    style={{ width: "100%", height: "100%" }}
+                    projectionConfig={{ scale: 145, center: [0, 10] }}
+                  >
+                    <Geographies geography={GEO_URL}>
+                      {({ geographies }) =>
+                        geographies.map((geo) => (
+                          <Geography
+                            key={geo.rsmKey}
+                            geography={geo}
+                            style={{
+                              default: {
+                                fill: "hsl(var(--land, 220 14% 80%))",
+                                stroke: "hsl(var(--background))",
+                                strokeWidth: 0.4,
+                                outline: "none",
+                              },
+                              hover: {
+                                fill: "hsl(var(--terra))",
+                                stroke: "hsl(var(--background))",
+                                strokeWidth: 0.4,
+                                outline: "none",
+                              },
+                              pressed: { outline: "none" },
+                            }}
+                          />
+                        ))
+                      }
+                    </Geographies>
+                  </ComposableMap>
+                  {/* Overlay: subtle teaser message */}
+                  <div className="absolute bottom-0 left-0 right-0 px-3.5 py-2.5 bg-gradient-to-t from-card/90 to-transparent flex items-end justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Your atlas fills up as you learn
+                    </span>
+                    <Link
+                      to="/atlas"
+                      className="text-[10px] font-black uppercase tracking-wider text-terra hover:text-foreground transition-colors inline-flex items-center gap-1"
+                    >
+                      Open Atlas <ArrowRight className="w-2.5 h-2.5" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -733,14 +791,14 @@ export default function Landing() {
 
       {/* ─────────────────────────────────────────────────────────────
           6. FINAL CALL TO ACTION
-          Single, high-impact closing section
+          Single, high-impact closing section — all three entry points
       ───────────────────────────────────────────────────────────── */}
       <section className="w-full py-8 md:py-12 bg-muted/15">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           
           <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2">
             <Flame className="w-4 h-4" />
-            <span>START PLAYING NOW</span>
+            <span>START NOW</span>
           </div>
 
           <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-foreground tracking-tight leading-tight mb-2.5">
@@ -766,6 +824,14 @@ export default function Landing() {
             >
               <Swords className="w-4 h-4 text-terra" />
               <span>Play with Friends</span>
+            </Link>
+
+            <Link
+              to="/atlas"
+              className="h-11 sm:h-12 px-7 sm:px-8 w-full sm:w-auto border-2 border-foreground/40 bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
+            >
+              <Compass className="w-4 h-4 text-forest" />
+              <span>Explore Atlas</span>
             </Link>
           </div>
 

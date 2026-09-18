@@ -169,7 +169,7 @@ export default function Layout() {
             <>
               {/* In-App Brand Logo */}
               <NavLink
-                to="/"
+                to="/atlas"
                 className="group flex items-center gap-1.5 sm:gap-2 font-display font-black text-sm sm:text-base md:text-lg text-foreground tracking-tight shrink-0"
               >
                 <motion.span
