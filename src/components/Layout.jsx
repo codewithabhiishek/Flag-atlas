@@ -59,47 +59,50 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col selection:bg-gold selection:text-foreground">
       <header className="sticky top-0 z-30 border-b-2 border-foreground bg-background/95 backdrop-blur-md transition-colors duration-300">
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-2">
-          {/* Brand Logo */}
-          <NavLink
-            to="/"
-            className="group flex items-center gap-1.5 sm:gap-2 font-display font-black text-sm sm:text-base md:text-lg text-foreground tracking-tight shrink-0"
-          >
-            <motion.span
-              whileHover={{ rotate: 90, scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center border-2 border-foreground bg-terra text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
-            >
-              <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-            </motion.span>
-            <span className="tracking-tight">
-              FLAG<span className="text-terra">ATLAS</span>
-            </span>
-          </NavLink>
-
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-4">
           {/* Route-conditional Navigation */}
           {location.pathname === "/" ? (
             /* ─────────────────────────────────────────────────────────────
-               LANDING PAGE HEADER: Minimal Marketing Navigation
-               Left: Logo | Center: How It Works & Experiences | Right: Theme, Feedback, PLAY NOW
+               LANDING PAGE HEADER: Marketing Navigation
+               Left Group: Logo + How It Works + Experiences
+               Right Group: Theme + Feedback + PLAY NOW (Desktop) / Controls + Menu (Mobile)
             ───────────────────────────────────────────────────────────── */
             <>
-              <nav className="hidden md:flex items-center gap-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <a
-                  href="#how-it-works"
-                  className="hover:text-foreground transition-colors px-1 py-1"
+              {/* LEFT GROUP: Brand + Navigation */}
+              <div className="flex items-center gap-5 sm:gap-7">
+                <NavLink
+                  to="/"
+                  className="group flex items-center gap-1.5 sm:gap-2 font-display font-black text-sm sm:text-base md:text-lg text-foreground tracking-tight shrink-0"
                 >
-                  How It Works
-                </a>
-                <a
-                  href="#experiences"
-                  className="hover:text-foreground transition-colors px-1 py-1"
-                >
-                  Experiences
-                </a>
-              </nav>
+                  <motion.span
+                    whileHover={{ rotate: 90, scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                    className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center border-2 border-foreground bg-terra text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
+                  >
+                    <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                  </motion.span>
+                  <span className="tracking-tight">
+                    FLAG<span className="text-terra">ATLAS</span>
+                  </span>
+                </NavLink>
 
-              {/* Landing Right Controls: Desktop */}
+                <nav className="hidden md:flex items-center gap-4 lg:gap-5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <a
+                    href="#how-it-works"
+                    className="hover:text-foreground transition-colors px-1 py-1"
+                  >
+                    How It Works
+                  </a>
+                  <a
+                    href="#experiences"
+                    className="hover:text-foreground transition-colors px-1 py-1"
+                  >
+                    Experiences
+                  </a>
+                </nav>
+              </div>
+
+              {/* RIGHT GROUP: Desktop Actions */}
               <div className="hidden md:flex items-center gap-2.5">
                 <motion.button
                   whileTap={{ scale: 0.9, rotate: 180 }}
@@ -126,8 +129,8 @@ export default function Layout() {
                 </Link>
               </div>
 
-              {/* Landing Right Controls: Mobile (< md) */}
-              <div className="flex md:hidden items-center gap-2">
+              {/* RIGHT GROUP: Mobile Controls (< md) */}
+              <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={() => setDark((d) => !d)}
                   className="w-8 h-8 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] bg-card shrink-0"
@@ -136,15 +139,27 @@ export default function Layout() {
                   {dark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-foreground" />}
                 </button>
 
-                <FeedbackButton className="h-8 px-2.5 inline-flex items-center gap-1 border-2 border-foreground bg-card text-foreground text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0" />
+                <FeedbackButton className="h-8 px-2 inline-flex items-center gap-1 border-2 border-foreground bg-card text-foreground text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0" />
 
                 <Link
                   to="/play"
-                  className="h-8 px-3 border-2 border-foreground bg-terra text-white inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0"
+                  className="h-8 px-2.5 sm:px-3 border-2 border-foreground bg-terra text-white inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] shrink-0"
                 >
                   <span>Play</span>
                   <ArrowRight className="w-3 h-3 ml-0.5" />
                 </Link>
+
+                <button
+                  onClick={() => setMobileMenuOpen((o) => !o)}
+                  className={cn(
+                    "w-8 h-8 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] transition-colors shrink-0",
+                    mobileMenuOpen ? "bg-foreground text-background" : "bg-card text-foreground",
+                  )}
+                  aria-label="Open navigation menu"
+                  aria-expanded={mobileMenuOpen}
+                >
+                  {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                </button>
               </div>
             </>
           ) : (
@@ -152,6 +167,22 @@ export default function Layout() {
                APPLICATION HEADER: Application Navigation (Atlas, Modes, Battle, Stats, Review)
             ───────────────────────────────────────────────────────────── */
             <>
+              {/* In-App Brand Logo */}
+              <NavLink
+                to="/"
+                className="group flex items-center gap-1.5 sm:gap-2 font-display font-black text-sm sm:text-base md:text-lg text-foreground tracking-tight shrink-0"
+              >
+                <motion.span
+                  whileHover={{ rotate: 90, scale: 1.1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                  className="inline-flex w-6 h-6 sm:w-7 sm:h-7 items-center justify-center border-2 border-foreground bg-terra text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                </motion.span>
+                <span className="hidden xs:inline tracking-tight">
+                  FLAG<span className="text-terra">ATLAS</span>
+                </span>
+              </NavLink>
               {/* Desktop Navigation (>= md) */}
               <nav className="hidden md:flex items-center gap-1 sm:gap-1.5 py-0.5">
                 {NAV.map((n) => (
@@ -264,7 +295,65 @@ export default function Layout() {
           )}
         </div>
 
-        {/* Mobile Dropdown Panel (Only on App routes) */}
+        {/* Mobile Dropdown Panel: Landing Page */}
+        <AnimatePresence>
+          {location.pathname === "/" && mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="md:hidden border-t-2 border-foreground bg-background px-4 py-3.5 overflow-hidden shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]"
+            >
+              <div className="flex flex-col gap-2">
+                <a
+                  href="#how-it-works"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="h-9 px-3 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider inline-flex items-center justify-between"
+                >
+                  <span>How It Works</span>
+                  <Sparkles className="w-3.5 h-3.5 text-terra" />
+                </a>
+                <a
+                  href="#experiences"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="h-9 px-3 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider inline-flex items-center justify-between"
+                >
+                  <span>Experiences</span>
+                  <Compass className="w-3.5 h-3.5 text-forest" />
+                </a>
+                <a
+                  href="#multiplayer"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="h-9 px-3 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider inline-flex items-center justify-between"
+                >
+                  <span>Multiplayer Arena</span>
+                  <Swords className="w-3.5 h-3.5 text-terra" />
+                </a>
+                <div className="pt-2 border-t border-foreground/15 grid grid-cols-2 gap-2">
+                  <Link
+                    to="/play"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="h-9 px-3 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Play Solo</span>
+                  </Link>
+                  <Link
+                    to="/battle"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="h-9 px-3 border-2 border-foreground bg-terra text-white font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Swords className="w-3 h-3" />
+                    <span>1v1 Duel</span>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Dropdown Panel: App Routes */}
         <AnimatePresence>
           {location.pathname !== "/" && mobileMenuOpen && (
             <motion.div
@@ -304,7 +393,7 @@ export default function Layout() {
           )}
         </AnimatePresence>
 
-        <div className="w-full px-3 sm:px-6 lg:px-8 pb-1.5" aria-hidden="true">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-1.5" aria-hidden="true">
           <div className="h-1.5 sm:h-2 border-2 border-foreground bg-background overflow-hidden relative">
             <div
               ref={scrollProgressRef}
