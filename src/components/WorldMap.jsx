@@ -1,17 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  Marker,
-  Sphere,
-  Graticule,
-} from "react-simple-maps";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { byCode } from "@/data/countries";
 import { codeForGeo } from "@/data/geoMap";
-import { MICRO_STATES } from "@/data/microStates";
 import { flagStatus } from "@/lib/derive";
 import { computeWorldMapLayout } from "@/lib/worldMapProjection";
 import { playUiSound } from "@/lib/sounds";
@@ -171,56 +163,18 @@ export default function WorldMap({ flags, onSelectRegion }) {
             margin: "0 auto",
           }}
         >
-          <defs>
-            {/* 3D Depth ocean vignette */}
-            <radialGradient id="world-ocean-gradient" cx="50%" cy="45%" r="65%">
-              <stop offset="0%" stopColor="hsl(var(--ocean))" stopOpacity="1" />
-              <stop offset="75%" stopColor="hsl(var(--ocean))" stopOpacity="0.94" />
-              <stop offset="100%" stopColor="#102538" stopOpacity="1" />
-            </radialGradient>
-
-            {/* 3D Elevation Drop-Shadow for hovered country */}
-            <filter id="country-3d-shadow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="3.5" stdDeviation="3.5" floodColor="#000000" floodOpacity="0.45" />
-              <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000000" floodOpacity="0.3" />
-            </filter>
-
-            {/* Ambient Aura Glow for country boundaries */}
-            <filter id="country-aura-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-
-            {/* Marker pulse glow for microstates */}
-            <filter id="marker-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Ocean background */}
+          {/* Clean flat ocean background */}
           <rect
             x={0}
             y={0}
             width={layout.width}
             height={layout.height}
-            fill="url(#world-ocean-gradient)"
+            fill="hsl(var(--ocean))"
           />
-
-          {/* Graticule & Sphere for luxury cartographic depth */}
-          <Graticule stroke="hsl(var(--foreground))" strokeOpacity={0.06} strokeWidth={0.5} />
-          <Sphere stroke="hsl(var(--foreground))" strokeOpacity={0.12} strokeWidth={1.2} />
 
           <Geographies geography={geoData}>
             {({ geographies }) => (
               <>
-                {/* 1. Base landmass geographies */}
                 {geographies.map((geo) => {
                   const code = codeForGeo(geo);
                   const country = code ? byCode(code) : null;
@@ -290,139 +244,21 @@ export default function WorldMap({ flags, onSelectRegion }) {
                   );
                 })}
 
-                {/* 2. Enhanced 3D Multi-Layer Outline & Elevation on Active Country */}
+                {/* Clean golden highlight outline on hovered/tapped country */}
                 {activeGeo && (
-                  <>
-                    {/* Layer A: 3D Elevation Drop-Shadow */}
-                    <Geography
-                      key="__highlight_shadow"
-                      geography={activeGeo}
-                      fill={fillFor(activeGeo)}
-                      stroke="none"
-                      filter="url(#country-3d-shadow)"
-                      style={{
-                        outline: "none",
-                        pointerEvents: "none",
-                        vectorEffect: "non-scaling-stroke",
-                      }}
-                    />
-
-                    {/* Layer B: Translucent Luminous Glow Fill */}
-                    <Geography
-                      key="__highlight_fill"
-                      geography={activeGeo}
-                      fill="rgba(245, 158, 11, 0.18)"
-                      stroke="none"
-                      style={{
-                        outline: "none",
-                        pointerEvents: "none",
-                        vectorEffect: "non-scaling-stroke",
-                      }}
-                    />
-
-                    {/* Layer C: Outer Atmospheric Aura Stroke */}
-                    <Geography
-                      key="__highlight_aura"
-                      geography={activeGeo}
-                      fill="none"
-                      stroke="#F59E0B"
-                      strokeWidth={3.8}
-                      strokeOpacity={0.45}
-                      filter="url(#country-aura-glow)"
-                      style={{
-                        outline: "none",
-                        pointerEvents: "none",
-                        vectorEffect: "non-scaling-stroke",
-                      }}
-                    />
-
-                    {/* Layer D: Sharp Golden Highlight Stroke */}
-                    <Geography
-                      key="__highlight_stroke"
-                      geography={activeGeo}
-                      fill="none"
-                      stroke="hsl(var(--gold))"
-                      strokeWidth={1.8}
-                      style={{
-                        outline: "none",
-                        pointerEvents: "none",
-                        vectorEffect: "non-scaling-stroke",
-                      }}
-                    />
-                  </>
+                  <Geography
+                    key="__highlight"
+                    geography={activeGeo}
+                    fill="none"
+                    stroke="hsl(var(--gold))"
+                    strokeWidth={2.4}
+                    style={{
+                      outline: "none",
+                      pointerEvents: "none",
+                      vectorEffect: "non-scaling-stroke",
+                    }}
+                  />
                 )}
-
-                {/* 3. Interactive Micro-States / Island Nations Markers */}
-                {MICRO_STATES.map((ms) => {
-                  const status = flagStatus(flags, ms.code);
-                  const isHovered =
-                    hoverInfo?.code === ms.code || tapInfo?.code === ms.code;
-                  const fill = FILL[status];
-                  return (
-                    <Marker
-                      key={`ms-${ms.code}`}
-                      coordinates={ms.coordinates}
-                      className="cursor-pointer"
-                      tabIndex={0}
-                      aria-label={`${ms.name}, ${statusLabel(status)}`}
-                      onMouseEnter={(e) => {
-                        if (isTouch.current) return;
-                        setHoverGeo(null);
-                        setHoverInfo({
-                          code: ms.code,
-                          name: ms.name,
-                          region: ms.region,
-                          capital: ms.capital,
-                          status,
-                        });
-                        setTooltipPosition(getTooltipPosition(e.clientX, e.clientY));
-                      }}
-                      onMouseMove={(e) => {
-                        if (isTouch.current) return;
-                        setTooltipPosition(getTooltipPosition(e.clientX, e.clientY));
-                      }}
-                      onMouseLeave={() => {
-                        if (isTouch.current) return;
-                        setHoverInfo(null);
-                      }}
-                      onClick={() => {
-                        if (isTouch.current) return;
-                        navigateToCountry(ms.code);
-                      }}
-                      onTouchStart={(e) => {
-                        isTouch.current = true;
-                        e.stopPropagation();
-                        handleTap(null, ms.code, ms.name, ms.region, ms.capital, status);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          navigateToCountry(ms.code);
-                        }
-                      }}
-                    >
-                      {/* Outer animated halo ring on hover */}
-                      {isHovered && (
-                        <circle
-                          r={8}
-                          fill="none"
-                          stroke="#FCD34D"
-                          strokeWidth={1.6}
-                          strokeDasharray="2.5 2"
-                          filter="url(#marker-glow)"
-                        />
-                      )}
-                      {/* Micro-state dot */}
-                      <circle
-                        r={isHovered ? 4.8 : 2.8}
-                        fill={fill}
-                        stroke="hsl(var(--foreground))"
-                        strokeWidth={1.2}
-                        className="transition-all duration-150"
-                      />
-                    </Marker>
-                  );
-                })}
               </>
             )}
           </Geographies>
@@ -442,7 +278,7 @@ export default function WorldMap({ flags, onSelectRegion }) {
         </div>
       )}
 
-      {/* ── Premium Cursor-Tracking Hover Tooltip ── */}
+      {/* ── Tooltip follows cursor smoothly ── */}
       {hoverInfo && typeof document !== "undefined" && createPortal(
         <div
           ref={tooltipRef}
