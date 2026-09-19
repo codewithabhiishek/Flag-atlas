@@ -237,20 +237,8 @@ export default function WorldMap({ flags, onSelectRegion }) {
                       stroke="hsl(var(--border))"
                       strokeWidth={0.6}
                       style={{
-                        default: {
-                          outline: "none",
-                          vectorEffect: "non-scaling-stroke",
-                          transition: "fill 0.15s ease",
-                        },
-                        hover: {
-                          outline: "none",
-                          vectorEffect: "non-scaling-stroke",
-                        },
-                        pressed: {
-                          outline: "none",
-                          vectorEffect: "non-scaling-stroke",
-                          fill: "hsl(var(--terra))",
-                        },
+                        outline: "none",
+                        vectorEffect: "non-scaling-stroke",
                       }}
                       className="cursor-pointer transition-colors duration-150"
                       tabIndex={code ? 0 : -1}
@@ -313,11 +301,9 @@ export default function WorldMap({ flags, onSelectRegion }) {
                       stroke="none"
                       filter="url(#country-3d-shadow)"
                       style={{
-                        default: {
-                          outline: "none",
-                          pointerEvents: "none",
-                          vectorEffect: "non-scaling-stroke",
-                        },
+                        outline: "none",
+                        pointerEvents: "none",
+                        vectorEffect: "non-scaling-stroke",
                       }}
                     />
 
@@ -328,11 +314,9 @@ export default function WorldMap({ flags, onSelectRegion }) {
                       fill="rgba(245, 158, 11, 0.18)"
                       stroke="none"
                       style={{
-                        default: {
-                          outline: "none",
-                          pointerEvents: "none",
-                          vectorEffect: "non-scaling-stroke",
-                        },
+                        outline: "none",
+                        pointerEvents: "none",
+                        vectorEffect: "non-scaling-stroke",
                       }}
                     />
 
@@ -346,11 +330,9 @@ export default function WorldMap({ flags, onSelectRegion }) {
                       strokeOpacity={0.45}
                       filter="url(#country-aura-glow)"
                       style={{
-                        default: {
-                          outline: "none",
-                          pointerEvents: "none",
-                          vectorEffect: "non-scaling-stroke",
-                        },
+                        outline: "none",
+                        pointerEvents: "none",
+                        vectorEffect: "non-scaling-stroke",
                       }}
                     />
 
@@ -362,11 +344,9 @@ export default function WorldMap({ flags, onSelectRegion }) {
                       stroke="hsl(var(--gold))"
                       strokeWidth={1.8}
                       style={{
-                        default: {
-                          outline: "none",
-                          pointerEvents: "none",
-                          vectorEffect: "non-scaling-stroke",
-                        },
+                        outline: "none",
+                        pointerEvents: "none",
+                        vectorEffect: "non-scaling-stroke",
                       }}
                     />
                   </>
