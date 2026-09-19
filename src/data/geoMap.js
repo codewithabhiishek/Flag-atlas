@@ -45,5 +45,14 @@ export const NAME_TO_CODE = {
 };
 
 export function codeForGeo(geo) {
-  return ID_TO_CODE[String(geo.id)] || NAME_TO_CODE[geo.properties?.name] || null;
+  if (!geo) return null;
+  const rawId = geo.id != null ? String(geo.id) : null;
+  if (rawId) {
+    const padded = rawId.padStart(3, "0");
+    if (ID_TO_CODE[padded]) return ID_TO_CODE[padded];
+    if (ID_TO_CODE[rawId]) return ID_TO_CODE[rawId];
+  }
+  const name = geo.properties?.name;
+  if (name && NAME_TO_CODE[name]) return NAME_TO_CODE[name];
+  return null;
 }
