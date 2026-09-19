@@ -17,6 +17,8 @@ import {
   Globe,
   History,
   Sparkles,
+  Target,
+  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -465,35 +467,44 @@ export default function Home() {
             </div>
 
             {/* Live stat pills — update as user plays */}
-            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-              <motion.span
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-semibold pt-1">
+              <motion.div
                 key={`mastered-${mastered}`}
-                initial={{ scale: 1.15 }}
+                initial={{ scale: 1.08 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border rounded-md"
+                className="h-8 sm:h-8.5 px-3 py-1 inline-flex items-center gap-1.5 rounded-md border-2 border-foreground bg-card text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.3)] transition-all"
               >
-                🎯 <strong className="text-foreground">{mastered}</strong>{" "}
-                <span className="text-muted-foreground">/ {COUNTRIES.length} mastered</span>
-              </motion.span>
-              <span
+                <Target className="w-3.5 h-3.5 text-forest shrink-0" />
+                <span className="font-extrabold text-foreground">{mastered}</span>
+                <span className="text-muted-foreground font-medium">/{COUNTRIES.length} mastered</span>
+              </motion.div>
+
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={triggerCelebration}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 rounded-md cursor-pointer hover:bg-amber-500/20 transition-colors"
+                type="button"
+                className="h-8 sm:h-8.5 px-3 py-1 inline-flex items-center gap-1.5 rounded-md border-2 border-foreground bg-amber-500/10 hover:bg-amber-500/20 text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.3)] transition-colors cursor-pointer"
+                title="Click to celebrate your streak!"
               >
-                <Flame className="w-4 h-4 animate-bounce" />
-                <strong>{state.streak}</strong>-day streak
-              </span>
-              <motion.span
+                <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 animate-bounce" />
+                <span className="font-extrabold text-foreground">{state.streak}</span>
+                <span className="text-muted-foreground font-medium">-day streak</span>
+              </motion.button>
+
+              <motion.div
                 key={`acc-${acc}`}
-                initial={{ scale: 1.1 }}
+                initial={{ scale: 1.08 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-card border border-border rounded-md"
+                className="h-8 sm:h-8.5 px-3 py-1 inline-flex items-center gap-1.5 rounded-md border-2 border-foreground bg-card text-foreground shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.3)] transition-all"
                 title={`${state.stats?.correct ?? 0} correct of ${state.stats?.answered ?? 0} answered`}
               >
-                ⚡ <strong className="text-foreground">{acc}%</strong>
-                <span className="text-muted-foreground text-xs">accuracy</span>
-              </motion.span>
+                <Zap className="w-3.5 h-3.5 text-gold shrink-0" />
+                <span className="font-extrabold text-foreground">{acc}%</span>
+                <span className="text-muted-foreground font-medium">accuracy</span>
+              </motion.div>
             </div>
           </div>
 

@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
-import { Moon, Sun, Compass, BarChart3, Layers, Swords, Flame, Sparkles, Menu, X, Play, ArrowRight } from "lucide-react";
+import { Moon, Sun, Compass, BarChart3, Layers, Swords, Sparkles, Menu, X, Play, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import confetti from "canvas-confetti";
-import { useProgress } from "@/lib/ProgressContext";
-import { levelProgress, rankFromMastered } from "@/lib/scoring";
-import { masteredCount } from "@/lib/derive";
 import { cn } from "@/lib/utils";
 import { useUiClickSounds } from "@/hooks/use-ui-click-sounds";
 import { useGsapScrollProgress } from "@/lib/gsapScroll";
@@ -20,7 +16,6 @@ const NAV = [
 ];
 
 export default function Layout() {
-  const { state } = useProgress();
   const location = useLocation();
   const scrollProgressRef = useRef(null);
   useUiClickSounds();
@@ -31,8 +26,6 @@ export default function Layout() {
       document.documentElement.classList.contains("dark"),
   );
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const lp = levelProgress(state.xp);
-  const rank = rankFromMastered(masteredCount(state.flags));
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -45,16 +38,6 @@ export default function Layout() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
-
-  const triggerStreakConfetti = (e) => {
-    e.stopPropagation();
-    confetti({
-      particleCount: 45,
-      spread: 60,
-      origin: { y: 0.15, x: 0.85 },
-      colors: ["#F59E0B", "#10B981", "#3B82F6", "#EF4444"],
-    });
-  };
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-gold selection:text-foreground">
@@ -204,43 +187,13 @@ export default function Layout() {
                 ))}
               </nav>
 
-              {/* Desktop User Level / Streak & Theme & Feedback (Harmonious group) */}
-              <div className="hidden lg:flex items-center gap-2.5 pl-3 border-l-2 border-foreground">
-                <Link
-                  to="/atlas"
-                  className="inline-flex items-center gap-1.5 px-2.5 h-8 border-2 border-foreground bg-card hover:bg-muted text-xs font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform mr-1"
-                  title="Atlas progress — click to open World Atlas"
-                >
-                  <Compass className="w-3.5 h-3.5 text-forest" />
-                  <span className="text-[10px] text-muted-foreground">Atlas</span>
-                  <span className="font-extrabold text-foreground">{masteredCount(state.flags)}/197</span>
-                </Link>
-
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  onClick={triggerStreakConfetti}
-                  className="text-right leading-tight cursor-pointer select-none group mr-1"
-                  title="Click for celebratory sparks!"
-                >
-                  <div className="text-xs font-bold uppercase flex items-center justify-end gap-1 group-hover:text-terra transition-colors">
-                    <Sparkles className="w-3 h-3 text-gold animate-pulse" />
-                    {rank.title}
-                  </div>
-                  <div className="text-xs text-muted-foreground font-semibold flex items-center justify-end gap-1">
-                    <span>Lvl {lp.level}</span>
-                    <span>·</span>
-                    <span className="inline-flex items-center text-amber-600 dark:text-amber-400">
-                      <Flame className="w-3 h-3 animate-bounce" />
-                      {state.streak}d streak
-                    </span>
-                  </div>
-                </motion.div>
-
+              {/* Desktop Header Controls: Theme + Feedback */}
+              <div className="hidden md:flex items-center gap-2 pl-3 border-l-2 border-foreground">
                 <motion.button
                   whileTap={{ scale: 0.9, rotate: 180 }}
                   whileHover={{ scale: 1.08 }}
                   onClick={() => setDark((d) => !d)}
-                  className="w-8 h-8 sm:w-9 sm:h-9 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] transition-colors"
+                  className="w-8 h-8 sm:w-9 sm:h-9 border-2 border-foreground inline-flex items-center justify-center hover:bg-muted bg-card shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] transition-colors"
                   aria-label="Toggle theme"
                 >
                   <AnimatePresence mode="wait" initial={false}>
@@ -273,15 +226,6 @@ export default function Layout() {
 
               {/* Mobile Right Controls (< md) */}
               <div className="flex md:hidden items-center gap-1.5">
-                <Link
-                  to="/atlas"
-                  className="h-8 px-2 border-2 border-foreground bg-card text-foreground inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-tight shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform"
-                  title="Atlas progress"
-                >
-                  <Compass className="w-3 h-3 text-forest" />
-                  <span>{masteredCount(state.flags)}/197</span>
-                </Link>
-
                 <button
                   onClick={() => setDark((d) => !d)}
                   className="w-8 h-8 border-2 border-foreground inline-flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] bg-card"
@@ -393,11 +337,8 @@ export default function Layout() {
                     <span className="truncate">{n.label}</span>
                   </NavLink>
                 ))}
-                <div className="col-span-2 pt-1 border-t border-foreground/15 flex items-center justify-between">
-                  <div className="text-[10px] text-muted-foreground font-bold uppercase">
-                    Level {lp.level} · {state.streak}d streak
-                  </div>
-                  <FeedbackButton className="h-7 px-2 inline-flex items-center gap-1.5 border-2 border-foreground bg-card text-foreground text-[10px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" />
+                <div className="col-span-2 pt-1.5 border-t border-foreground/15 flex items-center justify-end">
+                  <FeedbackButton className="h-7 px-2.5 inline-flex items-center gap-1.5 border-2 border-foreground bg-card text-foreground text-[10px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" />
                 </div>
               </div>
             </motion.div>
