@@ -37,7 +37,7 @@ export const MICRO_STATES = Object.entries(MICRO_STATE_COORDINATES).map(
     const country = byCode(code);
     return {
       code,
-      coordinates,
+      coordinates: /** @type {[number, number]} */ (coordinates),
       name: country?.name || code.toUpperCase(),
       region: country?.region || "",
       capital: country?.capital || "",
