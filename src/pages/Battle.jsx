@@ -368,7 +368,7 @@ export default function Battle() {
               value={name}
               autoFocus
               maxLength={20}
-              onChange={(e) => setName(e.target.value.slice(0, 20))}
+              onChange={(e) => setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && name.trim()) openRoom(inviteCode, "join");
               }}
@@ -461,7 +461,7 @@ export default function Battle() {
                 ref={createNameRef}
                 value={name}
                 maxLength={20}
-                onChange={(e) => setName(e.target.value.slice(0, 20))}
+                onChange={(e) => setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))}
                 className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
               />
               <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
@@ -517,7 +517,7 @@ export default function Battle() {
                 value={joinInput}
                 maxLength={4}
                 onChange={(e) =>
-                  setJoinInput(e.target.value.toUpperCase().slice(0, 4))
+                  setJoinInput(e.target.value.toUpperCase().replace(/[^A-Z2-9]/g, "").slice(0, 4))
                 }
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && joinInput.length === 4 && name.trim()) {
@@ -533,7 +533,7 @@ export default function Battle() {
               <input
                 value={name}
                 maxLength={20}
-                onChange={(e) => setName(e.target.value.slice(0, 20))}
+                onChange={(e) => setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))}
                 className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
               />
             </div>

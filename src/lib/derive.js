@@ -1,4 +1,4 @@
-import { COUNTRIES } from "@/data/countries";
+import { COUNTRIES } from "../data/countries.js";
 
 export function isMastered(rec) {
   // A country is complete only after three consecutive successful reviews.
@@ -8,14 +8,17 @@ export function isMastered(rec) {
 }
 
 export function flagStatus(flags, code) {
-  const r = flags[code];
+  const f = flags && typeof flags === "object" ? flags : {};
+  const c = String(code || "").toLowerCase();
+  const r = f[c] || f[code];
   if (isMastered(r)) return "mastered";
   if (r && r.seen > 0) return "learning";
   return "locked";
 }
 
 export function masteredCount(flags) {
-  return COUNTRIES.filter((c) => isMastered(flags[c.code])).length;
+  const f = flags && typeof flags === "object" ? flags : {};
+  return COUNTRIES.filter((c) => isMastered(f[c.code])).length;
 }
 
 export function regionTotal(region) {
@@ -23,7 +26,8 @@ export function regionTotal(region) {
 }
 
 export function masteredInRegion(flags, region) {
-  return COUNTRIES.filter((c) => c.region === region && isMastered(flags[c.code])).length;
+  const f = flags && typeof flags === "object" ? flags : {};
+  return COUNTRIES.filter((c) => c.region === region && isMastered(f[c.code])).length;
 }
 
 export function regionMastery(flags, region) {
@@ -38,8 +42,9 @@ export function accuracyOf(rec) {
 }
 
 export function weakestFlags(flags, n = 6) {
+  const f = flags && typeof flags === "object" ? flags : {};
   return COUNTRIES.map((c) => {
-    const r = flags[c.code];
+    const r = f[c.code];
     return { c, acc: accuracyOf(r), seen: r ? r.seen : 0, sr: r ? r.sr : null };
   })
     .filter((x) => x.seen > 0)
