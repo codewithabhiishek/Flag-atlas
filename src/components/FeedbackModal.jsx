@@ -1,7 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { MailCheck, X } from "lucide-react";
+import {
+  MailCheck,
+  X,
+  Lightbulb,
+  Bug,
+  Compass,
+  Send,
+  User,
+  Mail,
+  SendHorizontal,
+  Copy,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playUiSound } from "@/lib/sounds";
 import { loadLS, saveLS } from "@/lib/utils";
@@ -9,43 +21,39 @@ import { loadLS, saveLS } from "@/lib/utils";
 /**
  * "Postcard to the Cartographer" — FlagAtlas's feedback system.
  *
- * The form IS a postcard: pick a postage stamp (topic), write your note on
- * ruled paper, fill the From lines, and mail it. Delivered through Web3Forms
- * so there is no backend; the access key is read from the
- * VITE_WEB3FORMS_ACCESS_KEY env var (never hardcoded — configure it in your
- * hosting dashboard). Without a key, the mail button is disabled and the
- * direct-email fallback is offered instead.
- *
- * Anti-spam (invisible to humans): honeypot fields, a sub-1.5s speed trap,
- * a 60s cooldown between postcards, and duplicate-note detection.
+ * Symmetrical, uniform neo-brutalist postcard modal:
+ * - 4 cleanly aligned topic stamp buttons
+ * - Uniform rounded-lg input boxes with matching borders and shadows
+ * - Clear visual hierarchy and airmail styling
+ * - Defensive spam protections: honeypots, speed trap, cooldown, duplicate detection
  */
 
 const TOPICS = [
   {
     id: "idea",
-    stamp: "💡",
+    icon: Lightbulb,
     label: "Idea",
     prompt: "Sketch a new mode, feature, or tweak you'd love to see…",
     subject: "Idea",
   },
   {
     id: "beetle",
-    stamp: "🐞",
-    label: "Beetle",
+    icon: Bug,
+    label: "Bug",
     prompt: "Something scuttled where it shouldn't? Describe the bug…",
     subject: "Bug",
   },
   {
     id: "carto",
-    stamp: "🗺️",
-    label: "Map data",
-    prompt: "Wrong flag, odd capital, missing country? Mark it on the map…",
+    icon: Compass,
+    label: "Map Data",
+    prompt: "Wrong flag, odd capital, or missing country? Mark it on the map…",
     subject: "Map data",
   },
   {
     id: "letter",
-    stamp: "✉️",
-    label: "Just writing",
+    icon: Send,
+    label: "Letter",
     prompt: "Say hi, share your streak, or tell me what you think…",
     subject: "Letter",
   },
@@ -205,10 +213,8 @@ export function FeedbackModal({ isOpen, onClose }) {
     }
   };
 
-  // NOTE: createPortal must wrap AnimatePresence, not the other way around —
-  // AnimatePresence cannot track a portal element as its direct child and the
-  // modal would never mount.
   if (!isOpen) return null;
+
   return createPortal(
     <AnimatePresence>
       <div
@@ -217,137 +223,155 @@ export function FeedbackModal({ isOpen, onClose }) {
         aria-modal="true"
         aria-labelledby="postcard-title"
         onClick={() => phase !== "sealing" && onClose()}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-3 sm:p-4 overflow-y-auto"
       >
-          <motion.div
-            initial={{ opacity: 0, y: 24, rotate: -1 }}
-            animate={{ opacity: 1, y: 0, rotate: 0 }}
-            exit={{ opacity: 0, y: 16, rotate: 1 }}
-            transition={{ type: "spring", stiffness: 320, damping: 26 }}
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-[440px] my-auto max-h-[88vh] overflow-y-auto rounded-xl border-2 border-foreground bg-[#f7f1e3] dark:bg-card text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)]"
-          >
-            {/* Postmark hint — rotated rubber-stamp, tucked left of the close button */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute right-12 top-4 select-none hidden lg:block"
-            >
-              <div className="-rotate-6 border-2 border-terra/50 rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-terra/60">
-                air mail
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 14, scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 340, damping: 28 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-[480px] my-auto max-h-[90vh] overflow-y-auto rounded-2xl border-2 border-foreground bg-[#f8f4ea] dark:bg-card text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)]"
+        >
+          {/* Classic Air Mail Edge Stripe */}
+          <div
+            aria-hidden="true"
+            className="h-2 w-full border-b-2 border-foreground bg-[repeating-linear-gradient(45deg,#c25e40,#c25e40_12px,#f8f4ea_12px,#f8f4ea_24px,#2d5a7b_24px,#2d5a7b_36px,#f8f4ea_36px,#f8f4ea_48px)] dark:bg-[repeating-linear-gradient(45deg,#c25e40,#c25e40_12px,#1a1a1a_12px,#1a1a1a_24px,#2d5a7b_24px,#2d5a7b_36px,#1a1a1a_36px,#1a1a1a_48px)]"
+          />
+
+          {/* ── Postcard Header ── */}
+          <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3.5 border-b-2 border-foreground/15">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-foreground/20 bg-muted/60 text-[9px] uppercase tracking-widest font-bold text-foreground mb-1.5">
+                <Compass className="w-3 h-3 text-terra" />
+                Direct Dispatch
               </div>
+              <h3 id="postcard-title" className="font-display text-xl sm:text-2xl font-black text-foreground tracking-tight leading-none">
+                Postcard to Cartographer
+              </h3>
+              <p className="text-xs text-muted-foreground font-medium mt-1">
+                Notes &amp; ideas delivered directly to Abhishek.
+              </p>
             </div>
 
-            {/* ── Postcard header ── */}
-            <div className="flex items-start justify-between gap-2 px-4 pt-4">
-              <div>
-                <h3 id="postcard-title" className="font-display text-lg text-foreground leading-tight">
-                  Postcard to the Cartographer
-                </h3>
-                <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
-                  Notes &amp; ideas — delivered to Abhishek.
-                </p>
+            <div className="flex items-center gap-2 shrink-0">
+              <div
+                aria-hidden="true"
+                className="hidden sm:inline-flex items-center border-2 border-terra/60 bg-terra/10 text-terra px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest rotate-2 select-none"
+              >
+                Air Mail
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 disabled={phase === "sealing"}
                 aria-label="Close postcard"
-                className="w-7 h-7 rounded-lg border-2 border-foreground bg-card inline-flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors disabled:opacity-40 shrink-0"
+                className="w-8 h-8 rounded-lg border-2 border-foreground bg-card inline-flex items-center justify-center text-foreground hover:bg-muted shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.3)] transition-all disabled:opacity-40"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
+          </div>
 
-            <div className="mx-4 mt-3 border-t-2 border-dashed border-foreground/25" />
-
-            {phase === "mailed" ? (
-              /* ── Mailed state ── */
-              <div className="px-4 py-8 text-center">
-                <motion.div
-                  initial={{ scale: 0.6, rotate: -8 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 16 }}
-                  className="mx-auto w-16 h-16 rounded-full border-2 border-forest bg-forest/10 inline-flex items-center justify-center"
-                >
-                  <MailCheck className="w-8 h-8 text-forest" />
-                </motion.div>
-                <h4 className="mt-4 font-display text-2xl text-foreground">Posted!</h4>
-                <p className="mt-0.5 text-[10px] text-muted-foreground font-medium max-w-[260px] mx-auto leading-relaxed">
-                  Every note gets read — replies go to your email.
+          {phase === "mailed" ? (
+            /* ── Mailed state ── */
+            <div className="px-5 py-8 text-center space-y-4">
+              <motion.div
+                initial={{ scale: 0.6, rotate: -8 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 16 }}
+                className="mx-auto w-16 h-16 rounded-2xl border-2 border-forest bg-forest/15 inline-flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <MailCheck className="w-8 h-8 text-forest" />
+              </motion.div>
+              <div>
+                <h4 className="font-display text-2xl font-black text-foreground">Postcard Dispatched!</h4>
+                <p className="mt-1 text-xs text-muted-foreground font-medium max-w-[280px] mx-auto leading-relaxed">
+                  Your note has been mailed. Replies will be sent directly to your email.
                 </p>
-                <div className="mt-6 flex items-center justify-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNote("");
-                      setPhase("writing");
-                    }}
-                    className="h-10 px-4 rounded-lg border-2 border-foreground bg-card text-xs font-bold uppercase tracking-tight hover:bg-muted transition-colors"
-                  >
-                    Write another
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="h-10 px-4 rounded-lg border-2 border-foreground bg-forest text-white text-xs font-bold uppercase tracking-tight hover:opacity-90 transition-opacity"
-                  >
-                    Back to the atlas
-                  </button>
+              </div>
+              <div className="pt-2 flex items-center justify-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNote("");
+                    setPhase("writing");
+                  }}
+                  className="h-10 px-4 rounded-lg border-2 border-foreground bg-card text-xs font-bold uppercase tracking-tight hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+                >
+                  Write another
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="h-10 px-5 rounded-lg border-2 border-foreground bg-forest text-white text-xs font-bold uppercase tracking-tight hover:opacity-90 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-opacity"
+                >
+                  Back to the atlas
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={mailIt} noValidate className="p-5 space-y-4">
+              {error && (
+                <p
+                  role="alert"
+                  className="rounded-lg border-2 border-destructive bg-destructive/10 px-3.5 py-2 text-xs font-bold text-destructive"
+                >
+                  {error}
+                </p>
+              )}
+
+              {/* ── 1. Stamp corner: pick a topic ── */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  <span>1. Affix a Stamp (Topic)</span>
+                  <span className="text-[9px] font-bold text-terra uppercase">
+                    {topic.label} selected
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {TOPICS.map((t) => {
+                    const active = topic.id === t.id;
+                    const Icon = t.icon;
+                    return (
+                      <motion.button
+                        key={t.id}
+                        whileHover={{ y: -1 }}
+                        whileTap={{ scale: 0.96 }}
+                        type="button"
+                        onClick={() => {
+                          playUiSound("tap");
+                          setTopic(t);
+                          setError("");
+                        }}
+                        aria-pressed={active}
+                        title={t.label}
+                        className={cn(
+                          "h-14 rounded-lg border-2 flex flex-col items-center justify-center gap-1 transition-all select-none",
+                          active
+                            ? "border-foreground bg-gold text-foreground font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]"
+                            : "border-foreground/30 bg-card/60 hover:bg-card hover:border-foreground text-muted-foreground hover:text-foreground shadow-none",
+                        )}
+                      >
+                        <Icon className={cn("w-4 h-4", active ? "text-foreground" : "text-muted-foreground")} />
+                        <span className="text-[10px] uppercase font-bold tracking-tight">{t.label}</span>
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
-            ) : (
-              <form onSubmit={mailIt} noValidate className="px-4 py-4 space-y-3.5">
-                {error && (
-                  <p
-                    role="alert"
-                    className="rounded-lg border-2 border-destructive/60 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive"
-                  >
-                    {error}
-                  </p>
-                )}
 
-                {/* ── Stamp corner: pick a topic stamp ── */}
-                <div>
-                  <div className="text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1.5">
-                    Affix a stamp
-                  </div>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {TOPICS.map((t) => {
-                      const active = topic.id === t.id;
-                      return (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => {
-                            playUiSound("tap");
-                            setTopic(t);
-                            setError("");
-                          }}
-                          aria-pressed={active}
-                          title={t.label}
-                          className={cn(
-                            "h-12 border-2 flex flex-col items-center justify-center gap-0.5 transition-all select-none",
-                            active
-                              ? "border-foreground bg-gold/25 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)]"
-                              : "border-dashed border-foreground/40 bg-transparent opacity-70 hover:opacity-100 hover:border-foreground",
-                          )}
-                        >
-                          <span className="text-sm leading-none">{t.stamp}</span>
-                          <span className="text-[8px] font-bold uppercase tracking-wide">{t.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* ── Ruled note area ── */}
-                <div>
-                  <label
-                    htmlFor="postcard-note"
-                    className="block text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1"
-                  >
-                    Your note
+              {/* ── 2. Message area ── */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  <label htmlFor="postcard-note" className="cursor-pointer">
+                    2. Your Note
                   </label>
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground">
+                    {note.length}/1200
+                  </span>
+                </div>
+                <div className="relative">
                   <textarea
                     id="postcard-note"
                     maxLength={1200}
@@ -358,116 +382,145 @@ export function FeedbackModal({ isOpen, onClose }) {
                     }}
                     placeholder={topic.prompt}
                     rows={4}
-                    className="w-full resize-none rounded-lg border-2 border-foreground/70 bg-card px-3.5 py-2.5 text-sm font-medium text-foreground outline-none focus:border-foreground focus:ring-1 focus:ring-foreground/20 transition-all placeholder:text-muted-foreground/50 leading-relaxed shadow-inner"
+                    className="w-full resize-none rounded-lg border-2 border-foreground bg-card px-3.5 py-2.5 text-xs sm:text-sm font-medium text-foreground outline-none focus:border-terra focus:ring-2 focus:ring-terra/20 transition-all placeholder:text-muted-foreground/60 leading-relaxed shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
                   />
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-[10px] text-muted-foreground">
-                      {noteTooShort ? "A few more words…" : " "}
-                    </span>
-                    <span className="text-[10px] font-mono text-muted-foreground">{note.length}/1200</span>
-                  </div>
                 </div>
+                {noteTooShort && (
+                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold pl-1">
+                    A few more words to give your note context…
+                  </p>
+                )}
+              </div>
 
-                {/* Honeypots — invisible to humans */}
-                <input
-                  type="checkbox"
-                  name="botcheck"
-                  checked={botcheck}
-                  onChange={(e) => setBotcheck(e.target.checked)}
-                  className="hidden"
-                  style={{ display: "none" }}
-                  tabIndex={-1}
-                  autoComplete="off"
-                  aria-hidden="true"
-                />
-                <input
-                  type="text"
-                  name="_gotcha"
-                  value={gotcha}
-                  onChange={(e) => setGotcha(e.target.value)}
-                  className="hidden"
-                  style={{ display: "none" }}
-                  tabIndex={-1}
-                  autoComplete="off"
-                  aria-hidden="true"
-                />
+              {/* Honeypots — invisible to humans */}
+              <input
+                type="checkbox"
+                name="botcheck"
+                checked={botcheck}
+                onChange={(e) => setBotcheck(e.target.checked)}
+                className="hidden"
+                style={{ display: "none" }}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                name="_gotcha"
+                value={gotcha}
+                onChange={(e) => setGotcha(e.target.value)}
+                className="hidden"
+                style={{ display: "none" }}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+              />
 
-                {/* ── From lines (postcard address style) ── */}
+              {/* ── 3. Sender lines (Uniform boxes with icons) ── */}
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
+                  3. Sender Coordinates
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <div>
+                  <div className="space-y-1">
                     <label
                       htmlFor="postcard-name"
-                      className="block text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-0.5"
+                      className="block text-[9px] font-bold uppercase tracking-wider text-muted-foreground"
                     >
-                      From · name
+                      From · Name
                     </label>
-                    <input
-                      id="postcard-name"
-                      type="text"
-                      maxLength={60}
-                      value={fromName}
-                      onChange={(e) => {
-                        setFromName(e.target.value);
-                        if (error) setError("");
-                      }}
-                      placeholder="Explorer name"
-                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
-                    />
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                      <input
+                        id="postcard-name"
+                        type="text"
+                        maxLength={60}
+                        value={fromName}
+                        onChange={(e) => {
+                          setFromName(e.target.value);
+                          if (error) setError("");
+                        }}
+                        placeholder="Explorer name"
+                        className="w-full h-10 pl-9 pr-3 rounded-lg border-2 border-foreground bg-card text-foreground text-xs font-semibold placeholder:text-muted-foreground/60 outline-none focus:border-terra focus:ring-2 focus:ring-terra/20 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] transition-all"
+                      />
+                    </div>
                   </div>
-                  <div>
+
+                  <div className="space-y-1">
                     <label
                       htmlFor="postcard-email"
-                      className="block text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-0.5"
+                      className="block text-[9px] font-bold uppercase tracking-wider text-muted-foreground"
                     >
-                      Reply · email
+                      Reply · Email
                     </label>
-                    <input
-                      id="postcard-email"
-                      type="email"
-                      maxLength={100}
-                      value={fromEmail}
-                      onChange={(e) => {
-                        setFromEmail(e.target.value);
-                        if (error) setError("");
-                      }}
-                      placeholder="you@example.com"
-                      className="w-full bg-transparent border-b-2 border-foreground/50 focus:border-foreground outline-none px-1 py-1 text-sm font-medium placeholder:text-muted-foreground/50 transition-colors"
-                    />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                      <input
+                        id="postcard-email"
+                        type="email"
+                        maxLength={100}
+                        value={fromEmail}
+                        onChange={(e) => {
+                          setFromEmail(e.target.value);
+                          if (error) setError("");
+                        }}
+                        placeholder="you@example.com"
+                        className="w-full h-10 pl-9 pr-3 rounded-lg border-2 border-foreground bg-card text-foreground text-xs font-semibold placeholder:text-muted-foreground/60 outline-none focus:border-terra focus:ring-2 focus:ring-terra/20 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                {/* ── Mail button ── */}
+              {/* ── 4. Submit CTA Button ── */}
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ y: 1 }}
+                type="submit"
+                disabled={phase === "sealing" || cooldown > 0}
+                className="w-full h-11 sm:h-12 rounded-lg border-2 border-foreground bg-terra hover:bg-terra/90 text-white font-black uppercase text-xs tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:pointer-events-none transition-all flex items-center justify-center gap-2 select-none"
+              >
+                {phase === "sealing" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="animate-spin inline-block">📮</span>
+                    {sealStep === 0 ? "Sealing envelope…" : "Dispatching…"}
+                  </span>
+                ) : cooldown > 0 ? (
+                  `Next mail departure in ${cooldown}s`
+                ) : (
+                  <>
+                    <span>Mail the Postcard</span>
+                    <SendHorizontal className="w-4 h-4" />
+                  </>
+                )}
+              </motion.button>
+
+              {/* ── 5. Direct Email Fallback Footer ── */}
+              <div className="pt-2.5 border-t border-foreground/15 flex items-center justify-between text-xs text-muted-foreground">
+                <span className="text-[11px] truncate">
+                  Direct line: <span className="font-semibold text-foreground/80">{DIRECT_EMAIL}</span>
+                </span>
                 <button
-                  type="submit"
-                  disabled={phase === "sealing" || cooldown > 0}
-                  className="w-full h-11 rounded-lg border-2 border-foreground bg-terra text-white font-bold uppercase text-xs tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-y-0 transition-transform disabled:opacity-50 disabled:pointer-events-none select-none"
+                  type="button"
+                  onClick={copyEmail}
+                  className="inline-flex items-center gap-1 font-bold text-[11px] text-terra hover:underline transition-colors ml-2 shrink-0"
                 >
-                  {phase === "sealing" ? (
-                    <span className="inline-flex items-center gap-2">
-                      <span className="animate-spin inline-block">📮</span>
-                      {sealStep === 0 ? "Sealing envelope…" : "On its way…"}
-                    </span>
-                  ) : cooldown > 0 ? (
-                    `Next mail plane in ${cooldown}s`
+                  {copiedEmail ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Copied!</span>
+                    </>
                   ) : (
-                    "Mail the postcard 📮"
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy email</span>
+                    </>
                   )}
                 </button>
-
-                {/* Direct-email fallback */}
-                <div className="flex items-center justify-between gap-2 border-t border-border pt-2.5 text-[10px] text-muted-foreground">
-                  <span>Old school?</span>
-                  <button
-                    type="button"
-                    onClick={copyEmail}
-                    className="font-bold text-terra hover:underline truncate"
-                  >
-                    {copiedEmail ? "Copied!" : "Copy email"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </motion.div>
+              </div>
+            </form>
+          )}
+        </motion.div>
       </div>
     </AnimatePresence>,
     document.body,
