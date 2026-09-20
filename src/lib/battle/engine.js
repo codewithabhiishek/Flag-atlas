@@ -20,6 +20,19 @@ const ROOM_PURGE_MS = 90_000;
 export const ROUND_DURATION_MS = 12_000;
 export const REVEAL_DURATION_MS = 2_500;
 
+export function sanitizePlayerName(name, seat = 1) {
+  if (!name || typeof name !== "string") return `Player ${seat}`;
+  const clean = name
+    .replace(/<[^>]*>?/gm, "")
+    .replace(/[\x00-\x1F\x7F]/g, "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[\u202A-\u202E\u2066-\u2069]/g, "")
+    .replace(/[^\w\s\-_.#@!]/g, "")
+    .trim()
+    .slice(0, 20);
+  return clean || `Player ${seat}`;
+}
+
 function makeQuestions(region, rounds) {
   const candidates =
     region === "World" ? COUNTRIES : COUNTRIES.filter((c) => c.region === region);
@@ -157,11 +170,7 @@ export class BattleEngine {
     }
 
     const seat = SEATS.find((s) => !room.players.has(s));
-    const cleanName =
-      String(msg.name || "")
-        .trim()
-        .replace(/<[^>]*>?/gm, "")
-        .slice(0, 20) || `Player ${seat}`;
+    const cleanName = sanitizePlayerName(msg.name, seat);
 
     const player = {
       seat,
@@ -576,6 +585,9 @@ export class BattleEngine {
   schedulePurgeSweep() {
     if (this.purgeTimer != null) return;
     this.purgeTimer = setInterval(() => this.sweep(), 5000);
+    if (typeof this.purgeTimer?.unref === "function") {
+      this.purgeTimer.unref();
+    }
   }
 }
 
