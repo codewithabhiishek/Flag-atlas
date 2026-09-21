@@ -54,31 +54,8 @@ export default function FlagFragments() {
     touchStreak();
   }, [touchStreak]);
 
-  if (outcome === "done") {
-    return (
-      <SessionSummary
-        correct={session.correct}
-        total={queue.length}
-        xp={session.xp}
-        timeMs={elapsedMs}
-        onAgain={() => {
-          setSeed((s) => s + 1);
-          setIdx(0);
-          setChosen([]);
-          setOutcome(null);
-          setEarnedXp(0);
-          setSession({ correct: 0, wrong: 0, xp: 0 });
-        }}
-      />
-    );
-  }
-
-  if (!flag) return null;
-
-  const blur = Math.max(0, 14 - chosen.length * 4);
-
   function pick(opt) {
-    if (outcome) return;
+    if (outcome || !flag) return;
     if (Date.now() < readyAtRef.current) return;
     if (opt.code === flag.code) {
       const xp = 12 + (3 - chosen.length) * 4;
@@ -114,6 +91,76 @@ export default function FlagFragments() {
     }
   }
 
+  // Keyboard support: Press A, B, C, D to pick; Enter / Space to advance to next
+  useEffect(() => {
+    if (outcome === "done" || !flag) return;
+
+    function handleKeyDown(e) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.isComposing ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.altKey
+      ) {
+        return;
+      }
+
+      const key = e.key.toUpperCase();
+      if (outcome) {
+        if (key === "ENTER" || key === " " || key === "ARROW_RIGHT") {
+          e.preventDefault();
+          next();
+        }
+        return;
+      }
+
+      const keyMap = {
+        A: 0,
+        "1": 0,
+        B: 1,
+        "2": 1,
+        C: 2,
+        "3": 2,
+        D: 3,
+        "4": 3,
+      };
+
+      const optionIndex = keyMap[key];
+      if (optionIndex !== undefined && options[optionIndex]) {
+        e.preventDefault();
+        pick(options[optionIndex]);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [outcome, options, flag, idx, queue.length]);
+
+  if (outcome === "done") {
+    return (
+      <SessionSummary
+        correct={session.correct}
+        total={queue.length}
+        xp={session.xp}
+        timeMs={elapsedMs}
+        onAgain={() => {
+          setSeed((s) => s + 1);
+          setIdx(0);
+          setChosen([]);
+          setOutcome(null);
+          setEarnedXp(0);
+          setSession({ correct: 0, wrong: 0, xp: 0 });
+        }}
+      />
+    );
+  }
+
+  if (!flag) return null;
+
+  const blur = Math.max(0, 14 - chosen.length * 4);
+
   return (
     <ModeShell title="Flag Fragments" region={region || "World"}>
       <div className="flex items-center justify-between mb-4 text-xs text-muted-foreground">
@@ -128,14 +175,17 @@ export default function FlagFragments() {
       <div key={flag.code} className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted relative">
           <div style={{ filter: `blur(${blur}px)` }} className="w-full h-full">
-            <FlagImage code={flag.code} className="w-full h-full" />
+            <FlagImage code={flag.code} className="w-full h-full" priority={true} />
           </div>
           <div className="absolute top-2 left-2 text-xs px-2 py-1 rounded-full bg-background/80 text-foreground">
             {chosen.length}/3 misses · blur {blur}px
           </div>
         </div>
-        <p className="text-center text-sm text-muted-foreground mt-3">
-          Which country does this flag belong to?
+        <p className="text-center text-sm text-muted-foreground mt-3 flex items-center justify-center gap-1.5 flex-wrap">
+          <span>Which country does this flag belong to?</span>
+          <span className="hidden sm:inline-flex items-center gap-1 text-xs font-mono bg-muted/60 px-1.5 py-0.5 rounded border border-foreground/15 text-muted-foreground">
+            Keys <kbd className="font-bold text-foreground">A</kbd>–<kbd className="font-bold text-foreground">D</kbd>
+          </span>
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
           {options.map((opt, idx) => {

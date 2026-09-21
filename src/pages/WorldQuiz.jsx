@@ -132,7 +132,7 @@ export default function WorldQuiz() {
       </div>
       <div className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] overflow-hidden rounded-lg border-2 border-foreground bg-muted">
-          <FlagImage code={flag.code} className="h-full w-full" alt={`Flag quiz question ${index + 1}`} />
+          <FlagImage code={flag.code} className="h-full w-full" alt={`Flag quiz question ${index + 1}`} priority={true} />
         </div>
         <p className="mt-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-1.5 flex-wrap">
           <span>Which country does this flag belong to?</span>

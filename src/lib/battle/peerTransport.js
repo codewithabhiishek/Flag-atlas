@@ -44,6 +44,7 @@ export class PeerHostBridge {
     this.code = code;
     this.peer = null;
     this.conns = new Map(); // connId -> DataConnection
+    this.pendingQueues = new Map(); // connId -> Array of messages queued before open
     this.closed = false;
 
     this.onUnload = () => this.close();
@@ -58,6 +59,21 @@ export class PeerHostBridge {
     return this.code;
   }
 
+  flushQueue(connId) {
+    const queue = this.pendingQueues.get(connId);
+    const conn = this.conns.get(connId);
+    if (!queue || !conn || !conn.open) return;
+    while (queue.length > 0) {
+      const msg = queue.shift();
+      try {
+        conn.send(msg);
+      } catch {
+        break;
+      }
+    }
+    this.pendingQueues.delete(connId);
+  }
+
   init() {
     if (this.closed) return;
     try {
@@ -67,6 +83,10 @@ export class PeerHostBridge {
       this.peer.on("connection", (conn) => {
         const connId = `p2p-${conn.peer}`;
         this.conns.set(connId, conn);
+
+        conn.on("open", () => {
+          this.flushQueue(connId);
+        });
 
         conn.on("data", (raw) => {
           try {
@@ -78,6 +98,7 @@ export class PeerHostBridge {
         });
 
         const drop = () => {
+          this.pendingQueues.delete(connId);
           if (this.conns.has(connId)) {
             this.conns.delete(connId);
             this.engine.onDisconnect(connId);
@@ -107,11 +128,19 @@ export class PeerHostBridge {
 
   send(connId, msg) {
     const conn = this.conns.get(connId);
-    if (conn && conn.open) {
-      try {
-        conn.send(msg);
-      } catch {
-        /* ignore dropped socket */
+    if (conn) {
+      if (conn.open) {
+        try {
+          conn.send(msg);
+        } catch {
+          /* ignore dropped socket */
+        }
+      } else {
+        // Queue message until data channel emits "open"
+        if (!this.pendingQueues.has(connId)) {
+          this.pendingQueues.set(connId, []);
+        }
+        this.pendingQueues.get(connId).push(msg);
       }
     }
   }
@@ -122,6 +151,7 @@ export class PeerHostBridge {
       window.removeEventListener("pagehide", this.onUnload);
       window.removeEventListener("beforeunload", this.onUnload);
     }
+    this.pendingQueues.clear();
     for (const c of this.conns.values()) {
       try {
         c.close();
@@ -139,7 +169,7 @@ export class PeerHostBridge {
 /* Guest side: dial the host's peer id directly                        */
 /* ------------------------------------------------------------------ */
 
-export function tryPeerGuestLink(roomCode, timeoutMs = 8000) {
+export function tryPeerGuestLink(roomCode, timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
     const targetId = peerIdForRoom(roomCode);
     let settled = false;
@@ -303,6 +333,17 @@ export function createPeerHostLink({ code, name, region, rounds }) {
     onClose: undefined,
     close: () => {
       open = false;
+      // Notify remote guests before tearing down WebRTC bridge
+      for (const room of engine.rooms.values()) {
+        for (const p of room.players.values()) {
+          if (p.connId !== HOST_CONN) {
+            bridge?.send(p.connId, {
+              type: "roomClosed",
+              message: "The host left the battle.",
+            });
+          }
+        }
+      }
       bridge?.close();
       bridge = null;
       engine.destroy();

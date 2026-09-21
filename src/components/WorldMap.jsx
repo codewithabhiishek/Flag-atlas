@@ -81,6 +81,30 @@ export default function WorldMap({ flags, onSelectRegion }) {
   const tooltipRef = useRef(null);
   const isTouch = useRef(isTouchDevice());
 
+  // High-performance pointer tracking via rAF — updates DOM directly without re-rendering the 170+ SVG countries
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let rafId = null;
+    const handlePointerMove = (e) => {
+      if (isTouch.current || !tooltipRef.current) return;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (!tooltipRef.current) return;
+        const pos = getTooltipPosition(e.clientX, e.clientY);
+        tooltipRef.current.style.left = `${pos.left}px`;
+        tooltipRef.current.style.top = `${pos.top}px`;
+      });
+    };
+
+    container.addEventListener("pointermove", handlePointerMove, { passive: true });
+    return () => {
+      container.removeEventListener("pointermove", handlePointerMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     fetch(GEO_URL)
@@ -201,10 +225,6 @@ export default function WorldMap({ flags, onSelectRegion }) {
                         if (isTouch.current) return;
                         setHoverGeo(geo);
                         setHoverInfo({ code, name, region, capital, status });
-                        setTooltipPosition(getTooltipPosition(e.clientX, e.clientY));
-                      }}
-                      onMouseMove={(e) => {
-                        if (isTouch.current) return;
                         setTooltipPosition(getTooltipPosition(e.clientX, e.clientY));
                       }}
                       onMouseLeave={() => {

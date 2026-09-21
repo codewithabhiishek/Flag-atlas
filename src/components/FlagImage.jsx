@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { byCode } from "@/data/countries";
 
@@ -6,8 +6,20 @@ import { byCode } from "@/data/countries";
 // PNG fallback from flagcdn.com as secondary.
 // On final error we render a small placeholder with the country's ISO code.
 
-export default function FlagImage({ code, className, alt = "", fittingType = "fill" }) {
+export default function FlagImage({
+  code,
+  className,
+  alt = "",
+  fittingType = "fill",
+  priority = false,
+}) {
   const [errCount, setErrCount] = useState(0);
+
+  // Reset fallback sequence whenever the flag code changes
+  useEffect(() => {
+    setErrCount(0);
+  }, [code]);
+
   const c = byCode(code);
   const label = alt || (c ? `Flag of ${c.name}` : code ? `Flag of ${code}` : "Flag placeholder");
 
@@ -29,10 +41,11 @@ export default function FlagImage({ code, className, alt = "", fittingType = "fi
 
   return (
     <img
-      key={srcs[errCount]}          // forces remount on source change
+      key={`${code}-${srcs[errCount]}`} // forces remount on country or source change
       src={srcs[errCount]}
       alt={label}
-      loading="lazy"
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       decoding="async"
       className={cn("w-full h-full", objectFit, className)}
       onError={() => setErrCount((n) => n + 1)}
