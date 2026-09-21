@@ -46,7 +46,7 @@ export default function ReviewDeck() {
   const [seed, setSeed] = useState(0);
   const flag = sessionDeck[idx];
   useFlagPrefetch(sessionDeck, idx);
-  const elapsedMs = useElapsedTimer(done < deck.length && Boolean(flag), seed);
+  const elapsedMs = useElapsedTimer(done < sessionDeck.length && Boolean(flag), seed);
 
   // Guarantee clean state reset and cooldown whenever question/card changes
   useEffect(() => {
@@ -192,7 +192,7 @@ export default function ReviewDeck() {
       </div>
       <div key={flag.code} className="rounded-2xl border border-border bg-card p-4 sm:p-6">
         <div className="mx-auto max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted">
-          <FlagImage code={flag.code} className="w-full h-full" />
+          <FlagImage code={flag.code} className="w-full h-full" priority={true} />
         </div>
         <p className="text-center text-sm text-muted-foreground mt-3">
           Which country does this flag belong to?

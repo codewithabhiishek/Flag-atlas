@@ -130,3 +130,49 @@ test('BattleEngine host leave transfers host to next player', () => {
 
   engine.destroy();
 });
+
+test('BattleEngine rematch and closeRoom lifecycle', () => {
+  const sentMessages = [];
+  const mockIo = {
+    send: (connId, msg) => {
+      sentMessages.push({ connId, msg });
+    },
+  };
+  const engine = new BattleEngine(mockIo);
+  const code = 'REMT';
+
+  engine.handle('c1', { type: 'join', code, name: 'Host', create: true });
+  engine.handle('c2', { type: 'join', code, name: 'Guest' });
+  engine.handle('c2', { type: 'ready', ready: true });
+  engine.handle('c1', { type: 'start' });
+
+  const room = engine.rooms.get(code);
+  assert.equal(room.status, 'playing');
+
+  // Finish match artificially
+  engine.finishMatch(room);
+  assert.equal(room.status, 'finished');
+  assert.ok(room.results.length === 2);
+
+  // Trigger rematch
+  engine.handle('c1', { type: 'rematch' });
+  assert.equal(room.status, 'lobby');
+  assert.equal(room.results.length, 0);
+  assert.equal(room.questions.length, 0);
+
+  const host = room.players.get(1);
+  const guest = room.players.get(2);
+  assert.equal(host.ready, true, 'Host is ready for rematch');
+  assert.equal(guest.ready, false, 'Guest must ready up again for rematch');
+  assert.equal(host.score, 0);
+  assert.equal(guest.score, 0);
+
+  // Close room
+  sentMessages.length = 0;
+  engine.handle('c1', { type: 'closeRoom' });
+  assert.equal(engine.rooms.has(code), false, 'Room should be purged');
+  const roomClosedNotices = sentMessages.filter((m) => m.msg.type === 'roomClosed');
+  assert.equal(roomClosedNotices.length, 2, 'Both players receive roomClosed');
+
+  engine.destroy();
+});

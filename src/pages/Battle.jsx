@@ -32,6 +32,7 @@ import { randomRoomCode } from "@/lib/battle/engine";
 import { createPeerHostLink, tryPeerGuestLink } from "@/lib/battle/peerTransport";
 import { FeedbackInvite } from "@/components/FeedbackLauncher";
 import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
+import { playUiSound } from "@/lib/sounds";
 
 const MAX_PLAYERS = 5;
 
@@ -90,6 +91,7 @@ export default function Battle() {
 
   const roomRef = useRef(null);
   const answerLockedRef = useRef(false);
+  const intentionalExitRef = useRef(false);
   const joinInputRef = useRef(null);
   const createNameRef = useRef(null);
 
@@ -141,6 +143,20 @@ export default function Battle() {
     answerLockedRef.current = false;
   }, [status, currentRound]);
 
+  // Play audio cue only when reveal phase starts (prevents leaking answer on click)
+  const prevRoundPhaseRef = useRef(roundPhase);
+  useEffect(() => {
+    if (status === "playing" && prevRoundPhaseRef.current !== "reveal" && roundPhase === "reveal") {
+      const myPlayer = players.find((p) => p.seat === mySeat);
+      if (myPlayer && myPlayer.lastPoints > 0) {
+        playUiSound("success");
+      } else if (picked) {
+        playUiSound("error");
+      }
+    }
+    prevRoundPhaseRef.current = roundPhase;
+  }, [status, roundPhase, players, mySeat, picked]);
+
   // Room networking connection effect
   useEffect(() => {
     if (!code) return;
@@ -167,6 +183,7 @@ export default function Battle() {
             // cleanly exit to menu so the guest is not stranded in a phantom lobby
             setMySeat((prevSeat) => {
               if (!prevSeat) {
+                intentionalExitRef.current = true;
                 setCode(null);
                 setRoomMode(null);
                 setConnected(false);
@@ -176,6 +193,7 @@ export default function Battle() {
             });
           }
           if (message.type === "kicked") {
+            intentionalExitRef.current = true;
             setConnectionError("The host removed you from this room.");
             setCode(null);
             setRoomMode(null);
@@ -183,13 +201,15 @@ export default function Battle() {
             link?.close();
           }
           if (message.type === "leftRoom") {
+            intentionalExitRef.current = true;
             setCode(null);
             setRoomMode(null);
             setConnected(false);
             link?.close();
           }
           if (message.type === "roomClosed") {
-            setConnectionError("The host closed this room.");
+            intentionalExitRef.current = true;
+            setConnectionError(message.message || "The host closed this room.");
             setCode(null);
             setRoomMode(null);
             setConnected(false);
@@ -207,6 +227,9 @@ export default function Battle() {
             setRoomRounds(message.rounds);
             setHostSeat(message.hostSeat);
             setRoomLocked(message.locked === true);
+            if (message.status === "lobby") {
+              setResults(null);
+            }
             if (typeof message.currentRound === "number") {
               setCurrentRound(message.currentRound);
             }
@@ -229,7 +252,7 @@ export default function Battle() {
         if (!disposed) {
           setConnected(false);
           setMySeat((prev) => {
-            if (prev) {
+            if (prev && !intentionalExitRef.current) {
               setConnectionError("Lost connection to the room host.");
               setCode(null);
               setRoomMode(null);
@@ -323,10 +346,55 @@ export default function Battle() {
   }
 
   function openRoom(nextCode, mode) {
+    intentionalExitRef.current = false;
     setConnectionError("");
+    setResults(null);
     setRoomMode(mode);
     setCode(nextCode);
   }
+
+  const me = players.find((p) => p.seat === mySeat);
+  const isHost = mySeat === hostSeat;
+  const q = questions[currentRound];
+
+  // Keyboard support: Press 1-4 or A-D to pick answer
+  useEffect(() => {
+    if (status !== "playing" || roundPhase !== "question" || picked !== null || !q) return;
+
+    function handleKeyDown(e) {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.isComposing ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.altKey
+      ) {
+        return;
+      }
+
+      const key = e.key.toUpperCase();
+      const keyMap = {
+        A: 0,
+        "1": 0,
+        B: 1,
+        "2": 1,
+        C: 2,
+        "3": 2,
+        D: 3,
+        "4": 3,
+      };
+
+      const optIdx = keyMap[key];
+      if (optIdx !== undefined && q.options[optIdx]) {
+        e.preventDefault();
+        answer(q.options[optIdx]);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [status, roundPhase, picked, q]);
 
   // ---- Invite gate (Arriving via ?room=XXXX) ----
   const inviteCode = searchParams.get("room")?.toUpperCase().slice(0, 4) || "";
@@ -549,10 +617,6 @@ export default function Battle() {
       </div>
     );
   }
-
-  const me = players.find((p) => p.seat === mySeat);
-  const isHost = mySeat === hostSeat;
-  const q = questions[currentRound];
 
   // ---- Finished View ----
   if (status === "finished") {
@@ -876,7 +940,10 @@ export default function Battle() {
             )}
             <button
               type="button"
-              onClick={() => roomRef.current?.send({ type: "closeRoom" })}
+              onClick={() => {
+                intentionalExitRef.current = true;
+                roomRef.current?.send({ type: "closeRoom" });
+              }}
               disabled={!connected}
               className="w-full h-10 border-2 border-destructive/70 text-destructive font-bold uppercase tracking-tight text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-40"
             >
@@ -910,7 +977,10 @@ export default function Battle() {
             </p>
             <button
               type="button"
-              onClick={() => roomRef.current?.send({ type: "leave" })}
+              onClick={() => {
+                intentionalExitRef.current = true;
+                roomRef.current?.send({ type: "leave" });
+              }}
               disabled={!connected}
               className="w-full h-10 border-2 border-destructive/70 text-destructive font-bold uppercase tracking-tight text-xs hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-40"
             >
@@ -969,7 +1039,7 @@ export default function Battle() {
       <div className="grid lg:grid-cols-[1fr_260px] gap-4 sm:gap-5">
         <div>
           {/* Header Strip */}
-          <div className="flex items-center justify-between mb-3 text-xs sm:text-sm font-bold uppercase tracking-tight">
+          <div className="flex items-center justify-between mb-3 text-xs sm:text-sm font-bold uppercase tracking-tight flex-wrap gap-2">
             <span className="text-muted-foreground font-black">
               Round {Math.min(currentRound + 1, questions.length)} / {questions.length}
             </span>
@@ -1019,7 +1089,7 @@ export default function Battle() {
             {/* Flag Display */}
             <div className="mx-auto max-w-md aspect-[3/2] border-2 border-foreground bg-muted overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)]">
               {q ? (
-                <FlagImage code={q.flag} className="w-full h-full object-cover" />
+                <FlagImage code={q.flag} className="w-full h-full object-cover" priority={true} />
               ) : null}
             </div>
 
@@ -1041,8 +1111,11 @@ export default function Battle() {
                 </div>
               ) : (
                 <div className="space-y-0.5">
-                  <p className="text-sm font-bold text-foreground">
-                    Which country does this flag belong to?
+                  <p className="text-sm font-bold text-foreground flex items-center justify-center gap-1.5 flex-wrap">
+                    <span>Which country does this flag belong to?</span>
+                    <span className="hidden sm:inline-flex items-center gap-1 text-xs font-mono bg-muted/60 px-1.5 py-0.5 rounded border border-foreground/15 text-muted-foreground">
+                      Keys <kbd className="font-bold text-foreground">A</kbd>–<kbd className="font-bold text-foreground">D</kbd>
+                    </span>
                   </p>
                   <p className="text-xs text-muted-foreground font-semibold">
                     {picked ? (
@@ -1050,7 +1123,7 @@ export default function Battle() {
                         Answer locked in! Waiting for other players… ({answeredCount}/{players.length})
                       </span>
                     ) : (
-                      <span>Tap your answer before the timer expires</span>
+                      <span>Tap your answer or press A–D before the timer expires</span>
                     )}
                   </p>
                 </div>
@@ -1059,9 +1132,10 @@ export default function Battle() {
 
             {/* Synchronized 4 Options */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
-              {q?.options.map((opt) => {
+              {q?.options.map((opt, optIdx) => {
                 const isPicked = picked === opt;
                 const isCorrect = opt === q.flag;
+                const keyLetter = ["A", "B", "C", "D"][optIdx] || optIdx + 1;
 
                 let buttonStyle = "bg-card hover:-translate-x-0.5 hover:-translate-y-0.5 text-foreground";
                 if (isReveal) {
@@ -1079,21 +1153,30 @@ export default function Battle() {
                 return (
                   <button
                     key={opt}
-                    data-sound={isCorrect ? "success" : "error"}
+                    data-sound="tap"
                     disabled={isReveal || picked !== null}
                     onClick={() => answer(opt)}
                     className={cn(
-                      "h-12 border-2 border-foreground px-3 text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-between shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] disabled:cursor-default",
+                      "min-h-12 h-auto py-2.5 border-2 border-foreground px-3 text-xs sm:text-sm font-bold uppercase tracking-tight transition-all flex items-center justify-between shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] disabled:cursor-default text-left gap-2",
                       buttonStyle,
                     )}
                   >
-                    <span className="truncate">{byCode(opt)?.name || opt}</span>
-                    {isReveal && isCorrect && (
-                      <Check className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0" />
-                    )}
-                    {isReveal && isPicked && !isCorrect && (
-                      <X className="w-4 h-4 text-destructive shrink-0" />
-                    )}
+                    <span className="truncate sm:whitespace-normal break-words leading-tight flex-1">
+                      {byCode(opt)?.name || opt}
+                    </span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {!isReveal && (
+                        <span className="hidden sm:inline-flex text-[10px] font-mono px-1.5 py-0.5 rounded border border-foreground/20 bg-muted/60 font-black">
+                          {keyLetter}
+                        </span>
+                      )}
+                      {isReveal && isCorrect && (
+                        <Check className="w-4 h-4 text-emerald-700 dark:text-emerald-300 shrink-0 stroke-[3]" />
+                      )}
+                      {isReveal && isPicked && !isCorrect && (
+                        <X className="w-4 h-4 text-destructive shrink-0 stroke-[3]" />
+                      )}
+                    </div>
                   </button>
                 );
               })}

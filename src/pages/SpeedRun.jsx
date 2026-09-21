@@ -38,6 +38,11 @@ export default function SpeedRun() {
   const questionStartedAtRef = useRef(Date.now());
   const elapsedMs = useElapsedTimer(running, seed);
   const lastTimerCueRef = useRef(null);
+  const flashTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+  }, []);
 
   const flag = pool[pos];
   useFlagPrefetch(pool, pos);
@@ -137,8 +142,8 @@ export default function SpeedRun() {
       });
       nextFlag();
     }
-    const tid = setTimeout(() => setFlash(null), 250);
-    return () => clearTimeout(tid);
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = setTimeout(() => setFlash(null), 250);
   }
 
   // Keyboard support: Press A, B, C, D or 1, 2, 3, 4 to select matching answer option
@@ -357,7 +362,7 @@ export default function SpeedRun() {
           aria-live="polite"
           aria-atomic="true"
         >
-          <FlagImage code={flag.code} className="w-full h-full" />
+          <FlagImage code={flag.code} className="w-full h-full" priority={true} />
         </div>
         <p className="text-center text-sm text-muted-foreground mt-3 flex items-center justify-center gap-1.5 flex-wrap">
           <span>Choose the matching country</span>

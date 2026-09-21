@@ -91,7 +91,7 @@ export default function Recall() {
         </p>
         <div className="mx-auto mt-5 max-w-md aspect-[3/2] rounded-lg overflow-hidden bg-muted flex items-center justify-center">
           {revealed ? (
-            <FlagImage code={flag.code} className="w-full h-full" />
+            <FlagImage code={flag.code} className="w-full h-full" priority={true} />
           ) : (
             <button
               onClick={() => setRevealed(true)}
