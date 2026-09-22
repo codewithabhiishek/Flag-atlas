@@ -14,9 +14,8 @@ import {
   Copy,
   Check,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, loadLS, saveLS } from "@/lib/utils";
 import { playUiSound } from "@/lib/sounds";
-import { loadLS, saveLS } from "@/lib/utils";
 
 /**
  * "Postcard to the Cartographer" — FlagAtlas's feedback system.
