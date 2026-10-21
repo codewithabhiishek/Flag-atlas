@@ -8,6 +8,8 @@ import { useProgress } from "@/lib/ProgressContext";
 import { cn } from "@/lib/utils";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
+import { triggerHaptic } from "@/lib/haptics";
+import { playUiSound } from "@/lib/sounds";
 
 // A complete Go Berserk run covers every country once, in a fresh random order.
 const ROUND = COUNTRIES.length;
@@ -45,6 +47,8 @@ export default function WorldQuiz() {
     const correct = option.code === flag.code;
     const xp = correct ? 10 : 0;
     setChosen(option.code);
+    playUiSound(correct ? "success" : "error");
+    triggerHaptic(correct ? "success" : "error");
     record(flag.code, {
       correct,
       quality: correct ? 5 : 2,

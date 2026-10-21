@@ -103,6 +103,16 @@ export default function Layout() {
 
                 <FeedbackButton className="h-9 px-3.5 inline-flex items-center gap-1.5 border-2 border-foreground bg-card hover:bg-muted text-foreground text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] transition-all shrink-0" />
 
+                <a
+                  href="https://abhiishek.is-a.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9 px-3 inline-flex items-center gap-1 border-2 border-foreground bg-card hover:bg-muted text-foreground text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:text-terra transition-all shrink-0"
+                  title="Built by Abhishek"
+                >
+                  <span>Creator ↗</span>
+                </a>
+
                 <Link
                   to="/play"
                   className="h-9 px-4 sm:px-5 inline-flex items-center gap-1.5 border-2 border-foreground bg-terra hover:bg-terra/90 text-white text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-all shrink-0"
@@ -222,6 +232,16 @@ export default function Layout() {
                 </motion.button>
 
                 <FeedbackButton className="h-8 sm:h-9 px-2.5 inline-flex items-center gap-1.5 border-2 border-foreground bg-card hover:bg-muted text-foreground transition-all text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)]" />
+
+                <a
+                  href="https://abhiishek.is-a.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 sm:h-9 px-2.5 inline-flex items-center gap-1 border-2 border-foreground bg-card hover:bg-muted text-foreground transition-all text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:text-terra"
+                  title="Built by Abhishek"
+                >
+                  <span>Creator ↗</span>
+                </a>
               </div>
 
               {/* Mobile Right Controls (< md) */}
@@ -303,6 +323,17 @@ export default function Layout() {
                     <span>1v1 Duel</span>
                   </Link>
                 </div>
+                <div className="pt-1.5 flex justify-center">
+                  <a
+                    href="https://abhiishek.is-a.dev/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:text-terra transition-colors"
+                  >
+                    Built by Abhishek ↗
+                  </a>
+                </div>
               </div>
             </motion.div>
           )}
@@ -337,7 +368,16 @@ export default function Layout() {
                     <span className="truncate">{n.label}</span>
                   </NavLink>
                 ))}
-                <div className="col-span-2 pt-1.5 border-t border-foreground/15 flex items-center justify-end">
+                <div className="col-span-2 pt-1.5 border-t border-foreground/15 flex items-center justify-between">
+                  <a
+                    href="https://abhiishek.is-a.dev/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-terra transition-colors"
+                  >
+                    Built by Abhishek ↗
+                  </a>
                   <FeedbackButton className="h-7 px-2.5 inline-flex items-center gap-1.5 border-2 border-foreground bg-card text-foreground text-[10px] font-bold uppercase tracking-tight shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]" />
                 </div>
               </div>
@@ -369,7 +409,7 @@ export default function Layout() {
             <a
               href="https://abhiishek.is-a.dev/"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="font-semibold text-foreground underline decoration-terra/70 underline-offset-4 transition-colors hover:text-terra focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Built by Abhishek
