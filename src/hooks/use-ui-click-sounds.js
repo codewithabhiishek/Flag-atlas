@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { playUiSound } from "@/lib/sounds";
+import { triggerHaptic } from "@/lib/haptics";
 
-/** Play a UI sound for native buttons and links across the app. */
+/** Play a UI sound and trigger tactile haptic feedback for native buttons and links across the app. */
 export function useUiClickSounds() {
   useEffect(() => {
     const onClick = (event) => {
@@ -9,7 +10,9 @@ export function useUiClickSounds() {
       if (!el) return;
       if (el.disabled || el.getAttribute("aria-disabled") === "true") return;
       if (el.dataset.sound === "off") return;
-      playUiSound(el.dataset.sound || (el.matches("a[href]") ? "navigate" : "tap"));
+      const soundType = el.dataset.sound || (el.matches("a[href]") ? "navigate" : "tap");
+      playUiSound(soundType);
+      triggerHaptic(soundType === "navigate" ? "navigate" : "tap");
     };
 
     document.addEventListener("click", onClick, true);

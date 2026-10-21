@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 import { playUiSound } from "@/lib/sounds";
+import { triggerHaptic } from "@/lib/haptics";
 
 const DURATION = 45;
 
@@ -128,12 +129,16 @@ export default function SpeedRun() {
       });
       setCorrectCount((c) => c + 1);
       setFlash("ok");
+      playUiSound("advance");
+      triggerHaptic("tap");
       record(flag.code, { correct: true, quality: 5, xpGain: 5, timeMs: Date.now() - questionStartedAtRef.current });
       nextFlag();
     } else {
       comboRef.current = 0;
       setCombo(0);
       setFlash("no");
+      playUiSound("error");
+      triggerHaptic("error");
       record(flag.code, { correct: false, quality: 2, xpGain: 0, timeMs: Date.now() - questionStartedAtRef.current });
       setTime((s) => {
         const next = Math.max(0, s - 2);

@@ -8,10 +8,13 @@
 
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Tests](https://img.shields.io/badge/Tests-25%20passing-brightgreen?style=flat-square)](tests)
+[![Security](https://img.shields.io/badge/Vulnerabilities-0-brightgreen?style=flat-square)](package.json)
+[![Author](https://img.shields.io/badge/Author-Abhishek-orange?style=flat-square)](https://abhiishek.is-a.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[**Live Demo**](https://github.com/codewithabhiishek/Flag-atlas) · [**Report Bug**](https://github.com/codewithabhiishek/Flag-atlas/issues) · [**Request Feature**](https://github.com/codewithabhiishek/Flag-atlas/issues)
+[**Live Demo**](https://github.com/codewithabhiishek/Flag-atlas) · [**Author Portfolio**](https://abhiishek.is-a.dev/) · [**Report Bug**](https://github.com/codewithabhiishek/Flag-atlas/issues)
 
 </div>
 
@@ -261,6 +264,41 @@ git push origin feature/your-feature-name
 
 ---
 
+## 🧪 Verification & Testing
+ 
+ FlagAtlas uses native Node test runners (`node --test`) for fast, zero-dependency unit and contract testing:
+
+```bash
+# Run automated test suites (25 passing tests)
+npm test
+
+# Run TypeScript typechecks
+npm run typecheck
+
+# Production build and chunk analysis
+npm run build
+```
+
+---
+
+## 🛡️ Security Architecture & Mobile Haptics
+
+- **Zero npm Vulnerabilities**: Maintained at 0 vulnerabilities via Tailwind CSS v4 and dependency pruning.
+- **Strix Defensive Standards**: Dual honeypot traps (`name="botcheck"`, `name="_gotcha"`), speed-trap cooldowns (<1800ms bot deflection), and strict input tag stripping (`<[^>]*>?`).
+- **Tactile Haptic Feedback Engine**: Native `navigator.vibrate` hardware integration with safe desktop and Node testing fallbacks (`tap`, `light`, `medium`, `success`, `error`, `celebrate`, `stamp`).
+- **Zero-Backend PeerJS Battle Mode**: Direct WebRTC P2P mesh synchronization.
+
+---
+
+## 👨‍💻 Author & Creator
+
+Crafted by **Abhishek** ([abhiishek.is-a.dev](https://abhiishek.is-a.dev/)).
+
+- Portfolio: [https://abhiishek.is-a.dev/](https://abhiishek.is-a.dev/)
+- GitHub: [@codewithabhiishek](https://github.com/codewithabhiishek)
+
+---
+
 ## 📜 License
 
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
@@ -271,8 +309,9 @@ Flag images are served from [flagcdn.com](https://flagcdn.com) — free and open
 
 <div align="center">
 
-Made with ❤️ and a love for geography.
+Made with ❤️ and a love for geography by [Abhishek](https://abhiishek.is-a.dev/).
 
 **[⬆ back to top](#-flagatlas)**
 
 </div>
+
