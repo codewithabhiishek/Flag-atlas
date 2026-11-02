@@ -42,7 +42,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-gold selection:text-foreground">
-      <header className="sticky top-0 z-30 border-b-2 border-foreground bg-background/95 backdrop-blur-md transition-colors duration-300">
+      <header className="sticky top-0 z-30 border-b-2 border-foreground bg-background/95 backdrop-blur-md transition-colors duration-300 pt-[env(safe-area-inset-top,0px)]">
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-4">
           {/* Route-conditional Navigation */}
           {location.pathname === "/" ? (
@@ -420,7 +420,7 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t-2 border-foreground bg-background/80 px-3.5 py-4 text-center backdrop-blur sm:px-8 sm:py-5">
+      <footer className="border-t-2 border-foreground bg-background/80 px-3.5 py-4 text-center backdrop-blur sm:px-8 sm:py-5 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
         <div className="mx-auto flex max-w-xl flex-col items-center gap-1.5 text-muted-foreground">
           <p className="text-[10.5px] sm:text-xs font-bold uppercase leading-relaxed tracking-wider">
             FlagAtlas · explore the world, master every flag

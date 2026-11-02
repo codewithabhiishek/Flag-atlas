@@ -132,7 +132,7 @@ export default function Learn() {
             type="button"
             onClick={() => handleTabChange("guide")}
             className={cn(
-              "px-3.5 py-2 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all",
+              "px-3.5 py-2.5 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all min-h-[44px]",
               activeTab === "guide"
                 ? "border-foreground bg-foreground text-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 : "border-foreground/30 bg-card hover:bg-muted text-foreground",
@@ -146,7 +146,7 @@ export default function Learn() {
             type="button"
             onClick={() => handleTabChange("families")}
             className={cn(
-              "px-3.5 py-2 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all",
+              "px-3.5 py-2.5 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all min-h-[44px]",
               activeTab === "families"
                 ? "border-foreground bg-foreground text-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 : "border-foreground/30 bg-card hover:bg-muted text-foreground",
@@ -160,7 +160,7 @@ export default function Learn() {
             type="button"
             onClick={() => handleTabChange("directory")}
             className={cn(
-              "px-3.5 py-2 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all",
+              "px-3.5 py-2.5 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all min-h-[44px]",
               activeTab === "directory"
                 ? "border-foreground bg-foreground text-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 : "border-foreground/30 bg-card hover:bg-muted text-foreground",
@@ -174,7 +174,7 @@ export default function Learn() {
             type="button"
             onClick={() => handleTabChange("flashcards")}
             className={cn(
-              "px-3.5 py-2 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all",
+              "px-3.5 py-2.5 border-2 text-xs font-bold uppercase tracking-tight flex items-center gap-2 transition-all min-h-[44px]",
               activeTab === "flashcards"
                 ? "border-foreground bg-foreground text-background shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                 : "border-foreground/30 bg-card hover:bg-muted text-foreground",
