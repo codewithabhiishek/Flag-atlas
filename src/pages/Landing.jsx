@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Compass,
   Globe2,
@@ -18,12 +18,12 @@ import {
   Award,
   BookOpen,
   Lightbulb,
-  CheckCircle2,
   Palette,
 } from "lucide-react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import FlagImage from "@/components/FlagImage";
 import confetti from "canvas-confetti";
+import { cn } from "@/lib/utils";
 
 const GEO_URL =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -178,8 +178,6 @@ const EXPERIENCES = [
 ];
 
 export default function Landing() {
-  const navigate = useNavigate();
-
   // Interactive Live Hero Board State
   const [demoIdx, setDemoIdx] = useState(0);
   const [demoChosen, setDemoChosen] = useState(null);
