@@ -18,7 +18,6 @@ import {
   Award,
   BookOpen,
   Lightbulb,
-  Palette,
 } from "lucide-react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import FlagImage from "@/components/FlagImage";
@@ -120,63 +119,6 @@ const MEMORY_PILLARS = [
   },
 ];
 
-const EXPERIENCES = [
-  {
-    to: "/learn",
-    badge: "NEW · ZERO PRESSURE",
-    title: "Flag Academy",
-    desc: "Discover flag origin stories, mnemonic memory hooks, visual flag families, and capitals before you get tested.",
-    icon: BookOpen,
-    accent: "border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
-    cta: "Explore Lore",
-  },
-  {
-    to: "/play/speed",
-    badge: "HIGH ADRENALINE",
-    title: "Speed Run",
-    desc: "Race against a 45-second clock. Chain flawless recognition streaks and climb global leaderboards.",
-    icon: Zap,
-    accent: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300",
-    cta: "Start Sprint",
-  },
-  {
-    to: "/battle",
-    badge: "LIVE MULTIPLAYER",
-    title: "1v1 Flag Duel",
-    desc: "Create or join custom rooms with a shareable code. Battle friends flag-by-flag in real-time.",
-    icon: Swords,
-    accent: "border-terra/40 bg-terra/10 text-terra",
-    cta: "Enter Arena",
-  },
-  {
-    to: "/play/fragments",
-    badge: "VISUAL DEDUCTION",
-    title: "Flag Fragments",
-    desc: "Identify mystery nations through progressively unblurring pixel tiles before your allowed strikes run out.",
-    icon: Sparkles,
-    accent: "border-violet-500/40 bg-violet-500/10 text-violet-800 dark:text-violet-300",
-    cta: "Solve Fragments",
-  },
-  {
-    to: "/play/builder",
-    badge: "TACTILE CREATION",
-    title: "Flag Builder",
-    desc: "Reconstruct flags stripe-by-stripe and color-by-color. Deepen your spatial memory of flag geometry.",
-    icon: Palette,
-    accent: "border-rose-500/40 bg-rose-500/10 text-rose-800 dark:text-rose-300",
-    cta: "Build Flags",
-  },
-  {
-    to: "/play/recall",
-    badge: "COGNITIVE SCIENCE",
-    title: "Active Recall",
-    desc: "Picture the flag in your mind before flipping to reveal. Self-assess confidence to optimize memory scheduling.",
-    icon: Eye,
-    accent: "border-sky-500/40 bg-sky-500/10 text-sky-800 dark:text-sky-300",
-    cta: "Train Recall",
-  },
-];
-
 export default function Landing() {
   // Interactive Live Hero Board State
   const [demoIdx, setDemoIdx] = useState(0);
@@ -212,10 +154,8 @@ export default function Landing() {
     }, 1600);
   };
 
-
   return (
     <div className="w-full overflow-x-hidden bg-background text-foreground font-body">
-
       {/* ─────────────────────────────────────────────────────────────
           1. HERO SECTION
           Dominant headline, concise explanation, clear dual CTA, supporting demo
@@ -223,10 +163,8 @@ export default function Landing() {
       <section className="relative w-full py-8 md:py-12 border-b-2 border-foreground/15">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            
             {/* Left Column: Core Narrative & Primary CTAs */}
             <div className="lg:col-span-7 flex flex-col items-start text-left">
-              
               {/* Cartographic Eyebrow Badge */}
               <div className="inline-flex items-center gap-2 px-3 py-1 border-2 border-foreground bg-gold/20 text-xs font-black uppercase tracking-wider text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] mb-4 sm:mb-5">
                 <span className="text-terra">★</span>
@@ -242,9 +180,10 @@ export default function Landing() {
 
               {/* Concise Explanation */}
               <p className="text-sm sm:text-base md:text-lg text-muted-foreground font-medium leading-relaxed max-w-[56ch] mb-6 sm:mb-7">
-                The interactive atlas to learn, remember, and master world flags & capitals.
-                Discover flag origin stories in the Academy, train with adaptive spaced repetition,
-                or challenge friends in real-time battles.
+                FlagAtlas turns global geography into an intuitive, systematic
+                trainer. Powered by adaptive spaced repetition, it predicts
+                memory decay and tests flags at the exact moment before you
+                forget them.
               </p>
 
               {/* Primary CTAs */}
@@ -289,15 +228,15 @@ export default function Landing() {
               {/* Assurance Subtitle */}
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>Zero friction · Free forever · No account required to play</span>
+                <span>
+                  Zero friction · Free forever · No account required to play
+                </span>
               </div>
-
             </div>
 
             {/* Right Column: Supporting Interactive Demo */}
             <div className="lg:col-span-5 flex justify-center w-full">
               <div className="w-full max-w-[320px] sm:max-w-[360px] border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)] overflow-hidden">
-                
                 {/* Board Top Header */}
                 <div className="h-9 px-3.5 bg-foreground text-background flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -314,8 +253,12 @@ export default function Landing() {
                 {/* Board Body */}
                 <div className="p-3.5 sm:p-4 space-y-3">
                   <div className="flex items-center justify-between text-xs text-muted-foreground font-bold uppercase tracking-wider">
-                    <span>Card {demoIdx + 1} of {DEMO_FLAGS.length}</span>
-                    <span className="text-terra font-semibold">{currentFlag.region}</span>
+                    <span>
+                      Card {demoIdx + 1} of {DEMO_FLAGS.length}
+                    </span>
+                    <span className="text-terra font-semibold">
+                      {currentFlag.region}
+                    </span>
                   </div>
 
                   {/* Flag Image Box */}
@@ -345,12 +288,15 @@ export default function Landing() {
                     </div>
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       {currentFlag.options.map((opt, i) => {
-                        let btnStyle = "border-foreground bg-card hover:bg-muted text-foreground";
+                        let btnStyle =
+                          "border-foreground bg-card hover:bg-muted text-foreground";
                         if (demoChosen !== null) {
                           if (i === currentFlag.correct) {
-                            btnStyle = "border-emerald-600 bg-emerald-500 text-white font-black";
+                            btnStyle =
+                              "border-emerald-600 bg-emerald-500 text-white font-black";
                           } else if (i === demoChosen) {
-                            btnStyle = "border-destructive bg-destructive text-white";
+                            btnStyle =
+                              "border-destructive bg-destructive text-white";
                           } else {
                             btnStyle = "border-foreground/30 opacity-40";
                           }
@@ -375,7 +321,12 @@ export default function Landing() {
 
                   {/* Demo Quick Controls */}
                   <div className="pt-2 border-t border-foreground/15 flex items-center justify-between text-xs text-muted-foreground font-semibold">
-                    <span>Capital: <strong className="text-foreground">{currentFlag.capital}</strong></span>
+                    <span>
+                      Capital:{" "}
+                      <strong className="text-foreground">
+                        {currentFlag.capital}
+                      </strong>
+                    </span>
                     <button
                       onClick={() => {
                         setDemoIdx((prev) => (prev + 1) % DEMO_FLAGS.length);
@@ -388,25 +339,23 @@ export default function Landing() {
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
-
           </div>
         </div>
       </section>
-
-
 
       {/* ─────────────────────────────────────────────────────────────
           2. THE FLAG ACADEMY: FOR CURIOUS MINDS & ZERO TEST PRESSURE
           Hook up curious learners with flag lore, stories, & capital tricks
       ───────────────────────────────────────────────────────────── */}
-      <section id="academy" className="w-full py-10 md:py-16 bg-muted/20 border-b-2 border-foreground/15">
+      <section
+        id="academy"
+        className="w-full py-10 md:py-16 bg-muted/20 border-b-2 border-foreground/15"
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="atlas-card p-6 sm:p-10 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)]">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              
               {/* Left Column: Narrative Hook */}
               <div className="lg:col-span-7 flex flex-col items-start text-left space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 border-2 border-foreground bg-emerald-500/15 text-xs font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-200 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.2)]">
@@ -419,26 +368,40 @@ export default function Landing() {
                 </h2>
 
                 <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-[56ch]">
-                  Real talk: staring at a random flag and guessing blindly isn't learning. 
-                  If you're a curious student or geography geek who wants to know the <strong>real history</strong>, 
-                  spot <strong>design patterns across continents</strong>, and remember every capital city with effortless 
-                  story tricks — the <strong>Flag Academy</strong> is where you start.
+                  Real talk: staring at a random flag and guessing blindly isn't
+                  learning. If you're a curious student or geography geek who
+                  wants to know the <strong>real history</strong>, spot{" "}
+                  <strong>design patterns across continents</strong>, and
+                  remember every capital city with effortless story tricks — the{" "}
+                  <strong>Flag Academy</strong> is where you start.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full pt-1">
                   <div className="p-3.5 border-2 border-foreground bg-background rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
-                    <span className="text-sm font-display font-black text-terra block">💡 Memory Hooks</span>
-                    <span className="text-xs text-muted-foreground mt-1 block">Wild historical stories that make flags stick forever.</span>
+                    <span className="text-sm font-display font-black text-terra block">
+                      💡 Memory Hooks
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1 block">
+                      Wild historical stories that make flags stick forever.
+                    </span>
                   </div>
 
                   <div className="p-3.5 border-2 border-foreground bg-background rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
-                    <span className="text-sm font-display font-black text-forest block">🧩 Flag Families</span>
-                    <span className="text-xs text-muted-foreground mt-1 block">Nordic Crosses, Sun emblems, and Pan-African tricolors.</span>
+                    <span className="text-sm font-display font-black text-forest block">
+                      🧩 Flag Families
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1 block">
+                      Nordic Crosses, Sun emblems, and Pan-African tricolors.
+                    </span>
                   </div>
 
                   <div className="p-3.5 border-2 border-foreground bg-background rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
-                    <span className="text-sm font-display font-black text-gold block">📍 Capital Tricks</span>
-                    <span className="text-xs text-muted-foreground mt-1 block">Pair countries to capitals with easy mental associations.</span>
+                    <span className="text-sm font-display font-black text-gold block">
+                      📍 Capital Tricks
+                    </span>
+                    <span className="text-xs text-muted-foreground mt-1 block">
+                      Pair countries to capitals with easy mental associations.
+                    </span>
                   </div>
                 </div>
 
@@ -472,21 +435,34 @@ export default function Landing() {
 
                   <div className="flex items-center gap-4">
                     <div className="w-24 aspect-[3/2] border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded overflow-hidden shrink-0 bg-background">
-                      <FlagImage code="al" alt="Flag of Albania" className="w-full h-full object-cover" />
+                      <FlagImage
+                        code="al"
+                        alt="Flag of Albania"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-terra">Europe</span>
-                      <h4 className="font-display font-black text-lg text-foreground">Albania</h4>
-                      <p className="text-xs font-bold text-muted-foreground">Capital: Tirana</p>
+                      <span className="text-[10px] font-bold uppercase text-terra">
+                        Europe
+                      </span>
+                      <h4 className="font-display font-black text-lg text-foreground">
+                        Albania
+                      </h4>
+                      <p className="text-xs font-bold text-muted-foreground">
+                        Capital: Tirana
+                      </p>
                     </div>
                   </div>
 
                   <div className="p-3 bg-amber-500/10 border-2 border-foreground/20 rounded text-xs space-y-1">
                     <strong className="text-amber-900 dark:text-amber-200 uppercase font-black flex items-center gap-1">
-                      <Lightbulb className="w-3 h-3 text-amber-600 dark:text-amber-400" /> The Memory Hook:
+                      <Lightbulb className="w-3 h-3 text-amber-600 dark:text-amber-400" />{" "}
+                      The Memory Hook:
                     </strong>
                     <p className="text-foreground leading-relaxed">
-                      "Albania calls itself <em>Shqipëria</em> ('Land of the Eagles'). That's why it features a fierce 2-headed black eagle. The eagle soars high over Tirana."
+                      "Albania calls itself <em>Shqipëria</em> ('Land of the
+                      Eagles'). That's why it features a fierce 2-headed black
+                      eagle. The eagle soars high over Tirana."
                     </p>
                   </div>
 
@@ -498,7 +474,6 @@ export default function Landing() {
                   </Link>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -508,9 +483,11 @@ export default function Landing() {
           3. HOW FLAGATLAS WORKS
           Progressive 4-step cognitive loop — tight, editorial presentation
       ───────────────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="w-full py-8 md:py-12 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-14">
+      <section
+        id="how-it-works"
+        className="w-full py-8 md:py-12 bg-muted/20 border-b-2 border-foreground/15 scroll-mt-14"
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          
           {/* Section Header */}
           <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
             <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-1.5">
@@ -521,7 +498,8 @@ export default function Landing() {
               HOW FLAGATLAS WORKS
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium mt-1.5">
-              A 4-stage cognitive cycle converting visual recognition into permanent geographic memory.
+              A 4-stage cognitive cycle converting visual recognition into
+              permanent geographic memory.
             </p>
           </div>
 
@@ -554,81 +532,18 @@ export default function Landing() {
               );
             })}
           </div>
-
         </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          4. EXPERIENCES SHOWCASE
-          6 unique ways to study, train, and duel with flags
-      ───────────────────────────────────────────────────────────── */}
-      <section id="experiences" className="w-full py-10 md:py-16 bg-muted/10 border-b-2 border-foreground/15 scroll-mt-14">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          {/* Section Header */}
-          <div className="max-w-2xl mb-8 md:mb-12">
-            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2">
-              <Sparkles className="w-4 h-4" />
-              <span>DISCIPLINES & GAME MODES</span>
-            </div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight mb-2">
-              SIX WAYS TO STUDY, TEST & COMPETE
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-              Whether you want zero-pressure flag lore, high-adrenaline sprint streaks, or live 1v1 battles with friends, FlagAtlas has a training mode engineered for you.
-            </p>
-          </div>
-
-          {/* Grid of 6 experiences */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {EXPERIENCES.map((exp) => {
-              const Icon = exp.icon;
-              return (
-                <Link
-                  key={exp.to}
-                  to={exp.to}
-                  className="group relative border-2 border-foreground bg-card p-5 sm:p-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-1 transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className={cn("text-[10px] font-mono font-black uppercase tracking-wider px-2 py-0.5 border-2 border-foreground shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.2)]", exp.accent)}>
-                        {exp.badge}
-                      </span>
-                      <div className="w-9 h-9 border-2 border-foreground flex items-center justify-center bg-card shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.15)] group-hover:scale-105 transition-transform">
-                        <Icon className="w-4 h-4 text-foreground" />
-                      </div>
-                    </div>
-                    <h3 className="font-display font-black text-lg text-foreground mb-1.5 group-hover:text-terra transition-colors">
-                      {exp.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                      {exp.desc}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-foreground/10 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-foreground">
-                    <span>{exp.cta}</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-terra" />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
-          5. ATLAS PREVIEW TEASER
+          4. ATLAS PREVIEW TEASER
           Static world map silhouette — communicates the core product concept
           without duplicating the full /atlas page
       ───────────────────────────────────────────────────────────── */}
-      <section id="atlas" className="w-full py-8 md:py-12 border-b-2 border-foreground/15 scroll-mt-14">
+      <section className="w-full py-8 md:py-12 border-b-2 border-foreground/15">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
           {/* Two-column: text left, map right */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-
             {/* Left: Narrative */}
             <div className="lg:col-span-5 flex flex-col">
               <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2">
@@ -636,13 +551,17 @@ export default function Landing() {
                 <span>THE WORLD ATLAS</span>
               </div>
               <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight mb-4">
-                YOUR TERRITORY<br />EXPANDS WITH<br />
+                YOUR TERRITORY
+                <br />
+                EXPANDS WITH
+                <br />
                 <span className="text-terra">EVERY FLAG MASTERED</span>
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed mb-6">
-                As you master each nation's flag, its territory permanently lights up on
-                your personal world map. 197 countries. Every one a milestone.
-                The Atlas is the visual record of your geographic knowledge.
+                As you master each nation's flag, its territory permanently
+                lights up on your personal world map. 197 countries. Every one a
+                milestone. The Atlas is the visual record of your geographic
+                knowledge.
               </p>
 
               {/* Colour legend */}
@@ -650,17 +569,23 @@ export default function Landing() {
                 <div className="flex items-center gap-2.5">
                   <span className="w-4 h-4 shrink-0 border-2 border-foreground bg-[hsl(var(--forest))]" />
                   <span className="text-foreground">Mastered</span>
-                  <span className="text-muted-foreground font-normal normal-case">— permanently colored</span>
+                  <span className="text-muted-foreground font-normal normal-case">
+                    — permanently colored
+                  </span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <span className="w-4 h-4 shrink-0 border-2 border-foreground bg-[hsl(var(--terra))]" />
                   <span className="text-foreground">Learning</span>
-                  <span className="text-muted-foreground font-normal normal-case">— in progress</span>
+                  <span className="text-muted-foreground font-normal normal-case">
+                    — in progress
+                  </span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <span className="w-4 h-4 shrink-0 border-2 border-foreground bg-muted" />
                   <span className="text-foreground">Unexplored</span>
-                  <span className="text-muted-foreground font-normal normal-case">— not studied yet</span>
+                  <span className="text-muted-foreground font-normal normal-case">
+                    — not studied yet
+                  </span>
                 </div>
               </div>
 
@@ -685,7 +610,10 @@ export default function Landing() {
                   </span>
                 </div>
                 {/* Map body */}
-                <div className="relative w-full" style={{ aspectRatio: "1.8 / 1" }}>
+                <div
+                  className="relative w-full"
+                  style={{ aspectRatio: "1.8 / 1" }}
+                >
                   <ComposableMap
                     projection="geoNaturalEarth1"
                     style={{ width: "100%", height: "100%" }}
@@ -732,9 +660,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-
           </div>
-
         </div>
       </section>
 
@@ -744,7 +670,6 @@ export default function Landing() {
       ───────────────────────────────────────────────────────────── */}
       <section className="w-full py-8 md:py-12 border-b-2 border-foreground/15">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-7">
             <div className="max-w-2xl space-y-1.5">
               <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra">
@@ -755,10 +680,11 @@ export default function Landing() {
                 THE SCIENCE OF RETENTION
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium leading-relaxed">
-                Standard trivia tests you once and forgets about you. FlagAtlas adapts the SuperMemo
-                SM-2 interval curve: every nation maintains a personalized ease factor. Correct
-                recalls progressively extend review intervals, while misses return immediately
-                to your active queue until permanent mastery is verified.
+                Standard trivia tests you once and forgets about you. FlagAtlas
+                adapts the SuperMemo SM-2 interval curve: every nation maintains
+                a personalized ease factor. Correct recalls progressively extend
+                review intervals, while misses return immediately to your active
+                queue until permanent mastery is verified.
               </p>
             </div>
 
@@ -803,7 +729,6 @@ export default function Landing() {
               );
             })}
           </div>
-
         </div>
       </section>
 
@@ -813,7 +738,6 @@ export default function Landing() {
       ───────────────────────────────────────────────────────────── */}
       <section className="w-full py-8 md:py-12 bg-muted/15">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          
           <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2">
             <Flame className="w-4 h-4" />
             <span>START NOW</span>
@@ -824,13 +748,14 @@ export default function Landing() {
           </h2>
 
           <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium max-w-[50ch] mx-auto mb-5 sm:mb-6 leading-relaxed">
-            Jump in right now. Pick a solo discipline, color your map, or challenge a friend in a live 1v1 battle.
+            Jump in right now. Pick a solo discipline, color your map, or
+            challenge a friend in a live 1v1 battle.
           </p>
 
-          <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto">
+          <div className="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto">
             <Link
               to="/play"
-              className="w-full sm:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Play Solo</span>
@@ -838,7 +763,7 @@ export default function Landing() {
 
             <Link
               to="/learn"
-              className="w-full sm:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
               <span>Learn Lore 💡</span>
@@ -846,7 +771,7 @@ export default function Landing() {
 
             <Link
               to="/battle"
-              className="w-full sm:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Swords className="w-4 h-4 text-terra" />
               <span>Play with Friends</span>
@@ -854,16 +779,14 @@ export default function Landing() {
 
             <Link
               to="/atlas"
-              className="w-full sm:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground/40 bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground/40 bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Compass className="w-4 h-4 text-forest" />
               <span>Explore Atlas</span>
             </Link>
           </div>
-
         </div>
       </section>
-
     </div>
   );
 }
