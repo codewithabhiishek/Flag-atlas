@@ -9,9 +9,9 @@ import ScrollToTop from "./components/ScrollToTop";
 import { lazy, Suspense } from "react";
 import Layout from "@/components/Layout";
 import { ProgressProvider } from "@/lib/ProgressContext";
+import Landing from "@/pages/Landing";
 
 // Code splitting via React.lazy — ensures game modes and auth screens are only loaded when navigated to
-const Landing = lazy(() => import("@/pages/Landing"));
 const Home = lazy(() => import("@/pages/Home"));
 const Learn = lazy(() => import("@/pages/Learn"));
 const FlagFragments = lazy(() => import("@/pages/FlagFragments"));
