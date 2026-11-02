@@ -17,6 +17,8 @@ import {
   Flame,
   Award,
   BookOpen,
+  Lightbulb,
+  CheckCircle2,
 } from "lucide-react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import FlagImage from "@/components/FlagImage";
@@ -200,8 +202,16 @@ export default function Landing() {
                 </Link>
 
                 <Link
+                  to="/learn"
+                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
+                >
+                  <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
+                  <span>Learn First 💡</span>
+                </Link>
+
+                <Link
                   to="/battle"
-                  className="h-11 sm:h-12 px-6 sm:px-7 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
+                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
                 >
                   <Swords className="w-4 h-4 text-terra" />
                   <span>Play with Friends</span>
@@ -331,6 +341,112 @@ export default function Landing() {
       </section>
 
 
+
+      {/* ─────────────────────────────────────────────────────────────
+          2. THE FLAG ACADEMY: FOR CURIOUS MINDS & ZERO TEST PRESSURE
+          Hook up curious learners with flag lore, stories, & capital tricks
+      ───────────────────────────────────────────────────────────── */}
+      <section id="academy" className="w-full py-10 md:py-16 bg-muted/20 border-b-2 border-foreground/15">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="atlas-card p-6 sm:p-10 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.25)]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              
+              {/* Left Column: Narrative Hook */}
+              <div className="lg:col-span-7 flex flex-col items-start text-left space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 border-2 border-foreground bg-emerald-500/15 text-xs font-black uppercase tracking-wider text-emerald-950 dark:text-emerald-200 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,0.2)]">
+                  <Lightbulb className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>FOR CURIOUS LEARNERS · ZERO TEST STRESS</span>
+                </div>
+
+                <h2 className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-foreground tracking-tight leading-tight">
+                  WANT TO LEARN THE LORE BEFORE YOU PLAY?
+                </h2>
+
+                <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-[56ch]">
+                  Real talk: staring at a random flag and guessing blindly isn't learning. 
+                  If you're a curious student or geography geek who wants to know the <strong>real history</strong>, 
+                  spot <strong>design patterns across continents</strong>, and remember every capital city with effortless 
+                  story tricks — the <strong>Flag Academy</strong> is where you start.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full pt-1">
+                  <div className="p-3.5 border-2 border-foreground bg-background rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
+                    <span className="text-sm font-display font-black text-terra block">💡 Memory Hooks</span>
+                    <span className="text-xs text-muted-foreground mt-1 block">Wild historical stories that make flags stick forever.</span>
+                  </div>
+
+                  <div className="p-3.5 border-2 border-foreground bg-background rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
+                    <span className="text-sm font-display font-black text-forest block">🧩 Flag Families</span>
+                    <span className="text-xs text-muted-foreground mt-1 block">Nordic Crosses, Sun emblems, and Pan-African tricolors.</span>
+                  </div>
+
+                  <div className="p-3.5 border-2 border-foreground bg-background rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]">
+                    <span className="text-sm font-display font-black text-gold block">📍 Capital Tricks</span>
+                    <span className="text-xs text-muted-foreground mt-1 block">Pair countries to capitals with easy mental associations.</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                  <Link
+                    to="/learn"
+                    className="h-11 sm:h-12 px-7 border-2 border-foreground bg-terra hover:bg-terra/90 text-white font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span>Explore Flag Academy</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+
+                  <span className="text-xs font-semibold text-muted-foreground self-center">
+                    No timer · No score drop · 100% chill pace
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Column: Mini Interactive Lore Card Teaser */}
+              <div className="lg:col-span-5 w-full">
+                <div className="border-2 border-foreground bg-card p-5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)] space-y-4">
+                  <div className="flex items-center justify-between text-xs border-b border-foreground/15 pb-3">
+                    <span className="font-bold uppercase tracking-wider text-terra flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" /> Story Snapshot
+                    </span>
+                    <span className="text-[11px] font-mono font-bold text-muted-foreground uppercase">
+                      Sample Lesson
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 aspect-[3/2] border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded overflow-hidden shrink-0 bg-background">
+                      <FlagImage code="al" alt="Flag of Albania" className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase text-terra">Europe</span>
+                      <h4 className="font-display font-black text-lg text-foreground">Albania</h4>
+                      <p className="text-xs font-bold text-muted-foreground">Capital: Tirana</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-amber-500/10 border-2 border-foreground/20 rounded text-xs space-y-1">
+                    <strong className="text-amber-900 dark:text-amber-200 uppercase font-black flex items-center gap-1">
+                      <Lightbulb className="w-3 h-3 text-amber-600 dark:text-amber-400" /> The Memory Hook:
+                    </strong>
+                    <p className="text-foreground leading-relaxed">
+                      "Albania calls itself <em>Shqipëria</em> ('Land of the Eagles'). That's why it features a fierce 2-headed black eagle. The eagle soars high over Tirana."
+                    </p>
+                  </div>
+
+                  <Link
+                    to="/learn"
+                    className="block text-center py-2 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity"
+                  >
+                    Learn All 197 Country Stories →
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ─────────────────────────────────────────────────────────────
           3. HOW FLAGATLAS WORKS
@@ -596,6 +712,14 @@ export default function Landing() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to="/learn"
+              className="h-11 sm:h-12 px-7 sm:px-8 w-full sm:w-auto border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
+            >
+              <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
+              <span>Learn Lore 💡</span>
+            </Link>
+
             <Link
               to="/play"
               className="h-11 sm:h-12 px-7 sm:px-8 w-full sm:w-auto border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
