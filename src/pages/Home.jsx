@@ -14,6 +14,7 @@ import {
   Trophy,
   Compass,
   BarChart2,
+  BookOpen,
   Globe,
   History,
   Sparkles,
@@ -539,6 +540,15 @@ export default function Home() {
                 >
                   Play Now <ArrowRight className="w-3.5 h-3.5" />
                 </button>
+              </motion.div>
+              <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }}>
+                <Link
+                  to="/learn"
+                  className="flex items-center justify-center gap-1.5 border-2 border-foreground bg-emerald-500/20 text-foreground h-10 px-3 font-bold uppercase text-xs tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-emerald-500/30 transition-colors rounded"
+                  title="Study countries & capitals"
+                >
+                  <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
+                </Link>
               </motion.div>
               <motion.div whileHover={{ y: -2 }} whileTap={{ y: 1 }}>
                 <Link

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
-import { Moon, Sun, Compass, BarChart3, Layers, Swords, Sparkles, Menu, X, Play, ArrowRight } from "lucide-react";
+import { Moon, Sun, Compass, BarChart3, Layers, Swords, Sparkles, Menu, X, Play, ArrowRight, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useUiClickSounds } from "@/hooks/use-ui-click-sounds";
@@ -9,6 +9,7 @@ import { FeedbackButton } from "@/components/FeedbackLauncher";
 
 const NAV = [
   { to: "/atlas", label: "Atlas", icon: Compass },
+  { to: "/learn", label: "Learn", icon: BookOpen },
   { to: "/play", label: "Modes", icon: Sparkles },
   { to: "/battle", label: "Battle", icon: Swords },
   { to: "/dashboard", label: "Stats", icon: BarChart3 },

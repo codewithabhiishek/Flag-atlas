@@ -13,6 +13,7 @@ import { ProgressProvider } from "@/lib/ProgressContext";
 // Code splitting via React.lazy — ensures game modes and auth screens are only loaded when navigated to
 const Landing = lazy(() => import("@/pages/Landing"));
 const Home = lazy(() => import("@/pages/Home"));
+const Learn = lazy(() => import("@/pages/Learn"));
 const FlagFragments = lazy(() => import("@/pages/FlagFragments"));
 const SpeedRun = lazy(() => import("@/pages/SpeedRun"));
 const Recall = lazy(() => import("@/pages/Recall"));
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
         <Route element={<Layout />}>
           <Route path="/" element={<Landing />} />
           <Route path="/atlas" element={<Home />} />
+          <Route path="/learn" element={<Learn />} />
           <Route path="/atleast" element={<Navigate to="/atlas" replace />} />
           <Route path="/play/fragments" element={<FlagFragments />} />
           <Route path="/play/speed" element={<SpeedRun />} />

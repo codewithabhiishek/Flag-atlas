@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Eye, Globe2, Palette, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, Globe2, Palette, Sparkles, Zap, BookOpen } from "lucide-react";
 import { BUILDABLE } from "@/data/buildableFlags";
 import { byCode } from "@/data/countries";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,26 @@ export default function ModePicker() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-terra">Choose a game</p>
         <h1 className="mt-2 font-display text-3xl font-bold text-foreground sm:text-4xl">{title}</h1>
         <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">Every question in the selected game will use flags from {region || "around the world"}.</p>
+        
+        <Link
+          to={`/learn${region ? `?region=${encodeURIComponent(region)}` : ""}`}
+          className="mt-4 flex items-center justify-between gap-4 border-2 border-foreground bg-emerald-500/10 p-3.5 sm:p-4 transition-transform hover:-translate-y-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
+        >
+          <div className="flex items-center gap-3">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center border-2 border-foreground bg-emerald-500/20 text-emerald-900 dark:text-emerald-100">
+              <BookOpen className="h-4.5 w-4.5" />
+            </span>
+            <div>
+              <span className="block font-display text-base font-bold text-foreground">
+                Study {region ? region : "All Countries"} First
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Flip through flashcards and review capitals at your own pace before playing.
+              </span>
+            </div>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-foreground" />
+        </Link>
         {!region && (
           <Link to="/play/go-berserk" className="mt-5 flex items-center gap-4 border-2 border-foreground bg-violet-500/10 p-4 transition-transform hover:-translate-y-1">
             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center border-2 border-foreground bg-violet-500/15"><Globe2 className="h-5 w-5" /></span>
