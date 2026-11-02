@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
   Search,
@@ -14,7 +14,6 @@ import {
   Compass,
   ArrowRight,
   Layers,
-  GraduationCap,
   X,
   CheckCircle2,
   Check,
@@ -22,9 +21,8 @@ import {
   Info,
   HelpCircle,
   Eye,
-  BookMarked,
 } from "lucide-react";
-import { COUNTRIES, byCode, shuffle, pickOptions } from "@/data/countries";
+import { COUNTRIES, byCode, pickOptions } from "@/data/countries";
 import { REGIONS } from "@/data/regions";
 import { FLAG_FAMILIES, getCountryFact } from "@/data/countryFacts";
 import { useProgress } from "@/lib/ProgressContext";
