@@ -77,6 +77,15 @@ export default function Layout() {
                   >
                     How It Works
                   </a>
+                  <Link
+                    to="/learn"
+                    className="text-terra font-extrabold hover:text-foreground transition-colors px-1 py-1 inline-flex items-center gap-1.5"
+                  >
+                    <span>Flag Academy</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded border border-terra/30 bg-terra/10 text-terra font-bold">
+                      NEW
+                    </span>
+                  </Link>
                   <a
                     href="#experiences"
                     className="hover:text-foreground transition-colors px-1 py-1"
@@ -282,6 +291,17 @@ export default function Layout() {
               className="md:hidden border-t-2 border-foreground bg-background px-4 py-3.5 overflow-hidden shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]"
             >
               <div className="flex flex-col gap-2">
+                <Link
+                  to="/learn"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="h-9 px-3 border-2 border-foreground bg-emerald-500/15 hover:bg-emerald-500/25 text-foreground font-bold text-xs uppercase tracking-wider inline-flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    Flag Academy (Learn First)
+                  </span>
+                  <span className="text-[10px] px-1 rounded bg-emerald-600 text-white font-bold">NEW</span>
+                </Link>
                 <a
                   href="#how-it-works"
                   onClick={() => setMobileMenuOpen(false)}
