@@ -133,7 +133,7 @@ export function FeedbackModal({ isOpen, onClose }) {
       setPhase("mailed");
       return;
     }
-    if (Date.now() - openedAtRef.current < 1500) {
+    if (Date.now() - openedAtRef.current < 1800) {
       setError("That was fast even for an explorer — take a moment to re-read your note.");
       return;
     }

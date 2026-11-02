@@ -1152,6 +1152,10 @@ function ClassicFlashcards({ region, onRegionChange }) {
           Next <ChevronRight className="w-4 h-4" />
         </button>
       </div>
+
+      <div className="text-center text-[11px] text-muted-foreground font-medium pt-1">
+        Shortcuts: <kbd className="px-1.5 py-0.5 border rounded bg-muted font-mono text-[10px]">Space</kbd> Flip · <kbd className="px-1.5 py-0.5 border rounded bg-muted font-mono text-[10px]">← / →</kbd> Navigate
+      </div>
     </div>
   );
 }
