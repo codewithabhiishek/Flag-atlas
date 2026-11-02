@@ -737,7 +737,7 @@ export default function Landing() {
           Single, high-impact closing section — all three entry points
       ───────────────────────────────────────────────────────────── */}
       <section className="w-full py-8 md:py-12 bg-muted/15">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-terra mb-2">
             <Flame className="w-4 h-4" />
             <span>START NOW</span>
@@ -752,10 +752,10 @@ export default function Landing() {
             challenge a friend in a live 1v1 battle.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row items-center justify-center gap-3 max-w-xs sm:max-w-xl lg:max-w-none mx-auto">
             <Link
               to="/play"
-              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full lg:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Play Solo</span>
@@ -763,7 +763,7 @@ export default function Landing() {
 
             <Link
               to="/learn"
-              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full lg:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
               <span>Learn Lore 💡</span>
@@ -771,7 +771,7 @@ export default function Landing() {
 
             <Link
               to="/battle"
-              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full lg:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Swords className="w-4 h-4 text-terra" />
               <span>Play with Friends</span>
@@ -779,7 +779,7 @@ export default function Landing() {
 
             <Link
               to="/atlas"
-              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground/40 bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+              className="w-full lg:w-auto h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground/40 bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Compass className="w-4 h-4 text-forest" />
               <span>Explore Atlas</span>
