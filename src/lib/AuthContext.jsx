@@ -53,13 +53,19 @@ function parseUserFromToken(token) {
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
+  const [user, setUser] = useState(() => {
+    const token = readStoredToken();
+    return token ? parseUserFromToken(token) : null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = readStoredToken();
+    return Boolean(token);
+  });
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+  const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [appPublicSettings, setAppPublicSettings] = useState(null);
+  const [authChecked, setAuthChecked] = useState(true);
+  const [appPublicSettings, setAppPublicSettings] = useState({});
 
   useEffect(() => {
     checkAppState();
