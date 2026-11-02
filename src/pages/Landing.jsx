@@ -192,10 +192,10 @@ export default function Landing() {
               </p>
 
               {/* Primary CTAs */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mb-3">
+              <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mb-3">
                 <Link
                   to="/play"
-                  className="h-11 sm:h-12 px-6 sm:px-7 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
+                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   <span>Play Solo</span>
@@ -203,7 +203,7 @@ export default function Landing() {
 
                 <Link
                   to="/learn"
-                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
+                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
                   <span>Learn First 💡</span>
@@ -211,7 +211,7 @@ export default function Landing() {
 
                 <Link
                   to="/battle"
-                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
+                  className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <Swords className="w-4 h-4 text-terra" />
                   <span>Play with Friends</span>
@@ -711,26 +711,26 @@ export default function Landing() {
             Jump in right now. Pick a solo discipline, color your map, or challenge a friend in a live 1v1 battle.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              to="/learn"
-              className="h-11 sm:h-12 px-7 sm:px-8 w-full sm:w-auto border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2"
-            >
-              <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
-              <span>Learn Lore 💡</span>
-            </Link>
-
+          <div className="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto">
             <Link
               to="/play"
-              className="h-11 sm:h-12 px-7 sm:px-8 w-full sm:w-auto border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-foreground text-background font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Play Solo</span>
             </Link>
 
             <Link
+              to="/learn"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-emerald-500/20 hover:bg-emerald-500/30 text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              <BookOpen className="w-4 h-4 text-emerald-800 dark:text-emerald-300" />
+              <span>Learn Lore 💡</span>
+            </Link>
+
+            <Link
               to="/battle"
-              className="h-11 sm:h-12 px-7 sm:px-8 w-full sm:w-auto border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Swords className="w-4 h-4 text-terra" />
               <span>Play with Friends</span>
@@ -738,7 +738,7 @@ export default function Landing() {
 
             <Link
               to="/atlas"
-              className="h-11 sm:h-12 px-7 sm:px-8 w-full sm:w-auto border-2 border-foreground/40 bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2.5"
+              className="h-11 sm:h-12 px-5 sm:px-6 border-2 border-foreground/40 bg-card hover:bg-muted text-foreground font-bold text-xs sm:text-sm uppercase tracking-wide shadow-[2px_2px_0px_0px_rgba(0,0,0,0.4)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] hover:-translate-y-0.5 active:translate-y-0 transition-transform inline-flex items-center justify-center gap-2 whitespace-nowrap"
             >
               <Compass className="w-4 h-4 text-forest" />
               <span>Explore Atlas</span>
