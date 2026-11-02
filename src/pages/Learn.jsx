@@ -299,7 +299,12 @@ function MemoryGuideMode({
   useEffect(() => {
     const handleKey = (e) => {
       const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || document.activeElement?.isContentEditable) return;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        document.activeElement?.isContentEditable
+      )
+        return;
       if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
 
       if (e.key === "ArrowRight") {
@@ -321,7 +326,8 @@ function MemoryGuideMode({
 
   const status = flagStatus(flagsProgress, currentCountry.code);
   const isLearnedThisSession = learnedSet.has(currentCountry.code);
-  const sessionPct = deck.length > 0 ? Math.round((learnedSet.size / deck.length) * 100) : 0;
+  const sessionPct =
+    deck.length > 0 ? Math.round((learnedSet.size / deck.length) * 100) : 0;
 
   return (
     <div className="space-y-4">
@@ -393,7 +399,10 @@ function MemoryGuideMode({
         <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
           <span className="flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-forest" />
-            Session Mastery: <strong className="text-foreground">{learnedSet.size}</strong> of {deck.length} flags memorized
+            Session Mastery:{" "}
+            <strong className="text-foreground">
+              {learnedSet.size}
+            </strong> of {deck.length} flags memorized
           </span>
           <span className="font-mono text-foreground">{sessionPct}%</span>
         </div>
@@ -544,7 +553,15 @@ function MemoryGuideMode({
             </div>
 
             <div className="text-center sm:text-left text-[11px] text-muted-foreground font-medium pt-1">
-              Shortcuts: <kbd className="px-1.5 py-0.5 border rounded bg-muted font-mono text-[10px]">← / →</kbd> Navigate · <kbd className="px-1.5 py-0.5 border rounded bg-muted font-mono text-[10px]">T</kbd> Quick Test
+              Shortcuts:{" "}
+              <kbd className="px-1.5 py-0.5 border rounded bg-muted font-mono text-[10px]">
+                ← / →
+              </kbd>{" "}
+              Navigate ·{" "}
+              <kbd className="px-1.5 py-0.5 border rounded bg-muted font-mono text-[10px]">
+                T
+              </kbd>{" "}
+              Quick Test
             </div>
           </motion.div>
         ) : (
@@ -563,7 +580,12 @@ function MemoryGuideMode({
   );
 }
 
-function InteractiveRecallQuiz({ currentCountry, fact, onReveal, onMarkLearned }) {
+function InteractiveRecallQuiz({
+  currentCountry,
+  fact,
+  onReveal,
+  onMarkLearned,
+}) {
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
 
@@ -625,7 +647,8 @@ function InteractiveRecallQuiz({ currentCountry, fact, onReveal, onMarkLearned }
               btnStyle =
                 "border-2 border-destructive bg-destructive/15 text-destructive line-through opacity-80";
             } else {
-              btnStyle = "border-2 border-border/40 text-muted-foreground/40 opacity-35";
+              btnStyle =
+                "border-2 border-border/40 text-muted-foreground/40 opacity-35";
             }
           }
 
@@ -667,7 +690,9 @@ function InteractiveRecallQuiz({ currentCountry, fact, onReveal, onMarkLearned }
             )}
           </span>
         ) : (
-          <span className="text-[11px] text-muted-foreground">Pick matching country or reveal the story.</span>
+          <span className="text-[11px] text-muted-foreground">
+            Pick matching country or reveal the story.
+          </span>
         )}
 
         <button
@@ -845,7 +870,9 @@ function DirectoryMode({ region, onRegionChange, flagsProgress }) {
         </div>
 
         <div className="flex items-center justify-between text-xs text-muted-foreground font-semibold pt-1">
-          <span>Showing {filtered.length} of {COUNTRIES.length} countries</span>
+          <span>
+            Showing {filtered.length} of {COUNTRIES.length} countries
+          </span>
           {region !== "All" && (
             <span>
               Filtered by: <strong className="text-foreground">{region}</strong>
