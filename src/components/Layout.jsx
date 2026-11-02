@@ -319,12 +319,12 @@ export default function Layout() {
                   <Compass className="w-3.5 h-3.5 text-forest" />
                 </a>
                 <a
-                  href="#multiplayer"
+                  href="#atlas"
                   onClick={() => setMobileMenuOpen(false)}
                   className="h-9 px-3 border-2 border-foreground bg-card hover:bg-muted text-foreground font-bold text-xs uppercase tracking-wider inline-flex items-center justify-between"
                 >
-                  <span>Multiplayer Arena</span>
-                  <Swords className="w-3.5 h-3.5 text-terra" />
+                  <span>World Atlas</span>
+                  <Compass className="w-3.5 h-3.5 text-forest" />
                 </a>
                 <div className="pt-2 border-t border-foreground/15 grid grid-cols-2 gap-2">
                   <Link
