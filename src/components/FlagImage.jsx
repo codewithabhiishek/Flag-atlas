@@ -45,7 +45,7 @@ export default function FlagImage({
       src={srcs[errCount]}
       alt={label}
       loading={priority ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : "auto"}
+      fetchpriority={priority ? "high" : undefined}
       decoding="async"
       className={cn("w-full h-full", objectFit, className)}
       onError={() => setErrCount((n) => n + 1)}
