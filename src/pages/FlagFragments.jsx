@@ -46,7 +46,6 @@ export default function FlagFragments() {
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, region, 4) : []),
     // flag.code changes whenever the current flag changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [flag?.code, region],
   );
 

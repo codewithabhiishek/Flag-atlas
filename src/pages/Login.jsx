@@ -21,7 +21,7 @@ export default function Login() {
   const [gotcha, setGotcha] = useState("");
   const [formLoadTime] = useState(() => Date.now());
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
   const returnTo = safeReturnTo();
 
   const handleSubmit = async (e) => {

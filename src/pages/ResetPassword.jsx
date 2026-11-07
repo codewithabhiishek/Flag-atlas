@@ -20,7 +20,7 @@ export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
