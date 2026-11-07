@@ -49,7 +49,6 @@ export default function SpeedRun() {
   useFlagPrefetch(pool, pos);
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, region, 4) : []),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [flag?.code, region],
   );
 
@@ -104,7 +103,6 @@ export default function SpeedRun() {
         });
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
   function nextFlag() {

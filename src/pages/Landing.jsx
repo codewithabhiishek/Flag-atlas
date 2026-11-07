@@ -18,11 +18,9 @@ import {
   Award,
   BookOpen,
   Lightbulb,
-  Palette,
 } from "lucide-react";
 import FlagImage from "@/components/FlagImage";
 import confetti from "canvas-confetti";
-import { cn } from "@/lib/utils";
 
 const WorldAtlasTeaser = lazy(() => import("@/components/WorldAtlasTeaser"));
 
@@ -141,7 +139,7 @@ export default function Landing() {
           origin: { y: 0.65, x: 0.75 },
           colors: ["#10B981", "#F59E0B", "#3B82F6"],
         });
-      } catch (_) {}
+      } catch {}
     } else {
       setDemoFeedback("INCORRECT");
     }

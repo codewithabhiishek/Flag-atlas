@@ -60,7 +60,6 @@ export default function ReviewDeck() {
   const options = useMemo(
     () => (flag ? pickOptions(flag.code, flag.region, 4) : []),
     // flag.code changes whenever the current card changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [flag?.code, seed],
   );
 

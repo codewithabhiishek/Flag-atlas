@@ -15,8 +15,8 @@ const AUTH_NOT_AVAILABLE =
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [loading, _setLoading] = useState(false);
+  const [sent, _setSent] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {

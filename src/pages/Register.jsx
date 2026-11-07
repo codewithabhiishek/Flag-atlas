@@ -27,8 +27,8 @@ export default function Register() {
   const [gotcha, setGotcha] = useState("");
   const [formLoadTime] = useState(() => Date.now());
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
+  const [loading, _setLoading] = useState(false);
+  const [showOtp, _setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
 
   const handleSubmit = async (e) => {

@@ -32,7 +32,7 @@ export default function Layout() {
     document.documentElement.classList.toggle("dark", dark);
     try {
       localStorage.setItem("flagatlas.theme", dark ? "dark" : "light");
-    } catch (e) {}
+    } catch {}
   }, [dark]);
 
   // Close mobile menu on route change

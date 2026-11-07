@@ -52,7 +52,6 @@ export default function InfoTip({ label = "More info", children, className = "" 
       window.removeEventListener("resize", onReflow);
       window.removeEventListener("scroll", onReflow, true);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const panel = (

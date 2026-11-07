@@ -76,7 +76,7 @@ export default function OAuthConsent() {
           return;
         }
         setInfo(data);
-      } catch (e) {
+      } catch {
         setError(
           "Could not load this authorization request. Please try again.",
         );
@@ -129,7 +129,7 @@ export default function OAuthConsent() {
           let detail = "";
           try {
             detail = (await res.json()).detail;
-          } catch (_) {
+          } catch {
             /* keep default */
           }
           setReconnect(
