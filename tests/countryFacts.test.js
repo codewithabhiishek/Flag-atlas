@@ -1,7 +1,25 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { COUNTRIES, byCode } from "../src/data/countries.js";
+import { COUNTRIES, byCode, flagsByRegion, pickOptions } from "../src/data/countries.js";
 import { FLAG_FAMILIES, getCountryFact } from "../src/data/countryFacts.js";
+
+test("flagsByRegion handles World and specific regions properly", () => {
+  assert.equal(flagsByRegion("World").length, COUNTRIES.length);
+  assert.equal(flagsByRegion().length, COUNTRIES.length);
+  const europeFlags = flagsByRegion("Europe");
+  assert.ok(europeFlags.length > 0);
+  assert.ok(europeFlags.every((c) => c.region === "Europe"));
+});
+
+test("pickOptions generates correct choices including for World region", () => {
+  const options = pickOptions("fr", "World", 4);
+  assert.equal(options.length, 4);
+  assert.ok(options.some((c) => c.code === "fr"));
+
+  const europeOptions = pickOptions("de", "Europe", 4);
+  assert.equal(europeOptions.length, 4);
+  assert.ok(europeOptions.some((c) => c.code === "de"));
+});
 
 test("COUNTRIES dataset is complete and well-formed", () => {
   assert.equal(COUNTRIES.length >= 195, true, "Must have at least 195 sovereign nations");

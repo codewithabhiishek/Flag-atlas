@@ -214,7 +214,9 @@ export function byCode(code) {
 }
 
 export function flagsByRegion(region) {
-  return region ? COUNTRIES.filter((c) => c.region === region) : COUNTRIES;
+  return region && region !== "World"
+    ? COUNTRIES.filter((c) => c.region === region)
+    : COUNTRIES;
 }
 
 export function shuffle(arr) {
@@ -227,7 +229,10 @@ export function shuffle(arr) {
 }
 
 export function pickOptions(correctCode, region, n = 4) {
-  const pool = COUNTRIES.filter((c) => c.code !== correctCode && (!region || c.region === region));
+  const isAll = !region || region === "World";
+  const pool = COUNTRIES.filter(
+    (c) => c.code !== correctCode && (isAll || c.region === region),
+  );
   const distractors = shuffle(pool).slice(0, n - 1);
   const correct = byCode(correctCode);
   return shuffle([...distractors, correct]);

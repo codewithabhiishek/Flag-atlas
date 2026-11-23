@@ -80,7 +80,7 @@ export default function WorldQuiz() {
 
       const key = e.key.toUpperCase();
       if (chosen !== null) {
-        if (key === "ENTER" || key === " " || key === "ARROW_RIGHT") {
+        if (key === "ENTER" || key === " " || key === "ARROW_RIGHT" || key === "ARROWRIGHT") {
           e.preventDefault();
           next();
         }

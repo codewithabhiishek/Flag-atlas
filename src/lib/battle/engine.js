@@ -219,6 +219,7 @@ export class BattleEngine {
     if (!player) return;
     if (conn.seat === room.hostSeat) {
       player.ready = true;
+      this.broadcast(room);
       return;
     }
     player.ready = msg.ready === true;
