@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://flagcdn.com/w80/un.svg" width="60" alt="Flag Atlas" />
+<img src="https://flagcdn.com/un.svg" width="60" alt="Flag Atlas" />
 
 # 🌍 FlagAtlas
 
@@ -9,7 +9,7 @@
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Tests](https://img.shields.io/badge/Tests-25%20passing-brightgreen?style=flat-square)](tests)
+[![Tests](https://img.shields.io/badge/Tests-30%20passing-brightgreen?style=flat-square)](tests)
 [![Security](https://img.shields.io/badge/Vulnerabilities-0-brightgreen?style=flat-square)](package.json)
 [![Author](https://img.shields.io/badge/Author-Abhishek-orange?style=flat-square)](https://abhiishek.is-a.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
