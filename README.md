@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://flagcdn.com/un.svg" width="60" alt="Flag Atlas" />
+<img src="./public/favicon.svg" width="72" height="72" alt="Flag Atlas Logo" />
 
 # 🌍 FlagAtlas
 
