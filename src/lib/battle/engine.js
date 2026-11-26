@@ -110,6 +110,9 @@ export class BattleEngine {
       case "rematch":
         this.actionRematch(room);
         return;
+      case "endGame":
+        this.actionEndGame(conn, room);
+        return;
       default:
         return;
     }
@@ -138,10 +141,15 @@ export class BattleEngine {
     }
 
     if (!room) {
+      const initRegion = msg.region || "World";
+      const eligibleCount =
+        initRegion === "World"
+          ? COUNTRIES.length
+          : COUNTRIES.filter((c) => c.region === initRegion).length || COUNTRIES.length;
       room = {
         code,
-        region: msg.region || "World",
-        rounds: Math.max(5, Math.min(20, Number(msg.rounds) || 10)),
+        region: initRegion,
+        rounds: Math.max(5, Math.min(eligibleCount, Number(msg.rounds) || 10)),
         status: "lobby", // "lobby" | "playing" | "finished"
         roundPhase: "lobby", // "lobby" | "question" | "reveal" | "finished"
         hostSeat: 1,
@@ -209,7 +217,7 @@ export class BattleEngine {
         : COUNTRIES.filter((c) => c.region === region);
     if (!eligible.length) return;
     room.region = region;
-    room.rounds = Math.max(5, Math.min(20, Number(msg.rounds) || 10));
+    room.rounds = Math.max(5, Math.min(eligible.length, Number(msg.rounds) || 10));
     this.broadcast(room);
   }
 
@@ -435,6 +443,15 @@ export class BattleEngine {
       this.conns.delete(p.connId);
     }
     this.rooms.delete(room.code);
+  }
+
+  actionEndGame(conn, room) {
+    if (conn.seat !== room.hostSeat) {
+      return this.fail(conn.connId, "Only the room host can end the match.");
+    }
+    if (room.status !== "playing") return;
+    this.announce(room, "Host ended the match early.");
+    this.finishMatch(room);
   }
 
   actionRematch(room) {

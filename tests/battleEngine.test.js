@@ -221,3 +221,39 @@ test('geoMap maps all 197 COUNTRIES 1-to-1 with valid ISO flag codes', () => {
     assert.match(c.code, /^[a-z]{2}$/, `Flag code ${c.code} must be 2-letter lowercase ISO`);
   }
 });
+
+test('BattleEngine allows full region rounds (e.g. all Europe flags) and host endGame mid-match', () => {
+  const sentMessages = [];
+  const mockIo = { send: (connId, msg) => sentMessages.push({ connId, msg }) };
+  const engine = new BattleEngine(mockIo);
+  const code = 'EURO';
+
+  const europeCount = COUNTRIES.filter((c) => c.region === 'Europe').length;
+  engine.handle('c1', { type: 'join', code, name: 'Host', create: true, region: 'Europe', rounds: europeCount });
+  engine.handle('c2', { type: 'join', code, name: 'Guest' });
+
+  const room = engine.rooms.get(code);
+  assert.equal(room.rounds, europeCount, 'Should allow all Europe flags instead of capping at 20');
+
+  // Switching to a smaller region clamps rounds to that region size
+  const oceaniaCount = COUNTRIES.filter((c) => c.region === 'Oceania').length;
+  engine.handle('c1', { type: 'configure', region: 'Oceania', rounds: 99 });
+  assert.equal(room.rounds, oceaniaCount);
+
+  // Configure back to Europe all flags and start
+  engine.handle('c1', { type: 'configure', region: 'Europe', rounds: europeCount });
+  engine.handle('c2', { type: 'ready', ready: true });
+  engine.handle('c1', { type: 'start' });
+  assert.equal(room.questions.length, europeCount);
+
+  // Guest cannot endGame
+  engine.handle('c2', { type: 'endGame' });
+  assert.equal(room.status, 'playing');
+
+  // Host ends match early -> transitions to finished
+  engine.handle('c1', { type: 'endGame' });
+  assert.equal(room.status, 'finished');
+  assert.ok(sentMessages.some((m) => m.msg.type === 'finished'));
+
+  engine.destroy();
+});

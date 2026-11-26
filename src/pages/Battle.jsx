@@ -20,8 +20,10 @@ import {
   DoorClosed,
   Timer,
   AlertCircle,
+  ChevronDown,
+  Flag,
 } from "lucide-react";
-import { byCode } from "@/data/countries";
+import { byCode, flagsByRegion } from "@/data/countries";
 import { REGIONS } from "@/data/regions";
 const PLAYABLE_REGIONS = REGIONS.filter((r) => r.id !== "Antarctica");
 import FlagImage from "@/components/FlagImage";
@@ -88,6 +90,8 @@ export default function Battle() {
   const [connected, setConnected] = useState(false);
   const [notice, setNotice] = useState("");
   const [qrZoom, setQrZoom] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [confirmExit, setConfirmExit] = useState(false);
 
   const roomRef = useRef(null);
   const answerLockedRef = useRef(false);
@@ -535,30 +539,59 @@ export default function Battle() {
               <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
                 Region
               </label>
-              <select
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-2 text-sm font-medium focus:outline-none"
-              >
-                <option value="World">World · all 197 countries</option>
-                {PLAYABLE_REGIONS.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.id}
-                  </option>
-                ))}
-              </select>
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tight text-muted-foreground">
-                <span>Rounds</span>
-                <span className="text-foreground">{rounds} flags</span>
+              <div className="relative mt-1 mb-3">
+                <select
+                  value={region}
+                  onChange={(e) => {
+                    const nextReg = e.target.value;
+                    setRegion(nextReg);
+                    const maxForReg = Math.max(5, flagsByRegion(nextReg).length);
+                    setRounds((prev) => Math.min(prev, maxForReg));
+                  }}
+                  className="w-full h-10 appearance-none border-2 border-foreground bg-card pl-3 pr-9 text-sm font-medium focus:outline-none cursor-pointer"
+                >
+                  <option value="World">World · all {flagsByRegion("World").length} flags</option>
+                  {PLAYABLE_REGIONS.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.id} · {flagsByRegion(r.id).length} flags
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-foreground pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
               </div>
-              <input
-                type="range"
-                min={5}
-                max={20}
-                value={rounds}
-                onChange={(e) => setRounds(Number(e.target.value))}
-                className="w-full mt-1.5 mb-2 accent-foreground"
-              />
+              {(() => {
+                const maxRounds = Math.max(5, flagsByRegion(region).length);
+                return (
+                  <>
+                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tight text-muted-foreground">
+                      <span>Rounds</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-foreground">{rounds} flags</span>
+                        <button
+                          type="button"
+                          onClick={() => setRounds(maxRounds)}
+                          className={cn(
+                            "px-1.5 py-0.5 text-[10px] font-black uppercase border border-foreground transition-colors cursor-pointer",
+                            rounds === maxRounds
+                              ? "bg-foreground text-background"
+                              : "bg-card text-foreground hover:bg-muted",
+                          )}
+                        >
+                          All ({maxRounds})
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="range"
+                      min={5}
+                      max={maxRounds}
+                      value={Math.min(rounds, maxRounds)}
+                      onChange={(e) => setRounds(Number(e.target.value))}
+                      className="w-full mt-1.5 mb-2 accent-foreground cursor-pointer"
+                    />
+                  </>
+                );
+              })()}
             </div>
             <button
               onClick={() => openRoom(randomCode(), "create")}
@@ -864,51 +897,86 @@ export default function Battle() {
         {/* Setup Card */}
         <div className="atlas-card p-5 mb-5">
           <h2 className="font-display text-lg text-foreground mb-3">Setup</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-4 items-end">
             <div>
               <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
                 Region
               </label>
-              <select
-                value={roomRegion}
-                disabled={!isHost || !connected}
-                onChange={(e) =>
-                  roomRef.current?.send({
-                    type: "configure",
-                    region: e.target.value,
-                    rounds: roomRounds,
-                  })
-                }
-                className="mt-1 w-full h-10 border-2 border-foreground bg-card px-2 text-sm font-medium focus:outline-none"
-              >
-                <option value="World">World · all 197 countries</option>
-                {PLAYABLE_REGIONS.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.id}
-                  </option>
-                ))}
-              </select>
+              <div className="relative mt-1">
+                <select
+                  value={roomRegion}
+                  disabled={!isHost || !connected}
+                  onChange={(e) => {
+                    const nextReg = e.target.value;
+                    const maxForReg = Math.max(5, flagsByRegion(nextReg).length);
+                    roomRef.current?.send({
+                      type: "configure",
+                      region: nextReg,
+                      rounds: Math.min(roomRounds, maxForReg),
+                    });
+                  }}
+                  className="w-full h-10 appearance-none border-2 border-foreground bg-card pl-3 pr-9 text-sm font-medium focus:outline-none disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+                >
+                  <option value="World">World · all {flagsByRegion("World").length} flags</option>
+                  {PLAYABLE_REGIONS.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.id} · {flagsByRegion(r.id).length} flags
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-foreground pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
+              </div>
             </div>
             <div>
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tight text-muted-foreground">
-                <span>Rounds</span>
-                <span className="text-foreground">{roomRounds} flags</span>
-              </div>
-              <input
-                type="range"
-                min={5}
-                max={20}
-                value={roomRounds}
-                disabled={!isHost || !connected}
-                onChange={(e) =>
-                  roomRef.current?.send({
-                    type: "configure",
-                    region: roomRegion,
-                    rounds: Number(e.target.value),
-                  })
-                }
-                className="w-full mt-3 accent-foreground"
-              />
+              {(() => {
+                const maxRounds = Math.max(5, flagsByRegion(roomRegion).length);
+                return (
+                  <>
+                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tight text-muted-foreground">
+                      <span>Rounds</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-foreground">{roomRounds} flags</span>
+                        {isHost && (
+                          <button
+                            type="button"
+                            disabled={!connected}
+                            onClick={() =>
+                              roomRef.current?.send({
+                                type: "configure",
+                                region: roomRegion,
+                                rounds: maxRounds,
+                              })
+                            }
+                            className={cn(
+                              "px-1.5 py-0.5 text-[10px] font-black uppercase border border-foreground transition-colors cursor-pointer disabled:opacity-50",
+                              roomRounds === maxRounds
+                                ? "bg-foreground text-background"
+                                : "bg-card text-foreground hover:bg-muted",
+                            )}
+                          >
+                            All ({maxRounds})
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <input
+                      type="range"
+                      min={5}
+                      max={maxRounds}
+                      value={Math.min(roomRounds, maxRounds)}
+                      disabled={!isHost || !connected}
+                      onChange={(e) =>
+                        roomRef.current?.send({
+                          type: "configure",
+                          region: roomRegion,
+                          rounds: Number(e.target.value),
+                        })
+                      }
+                      className="w-full mt-3 accent-foreground cursor-pointer disabled:cursor-not-allowed"
+                    />
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -1040,15 +1108,66 @@ export default function Battle() {
         <div>
           {/* Header Strip */}
           <div className="flex items-center justify-between mb-3 text-xs sm:text-sm font-bold uppercase tracking-tight flex-wrap gap-2">
-            <span className="text-muted-foreground font-black">
-              Round {Math.min(currentRound + 1, questions.length)} / {questions.length}
-            </span>
-            <span className="text-foreground font-black">
-              {me?.correct || 0} Correct · {me?.score || 0} Pts
-            </span>
-            <span className="text-terra font-black">
-              Time · {formatElapsedTime(elapsedMs)}
-            </span>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-muted-foreground font-black">
+                Round {Math.min(currentRound + 1, questions.length)} / {questions.length}
+              </span>
+              <span className="text-foreground font-black">
+                {me?.correct || 0} Correct · {me?.score || 0} Pts
+              </span>
+              <span className="text-terra font-black">
+                Time · {formatElapsedTime(elapsedMs)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isHost && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirmEnd) {
+                      setConfirmEnd(false);
+                      roomRef.current?.send({ type: "endGame" });
+                    } else {
+                      setConfirmEnd(true);
+                      setTimeout(() => setConfirmEnd(false), 3000);
+                    }
+                  }}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-2.5 h-7 border-2 text-[11px] font-black uppercase tracking-tight transition-colors cursor-pointer",
+                    confirmEnd
+                      ? "border-destructive bg-destructive text-destructive-foreground"
+                      : "border-foreground bg-card text-foreground hover:bg-muted",
+                  )}
+                  title={confirmEnd ? "Click again to stop match and show results" : "End match early"}
+                >
+                  <Flag className="w-3 h-3" />
+                  <span>{confirmEnd ? "End now?" : "End Match"}</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirmExit) {
+                    setConfirmExit(false);
+                    intentionalExitRef.current = true;
+                    roomRef.current?.send({ type: "leave" });
+                  } else {
+                    setConfirmExit(true);
+                    setTimeout(() => setConfirmExit(false), 3000);
+                  }
+                }}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 h-7 border-2 text-[11px] font-black uppercase tracking-tight transition-colors cursor-pointer",
+                  confirmExit
+                    ? "border-destructive bg-destructive text-destructive-foreground"
+                    : "border-foreground/60 bg-card text-muted-foreground hover:text-destructive hover:border-destructive",
+                )}
+                title={confirmExit ? "Click again to exit match" : "Exit battle"}
+              >
+                <LogOut className="w-3 h-3" />
+                <span>{confirmExit ? "Leave?" : "Exit"}</span>
+              </button>
+            </div>
           </div>
 
           {/* Question & Flag Card */}
