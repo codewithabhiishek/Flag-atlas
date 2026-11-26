@@ -4,9 +4,9 @@ import {
   BattleEngine,
   randomRoomCode,
   sanitizePlayerName,
-  ROUND_DURATION_MS,
-  REVEAL_DURATION_MS,
 } from '../src/lib/battle/engine.js';
+import { COUNTRIES, byCode } from '../src/data/countries.js';
+import { ID_TO_CODE, NAME_TO_CODE } from '../src/data/geoMap.js';
 
 test('randomRoomCode produces valid 4-character codes from safe charset', () => {
   const allowed = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
@@ -175,4 +175,49 @@ test('BattleEngine rematch and closeRoom lifecycle', () => {
   assert.equal(roomClosedNotices.length, 2, 'Both players receive roomClosed');
 
   engine.destroy();
+});
+
+test('BattleEngine ignores duplicate start mid-game, invalid choices, and unauthorized guest actions', () => {
+  const mockIo = { send: () => {} };
+  const engine = new BattleEngine(mockIo);
+  const code = 'EDGE';
+
+  engine.handle('c1', { type: 'join', code, name: 'Host', create: true, rounds: 5 });
+  engine.handle('c2', { type: 'join', code, name: 'Guest' });
+  engine.handle('c2', { type: 'ready', ready: true });
+  engine.handle('c1', { type: 'start' });
+
+  const room = engine.rooms.get(code);
+  const q0 = room.questions[0];
+  engine.handle('c1', { type: 'answer', choice: q0.flag });
+  const scoreBefore = room.players.get(1).score;
+  assert.ok(scoreBefore >= 100);
+
+  // Duplicate start mid-game must not reset round or scores
+  engine.handle('c1', { type: 'start' });
+  assert.equal(room.players.get(1).score, scoreBefore);
+  assert.equal(room.players.get(1).hasAnswered, true);
+
+  // Invalid answer choice not in options must be ignored
+  engine.handle('c2', { type: 'answer', choice: 'zz' });
+  assert.equal(room.players.get(2).hasAnswered, false);
+
+  // Non-host guest cannot kick or closeRoom
+  engine.handle('c2', { type: 'kick', seat: 1 });
+  assert.equal(room.players.size, 2);
+  engine.handle('c2', { type: 'closeRoom' });
+  assert.equal(engine.rooms.has(code), true);
+
+  engine.destroy();
+});
+
+test('geoMap maps all 197 COUNTRIES 1-to-1 with valid ISO flag codes', () => {
+  const mappedCodes = new Set([...Object.values(ID_TO_CODE), ...Object.values(NAME_TO_CODE)]);
+  for (const code of mappedCodes) {
+    assert.ok(byCode(code), `geoMap code ${code} must exist in COUNTRIES`);
+  }
+  for (const c of COUNTRIES) {
+    assert.ok(mappedCodes.has(c.code), `Country ${c.code} (${c.name}) must be mapped in geoMap`);
+    assert.match(c.code, /^[a-z]{2}$/, `Flag code ${c.code} must be 2-letter lowercase ISO`);
+  }
 });

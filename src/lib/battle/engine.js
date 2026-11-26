@@ -242,6 +242,7 @@ export class BattleEngine {
     if (conn.seat !== room.hostSeat) {
       return this.fail(conn.connId, "Only the room host can start the battle.");
     }
+    if (room.status !== "lobby") return;
     if (room.players.size < 2) {
       return this.fail(conn.connId, "At least two players are required to start.");
     }

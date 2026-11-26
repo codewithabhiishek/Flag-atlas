@@ -21,6 +21,7 @@ const PEER_PREFIX = "flagatlas-v1-";
 const PEER_CONFIG = {
   debug: 0,
   config: {
+    iceCandidatePoolSize: 10,
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
@@ -140,7 +141,10 @@ export class PeerHostBridge {
         if (!this.pendingQueues.has(connId)) {
           this.pendingQueues.set(connId, []);
         }
-        this.pendingQueues.get(connId).push(msg);
+        const q = this.pendingQueues.get(connId);
+        if (q.length < 30) {
+          q.push(msg);
+        }
       }
     }
   }
@@ -192,6 +196,9 @@ export function tryPeerGuestLink(roomCode, timeoutMs = 10000) {
 
     const link = {
       mode: "p2p",
+      get isOpen() {
+        return Boolean(conn && conn.open);
+      },
       send: (msg) => {
         if (conn && conn.open) {
           try {
