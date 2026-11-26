@@ -38,6 +38,7 @@ import {
   tryPeerGuestLink,
 } from "@/lib/battle/peerTransport";
 import { FeedbackInvite } from "@/components/FeedbackLauncher";
+import BattleChat from "@/components/BattleChat";
 import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 import { playUiSound } from "@/lib/sounds";
 
@@ -82,6 +83,7 @@ export default function Battle() {
 
   const [players, setPlayers] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [roomRegion, setRoomRegion] = useState("World");
   const [roomRounds, setRoomRounds] = useState(10);
   const [hostSeat, setHostSeat] = useState(1);
@@ -265,6 +267,13 @@ export default function Battle() {
           if (message.type === "notice") {
             setNotice(message.message);
             window.setTimeout(() => setNotice(""), 4000);
+          }
+          if (message.type === "chat" && message.message) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === message.message.id)) return prev;
+              const next = [...prev, message.message];
+              return next.length > 60 ? next.slice(next.length - 60) : next;
+            });
           }
           if (message.type === "state") {
             setStatus(message.status);
@@ -802,8 +811,10 @@ export default function Battle() {
     );
   }
 
-  // ---- Finished View ----
-  if (status === "finished") {
+  // ---- Active Multiplayer Room Views (Lobby, Playing, Finished) ----
+  const renderRoomView = () => {
+    // ---- Finished View ----
+    if (status === "finished") {
     const winner = results?.[0];
     const iWon = winner && winner.seat === mySeat;
     const finalTimeMs = matchDurationMs || elapsedMs;
@@ -1641,6 +1652,19 @@ export default function Battle() {
           {notice}
         </div>
       )}
+    </div>
+  );
+  };
+
+  return (
+    <div className="pb-14 sm:pb-6">
+      {renderRoomView()}
+      <BattleChat
+        messages={messages}
+        players={players}
+        mySeat={mySeat}
+        onSendMessage={(text) => roomRef.current?.send({ type: "chat", text })}
+      />
     </div>
   );
 }

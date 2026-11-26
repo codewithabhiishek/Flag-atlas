@@ -292,10 +292,16 @@ test('BattleEngine chat sanitizes messages, broadcasts to room, and rate limits 
   assert.equal(room.messages[0].seat, 2);
   assert.equal(room.messages[3].text, 'Msg 4');
 
-  // Verify broadcast included messages array
-  const lastRaw = [...sentMessages].reverse().find((m) => m.msg.__raw);
-  const parsed = JSON.parse(lastRaw.msg.__raw);
-  assert.equal(parsed.messages.length, 4);
+  // Verify lightweight chat events were sent directly (not full state re-broadcast)
+  const chatEvents = sentMessages.filter((m) => {
+    if (!m.msg.__raw) return false;
+    const data = JSON.parse(m.msg.__raw);
+    return data.type === 'chat';
+  });
+  // 4 messages * 2 players in room = 8 delivered chat events
+  assert.equal(chatEvents.length, 8);
+  const firstChat = JSON.parse(chatEvents[0].msg.__raw);
+  assert.equal(firstChat.message.text, 'Msg 1');
 
   engine.destroy();
 });

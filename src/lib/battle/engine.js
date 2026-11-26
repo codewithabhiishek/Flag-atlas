@@ -499,8 +499,9 @@ export class BattleEngine {
       }
     }
 
+    room.nextMsgSeq = (room.nextMsgSeq || 0) + 1;
     const chatMsg = {
-      id: `${now}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `${now}-${room.nextMsgSeq}`,
       seat: player.seat,
       playerName: player.name,
       text,
@@ -511,7 +512,11 @@ export class BattleEngine {
     if (room.messages.length > 60) {
       room.messages.splice(0, room.messages.length - 60);
     }
-    this.broadcast(room);
+    // Send lightweight chat event so chatting never re-broadcasts the full question deck
+    const payload = JSON.stringify({ type: "chat", message: chatMsg });
+    for (const p of room.players.values()) {
+      this.io.send(p.connId, { __raw: payload });
+    }
   }
 
   actionRematch(room) {
