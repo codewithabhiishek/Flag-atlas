@@ -247,7 +247,7 @@ export default function Layout() {
                   href="https://abhiishek.is-a.dev/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-8 sm:h-9 px-2.5 inline-flex items-center gap-1 border-2 border-foreground bg-card hover:bg-muted text-foreground transition-all text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:text-terra"
+                  className="hidden lg:inline-flex h-8 sm:h-9 px-2.5 items-center gap-1 border-2 border-foreground bg-card hover:bg-muted text-foreground transition-all text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] hover:text-terra"
                   title="Built by Abhishek"
                 >
                   <span>Creator ↗</span>

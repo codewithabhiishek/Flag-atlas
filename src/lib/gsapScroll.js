@@ -74,13 +74,21 @@ export function useGsapScrollProgress(indicatorRef, routeKey = "") {
         invalidateOnRefresh: true,
         onUpdate: updateProgress,
       });
-      const observer = new ResizeObserver(() => ScrollTrigger.refresh());
+      let refreshRaf = null;
+      const observer = new ResizeObserver(() => {
+        if (refreshRaf != null) cancelAnimationFrame(refreshRaf);
+        refreshRaf = requestAnimationFrame(() => {
+          refreshRaf = null;
+          ScrollTrigger.refresh();
+        });
+      });
       observer.observe(document.documentElement);
       ScrollTrigger.addEventListener("refresh", updateProgress);
       ScrollTrigger.refresh();
       requestAnimationFrame(updateProgress);
 
       return () => {
+        if (refreshRaf != null) cancelAnimationFrame(refreshRaf);
         observer.disconnect();
         ScrollTrigger.removeEventListener("refresh", updateProgress);
         progressTrigger.kill();

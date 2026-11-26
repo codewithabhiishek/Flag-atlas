@@ -93,10 +93,6 @@
   * {
     @apply border-border outline-ring/50;
   }
-  html {
-    /* UX guideline: anchor/jump links scroll smoothly instead of teleporting. */
-    scroll-behavior: smooth;
-  }
   body {
     @apply bg-background text-foreground font-body antialiased;
     overflow-x: hidden;
