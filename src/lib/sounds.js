@@ -26,6 +26,10 @@ const SOUND_PROFILES = {
     { frequency: 210, duration: 0.1, type: "triangle", volume: 0.04, decay: 0.08, delay: 0.06 },
   ],
   advance: [{ frequency: 740, duration: 0.055, type: "sine", volume: 0.045, decay: 0.045 }],
+  message: [
+    { frequency: 580, duration: 0.045, type: "sine", volume: 0.035, decay: 0.04 },
+    { frequency: 780, duration: 0.055, type: "sine", volume: 0.035, decay: 0.05, delay: 0.04 },
+  ],
   timerWarning: [{ frequency: 920, duration: 0.045, type: "sine", volume: 0.035, decay: 0.04 }],
   timerEnd: [
     { frequency: 330, duration: 0.1, type: "triangle", volume: 0.05, decay: 0.08 },

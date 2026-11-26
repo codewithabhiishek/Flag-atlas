@@ -8,7 +8,7 @@
  * the correct country and earned points before everyone advances together.
  *
  * Wire protocol:
- * - Clients send: { type: "join" | "ready" | "configure" | "lock" | "start" | "answer" | "kick" | "leave" | "closeRoom" | "rematch" }
+ * - Clients send: { type: "join" | "ready" | "configure" | "lock" | "start" | "answer" | "chat" | "kick" | "leave" | "closeRoom" | "rematch" }
  * - Engine responds: { type: "joined" | "state" | "notice" | "error" | "finished" | "kicked" | "leftRoom" | "roomClosed" }
  */
 
@@ -31,6 +31,18 @@ export function sanitizePlayerName(name, seat = 1) {
     .trim()
     .slice(0, 20);
   return clean || `Player ${seat}`;
+}
+
+export function sanitizeChatMessage(raw) {
+  if (typeof raw !== "string") return "";
+  return raw
+    .replace(/[<>]/g, "") // Strip HTML angle brackets
+    .replace(/[\x00-\x1F\x7F]/g, "") // Strip ASCII control characters
+    .replace(/[\u200B-\u200D\uFEFF]/g, "") // Strip zero-width / invisible chars
+    .replace(/[\u202A-\u202E\u2066-\u2069]/g, "") // Strip Unicode bidi overrides
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 200);
 }
 
 function makeQuestions(region, rounds) {
@@ -113,6 +125,9 @@ export class BattleEngine {
       case "endGame":
         this.actionEndGame(conn, room);
         return;
+      case "chat":
+        this.actionChat(conn, room, msg);
+        return;
       default:
         return;
     }
@@ -157,6 +172,7 @@ export class BattleEngine {
         players: new Map(), // seat -> player
         questions: [],
         results: [],
+        messages: [],
         currentRound: 0,
         roundStartedAt: 0,
         roundDurationMs: ROUND_DURATION_MS,
@@ -454,6 +470,41 @@ export class BattleEngine {
     this.finishMatch(room);
   }
 
+  actionChat(conn, room, msg) {
+    const player = room.players.get(conn.seat);
+    if (!player) return;
+    if (typeof msg.text !== "string") return;
+
+    const text = sanitizeChatMessage(msg.text);
+    if (!text || text.length > 200) return;
+
+    // Rate limit: max 4 messages per 3 seconds per player to prevent flooding
+    const now = Date.now();
+    if (player.chatWindowStart === undefined || now - player.chatWindowStart >= 3000) {
+      player.chatWindowStart = now;
+      player.recentChatCount = 1;
+    } else {
+      player.recentChatCount = (player.recentChatCount || 0) + 1;
+      if (player.recentChatCount > 4) {
+        return;
+      }
+    }
+
+    const chatMsg = {
+      id: `${now}-${Math.random().toString(36).slice(2, 7)}`,
+      seat: player.seat,
+      playerName: player.name,
+      text,
+      timestamp: now,
+    };
+    if (!room.messages) room.messages = [];
+    room.messages.push(chatMsg);
+    if (room.messages.length > 60) {
+      room.messages.splice(0, room.messages.length - 60);
+    }
+    this.broadcast(room);
+  }
+
   actionRematch(room) {
     if (room.status !== "finished") return;
     this.clearRoomTimers(room);
@@ -567,6 +618,7 @@ export class BattleEngine {
       roundStartedAt: room.roundStartedAt,
       roundDurationMs: room.roundDurationMs,
       questions: room.status === "playing" ? room.questions : [],
+      messages: room.messages || [],
       players: [...room.players.values()].map((p) => ({
         seat: p.seat,
         name: p.name,

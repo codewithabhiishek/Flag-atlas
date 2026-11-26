@@ -33,6 +33,7 @@ import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 import { randomRoomCode } from "@/lib/battle/engine";
 import { createPeerHostLink, tryPeerGuestLink } from "@/lib/battle/peerTransport";
 import { FeedbackInvite } from "@/components/FeedbackLauncher";
+import BattleChat from "@/components/BattleChat";
 import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 import { playUiSound } from "@/lib/sounds";
 
@@ -77,6 +78,7 @@ export default function Battle() {
 
   const [players, setPlayers] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [roomRegion, setRoomRegion] = useState("World");
   const [roomRounds, setRoomRounds] = useState(10);
   const [hostSeat, setHostSeat] = useState(1);
@@ -253,6 +255,7 @@ export default function Battle() {
             setStatus(message.status);
             setPlayers(message.players);
             setQuestions(message.questions);
+            setMessages(Array.isArray(message.messages) ? message.messages : []);
             setRoomRegion(message.region);
             setRoomRounds(message.rounds);
             setHostSeat(message.hostSeat);
@@ -409,6 +412,7 @@ export default function Battle() {
     intentionalExitRef.current = false;
     setConnectionError("");
     setResults(null);
+    setMessages([]);
     setRoomMode(mode);
     setCode(nextCode);
   }
@@ -707,9 +711,15 @@ export default function Battle() {
     );
   }
 
-  // ---- Finished View ----
-  if (status === "finished") {
-    return (
+  // ---- Active Multiplayer Room Views (Lobby, Playing, Finished) ----
+  const answeredCount = players.filter((p) => p.hasAnswered).length;
+  const isReveal = roundPhase === "reveal";
+  const timerPercent = Math.max(0, Math.min(100, (timeLeftMs / roundDurationMs) * 100));
+
+  const renderRoomView = () => {
+    // ---- Finished View ----
+    if (status === "finished") {
+      return (
       <div className="mx-auto max-w-2xl px-3 sm:px-4 py-6">
         <div className="atlas-card grid-paper p-6 sm:p-8 text-center">
           <div className="inline-flex w-12 h-12 border-2 border-foreground bg-gold items-center justify-center mb-2 brutal-shadow">
@@ -1154,10 +1164,6 @@ export default function Battle() {
   }
 
   // ---- Playing View: Synchronized Round Quiz ----
-  const answeredCount = players.filter((p) => p.hasAnswered).length;
-  const isReveal = roundPhase === "reveal";
-  const timerPercent = Math.max(0, Math.min(100, (timeLeftMs / roundDurationMs) * 100));
-
   return (
     <div className="mx-auto max-w-5xl px-3 sm:px-4 py-5 sm:py-6">
       <div className="grid lg:grid-cols-[1fr_260px] gap-4 sm:gap-5">
@@ -1434,5 +1440,18 @@ export default function Battle() {
         </div>
       )}
     </div>
+  );
+  };
+
+  return (
+    <>
+      {renderRoomView()}
+      <BattleChat
+        messages={messages}
+        players={players}
+        mySeat={mySeat}
+        onSendMessage={(text) => roomRef.current?.send({ type: "chat", text })}
+      />
+    </>
   );
 }

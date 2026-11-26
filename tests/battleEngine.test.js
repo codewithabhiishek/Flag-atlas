@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   BattleEngine,
   randomRoomCode,
+  sanitizeChatMessage,
   sanitizePlayerName,
 } from '../src/lib/battle/engine.js';
 import { COUNTRIES, byCode } from '../src/data/countries.js';
@@ -254,6 +255,44 @@ test('BattleEngine allows full region rounds (e.g. all Europe flags) and host en
   engine.handle('c1', { type: 'endGame' });
   assert.equal(room.status, 'finished');
   assert.ok(sentMessages.some((m) => m.msg.type === 'finished'));
+
+  engine.destroy();
+});
+
+test('BattleEngine chat sanitizes messages, broadcasts to room, and rate limits flooding', () => {
+  assert.equal(
+    sanitizeChatMessage("<script>alert('xss')</script>Hello\u200BWorld\u202E!"),
+    "scriptalert('xss')/scriptHelloWorld!",
+  );
+  assert.equal(sanitizeChatMessage('Hi\x00\x07\x1FThere\x7F!'), 'HiThere!');
+  assert.equal(sanitizeChatMessage('   '), '');
+
+  const sentMessages = [];
+  const mockIo = { send: (connId, msg) => sentMessages.push({ connId, msg }) };
+  const engine = new BattleEngine(mockIo);
+  const code = 'CHAT';
+
+  engine.handle('c1', { type: 'join', code, name: 'Host', create: true });
+  engine.handle('c2', { type: 'join', code, name: 'Guest' });
+
+  // Send 4 valid messages (within rate limit of 4 per 3s)
+  for (let i = 1; i <= 4; i++) {
+    engine.handle('c2', { type: 'chat', text: `Msg ${i}` });
+  }
+  // 5th message in the same window should be silently dropped
+  engine.handle('c2', { type: 'chat', text: 'Msg 5 flooded' });
+
+  const room = engine.rooms.get(code);
+  assert.equal(room.messages.length, 4);
+  assert.equal(room.messages[0].text, 'Msg 1');
+  assert.equal(room.messages[0].playerName, 'Guest');
+  assert.equal(room.messages[0].seat, 2);
+  assert.equal(room.messages[3].text, 'Msg 4');
+
+  // Verify broadcast included messages array
+  const lastRaw = [...sentMessages].reverse().find((m) => m.msg.__raw);
+  const parsed = JSON.parse(lastRaw.msg.__raw);
+  assert.equal(parsed.messages.length, 4);
 
   engine.destroy();
 });
