@@ -254,7 +254,10 @@ test('BattleEngine allows full region rounds (e.g. all Europe flags) and host en
   // Host ends match early -> transitions to finished
   engine.handle('c1', { type: 'endGame' });
   assert.equal(room.status, 'finished');
-  assert.ok(sentMessages.some((m) => m.msg.type === 'finished'));
+  const finishedEvent = sentMessages.find((m) => m.msg.type === 'finished');
+  assert.ok(finishedEvent);
+  assert.equal(typeof finishedEvent.msg.matchDurationMs, 'number');
+  assert.ok(finishedEvent.msg.matchDurationMs >= 0);
 
   engine.destroy();
 });

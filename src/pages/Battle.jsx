@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
+import confetti from "canvas-confetti";
+import { motion } from "framer-motion";
 import {
   Swords,
   Copy,
@@ -31,9 +33,11 @@ import { cn } from "@/lib/utils";
 import { useProgress } from "@/lib/ProgressContext";
 import { formatElapsedTime, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 import { randomRoomCode } from "@/lib/battle/engine";
-import { createPeerHostLink, tryPeerGuestLink } from "@/lib/battle/peerTransport";
+import {
+  createPeerHostLink,
+  tryPeerGuestLink,
+} from "@/lib/battle/peerTransport";
 import { FeedbackInvite } from "@/components/FeedbackLauncher";
-import BattleChat from "@/components/BattleChat";
 import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 import { playUiSound } from "@/lib/sounds";
 
@@ -78,12 +82,13 @@ export default function Battle() {
 
   const [players, setPlayers] = useState([]);
   const [questions, setQuestions] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [roomRegion, setRoomRegion] = useState("World");
   const [roomRounds, setRoomRounds] = useState(10);
   const [hostSeat, setHostSeat] = useState(1);
   const [mySeat, setMySeat] = useState(null);
   const [results, setResults] = useState(null);
+  const [matchDurationMs, setMatchDurationMs] = useState(0);
+  const [matchRunId, setMatchRunId] = useState(0);
   const [roomLocked, setRoomLocked] = useState(false);
 
   const [picked, setPicked] = useState(null);
@@ -98,12 +103,18 @@ export default function Battle() {
   const roomRef = useRef(null);
   const answerLockedRef = useRef(false);
   const intentionalExitRef = useRef(false);
+  const celebratedRef = useRef(false);
+  const prevStatusRef = useRef("lobby");
   const joinInputRef = useRef(null);
   const createNameRef = useRef(null);
 
   // Prefetch upcoming flag images for zero lag
   useFlagPrefetch(questions, currentRound);
-  const elapsedMs = useElapsedTimer(status === "playing", `${code || ""}-${status}`);
+  // Keep resetKey stable across playing -> finished so elapsedMs doesn't reset to 0s at match end
+  const elapsedMs = useElapsedTimer(
+    status === "playing",
+    `${code || ""}-${matchRunId}`,
+  );
   const actionParam = searchParams.get("action");
 
   // Focus action input when arriving from landing page CTAs
@@ -154,7 +165,11 @@ export default function Battle() {
   // Play audio cue only when reveal phase starts (prevents leaking answer on click)
   const prevRoundPhaseRef = useRef(roundPhase);
   useEffect(() => {
-    if (status === "playing" && prevRoundPhaseRef.current !== "reveal" && roundPhase === "reveal") {
+    if (
+      status === "playing" &&
+      prevRoundPhaseRef.current !== "reveal" &&
+      roundPhase === "reveal"
+    ) {
       const myPlayer = players.find((p) => p.seat === mySeat);
       if (myPlayer && myPlayer.lastPoints > 0) {
         playUiSound("success");
@@ -253,6 +268,10 @@ export default function Battle() {
           }
           if (message.type === "state") {
             setStatus(message.status);
+            if (message.status === "playing" && prevStatusRef.current !== "playing") {
+              setMatchRunId((id) => id + 1);
+            }
+            prevStatusRef.current = message.status;
             setPlayers(message.players);
             setQuestions(message.questions);
             setMessages(Array.isArray(message.messages) ? message.messages : []);
@@ -260,8 +279,13 @@ export default function Battle() {
             setRoomRounds(message.rounds);
             setHostSeat(message.hostSeat);
             setRoomLocked(message.locked === true);
+            if (typeof message.matchDurationMs === "number" && message.matchDurationMs > 0) {
+              setMatchDurationMs(message.matchDurationMs);
+            }
             if (message.status === "lobby") {
               setResults(null);
+              setMatchDurationMs(0);
+              celebratedRef.current = false;
             }
             if (typeof message.currentRound === "number") {
               setCurrentRound(message.currentRound);
@@ -278,6 +302,9 @@ export default function Battle() {
           }
           if (message.type === "finished") {
             setResults(message.results);
+            if (typeof message.matchDurationMs === "number" && message.matchDurationMs > 0) {
+              setMatchDurationMs(message.matchDurationMs);
+            }
           }
         }),
       );
@@ -297,7 +324,9 @@ export default function Battle() {
         // Attempt silent recovery on transient long-distance WebRTC drops before exiting
         if (roomMode !== "create" && reconnectAttempts < 2) {
           reconnectAttempts += 1;
-          setNotice(`Connection hiccup — reconnecting (${reconnectAttempts}/2)…`);
+          setNotice(
+            `Connection hiccup — reconnecting (${reconnectAttempts}/2)…`,
+          );
           reconnectTimer = window.setTimeout(() => {
             if (!disposed) {
               void connect();
@@ -322,7 +351,10 @@ export default function Battle() {
       const joinMsg = {
         type: "join",
         code,
-        name: cfg.name.trim().replace(/<[^>]*>?/gm, "").slice(0, 20),
+        name: cfg.name
+          .trim()
+          .replace(/<[^>]*>?/gm, "")
+          .slice(0, 20),
         create: roomMode === "create",
         region: cfg.region,
         rounds: cfg.rounds,
@@ -412,7 +444,6 @@ export default function Battle() {
     intentionalExitRef.current = false;
     setConnectionError("");
     setResults(null);
-    setMessages([]);
     setRoomMode(mode);
     setCode(nextCode);
   }
@@ -423,7 +454,13 @@ export default function Battle() {
 
   // Keyboard support: Press 1-4 or A-D to pick answer
   useEffect(() => {
-    if (status !== "playing" || roundPhase !== "question" || picked !== null || !q) return;
+    if (
+      status !== "playing" ||
+      roundPhase !== "question" ||
+      picked !== null ||
+      !q
+    )
+      return;
 
     function handleKeyDown(e) {
       if (
@@ -440,13 +477,13 @@ export default function Battle() {
       const key = e.key.toUpperCase();
       const keyMap = {
         A: 0,
-        "1": 0,
+        1: 0,
         B: 1,
-        "2": 1,
+        2: 1,
         C: 2,
-        "3": 2,
+        3: 2,
         D: 3,
-        "4": 3,
+        4: 3,
       };
 
       const optIdx = keyMap[key];
@@ -459,6 +496,31 @@ export default function Battle() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [status, roundPhase, picked, q]);
+
+  // Fire celebratory confetti + fanfare when Battle Over leaderboard appears
+  useEffect(() => {
+    if (status !== "finished" || !results?.length || celebratedRef.current) return;
+    celebratedRef.current = true;
+    playUiSound("success");
+
+    const colors = ["#2D6A4F", "#D97706", "#E07A5F", "#F59E0B", "#10B981"];
+    try {
+      confetti({
+        particleCount: 85,
+        spread: 85,
+        origin: { y: 0.55 },
+        colors,
+        ticks: 200,
+      });
+      const t1 = window.setTimeout(() => {
+        confetti({ particleCount: 55, angle: 60, spread: 60, origin: { x: 0.1, y: 0.65 }, colors, ticks: 200 });
+        confetti({ particleCount: 55, angle: 120, spread: 60, origin: { x: 0.9, y: 0.65 }, colors, ticks: 200 });
+      }, 220);
+      return () => window.clearTimeout(t1);
+    } catch {
+      /* confetti is decoration only */
+    }
+  }, [status, results]);
 
   // ---- Invite gate (Arriving via ?room=XXXX) ----
   const inviteCode = searchParams.get("room")?.toUpperCase().slice(0, 4) || "";
@@ -500,9 +562,12 @@ export default function Battle() {
               value={name}
               autoFocus
               maxLength={20}
-              onChange={(e) => setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))}
+              onChange={(e) =>
+                setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))
+              }
               onKeyDown={(e) => {
-                if (e.key === "Enter" && name.trim()) openRoom(inviteCode, "join");
+                if (e.key === "Enter" && name.trim())
+                  openRoom(inviteCode, "join");
               }}
               placeholder="Your name"
               className="mt-1 mb-4 w-full h-11 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
@@ -571,8 +636,10 @@ export default function Battle() {
           </div>
           <p className="text-sm text-muted-foreground mt-3 font-medium max-w-lg leading-relaxed">
             Challenge up to 5 friends in a live flag duel. Everyone receives the{" "}
-            <span className="font-bold text-foreground">exact same flag at the exact same moment</span>.
-            Answer fast to earn maximum speed points!
+            <span className="font-bold text-foreground">
+              exact same flag at the exact same moment
+            </span>
+            . Answer fast to earn maximum speed points!
           </p>
         </div>
 
@@ -581,7 +648,9 @@ export default function Battle() {
           <div className="atlas-card p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-display text-lg text-foreground">Create Room</h2>
+                <h2 className="font-display text-lg text-foreground">
+                  Create Room
+                </h2>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-forest/15 text-forest border border-forest/30">
                   Host
                 </span>
@@ -593,7 +662,9 @@ export default function Battle() {
                 ref={createNameRef}
                 value={name}
                 maxLength={20}
-                onChange={(e) => setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))}
+                onChange={(e) =>
+                  setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))
+                }
                 className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
               />
               <label className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
@@ -605,12 +676,17 @@ export default function Battle() {
                   onChange={(e) => {
                     const nextReg = e.target.value;
                     setRegion(nextReg);
-                    const maxForReg = Math.max(5, flagsByRegion(nextReg).length);
+                    const maxForReg = Math.max(
+                      5,
+                      flagsByRegion(nextReg).length,
+                    );
                     setRounds((prev) => Math.min(prev, maxForReg));
                   }}
                   className="w-full h-10 appearance-none border-2 border-foreground bg-card pl-3 pr-9 text-sm font-medium focus:outline-none cursor-pointer"
                 >
-                  <option value="World">World · all {flagsByRegion("World").length} flags</option>
+                  <option value="World">
+                    World · all {flagsByRegion("World").length} flags
+                  </option>
                   {PLAYABLE_REGIONS.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.id} · {flagsByRegion(r.id).length} flags
@@ -665,7 +741,9 @@ export default function Battle() {
           <div className="atlas-card p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-display text-lg text-foreground">Join Room</h2>
+                <h2 className="font-display text-lg text-foreground">
+                  Join Room
+                </h2>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-terra/15 text-terra border border-terra/30">
                   Guest
                 </span>
@@ -678,10 +756,19 @@ export default function Battle() {
                 value={joinInput}
                 maxLength={4}
                 onChange={(e) =>
-                  setJoinInput(e.target.value.toUpperCase().replace(/[^A-Z2-9]/g, "").slice(0, 4))
+                  setJoinInput(
+                    e.target.value
+                      .toUpperCase()
+                      .replace(/[^A-Z2-9]/g, "")
+                      .slice(0, 4),
+                  )
                 }
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && joinInput.length === 4 && name.trim()) {
+                  if (
+                    e.key === "Enter" &&
+                    joinInput.length === 4 &&
+                    name.trim()
+                  ) {
                     openRoom(joinInput, "join");
                   }
                 }}
@@ -694,12 +781,16 @@ export default function Battle() {
               <input
                 value={name}
                 maxLength={20}
-                onChange={(e) => setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))}
+                onChange={(e) =>
+                  setName(e.target.value.replace(/<[^>]*>?/gm, "").slice(0, 20))
+                }
                 className="mt-1 mb-3 w-full h-10 border-2 border-foreground bg-card px-3 text-sm font-medium focus:outline-none"
               />
             </div>
             <button
-              onClick={() => joinInput.length === 4 && openRoom(joinInput, "join")}
+              onClick={() =>
+                joinInput.length === 4 && openRoom(joinInput, "join")
+              }
               disabled={joinInput.length !== 4 || !name.trim()}
               className="mt-4 w-full h-11 border-2 border-foreground bg-terra text-foreground font-bold uppercase text-sm tracking-tight hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform disabled:opacity-40 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.25)]"
             >
@@ -711,58 +802,79 @@ export default function Battle() {
     );
   }
 
-  // ---- Active Multiplayer Room Views (Lobby, Playing, Finished) ----
-  const answeredCount = players.filter((p) => p.hasAnswered).length;
-  const isReveal = roundPhase === "reveal";
-  const timerPercent = Math.max(0, Math.min(100, (timeLeftMs / roundDurationMs) * 100));
+  // ---- Finished View ----
+  if (status === "finished") {
+    const winner = results?.[0];
+    const iWon = winner && winner.seat === mySeat;
+    const finalTimeMs = matchDurationMs || elapsedMs;
 
-  const renderRoomView = () => {
-    // ---- Finished View ----
-    if (status === "finished") {
-      return (
+    return (
       <div className="mx-auto max-w-2xl px-3 sm:px-4 py-6">
-        <div className="atlas-card grid-paper p-6 sm:p-8 text-center">
-          <div className="inline-flex w-12 h-12 border-2 border-foreground bg-gold items-center justify-center mb-2 brutal-shadow">
-            <Crown className="w-6 h-6 text-foreground" />
-          </div>
+        <motion.div
+          initial={{ opacity: 0, y: 18, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.32, ease: "easeOut" }}
+          className="atlas-card grid-paper p-6 sm:p-8 text-center"
+        >
+          <motion.div
+            initial={{ scale: 0.4, rotate: -14 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 280, damping: 16, delay: 0.08 }}
+            className="inline-flex w-14 h-14 border-2 border-foreground bg-gold items-center justify-center mb-2 brutal-shadow"
+          >
+            <Crown className="w-7 h-7 text-foreground" />
+          </motion.div>
           <h1 className="font-display text-3xl sm:text-4xl text-foreground">
             Battle Over
           </h1>
+          {winner && (
+            <p className="mt-1.5 text-sm sm:text-base font-black uppercase tracking-wide text-forest">
+              {iWon ? "🏆 Victory! You took #1!" : `🏆 ${winner.name} takes #1!`}
+            </p>
+          )}
           <p className="mt-1 text-sm font-semibold text-terra">
-            Match time · {formatElapsedTime(elapsedMs)}
+            Match time · {formatElapsedTime(finalTimeMs)}
           </p>
 
           <div className="mt-6 space-y-2.5 text-left">
-            {(results || []).map((r) => (
-              <div
-                key={r.seat}
-                className={cn(
-                  "border-2 border-foreground px-3.5 py-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]",
-                  r.rank === 1 ? "bg-terra font-bold text-foreground" : "bg-card",
-                )}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="font-display text-xl sm:text-2xl w-7 shrink-0">
-                    #{r.rank}
-                  </span>
-                  <span className="flex-1 font-bold uppercase tracking-tight truncate min-w-0 text-sm sm:text-base">
-                    {r.name}
-                    {r.seat === mySeat && " (you)"}
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-foreground shrink-0">
-                    {r.score} pts
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground mt-1.5 pl-9 font-semibold">
-                  <span>{r.correct} correct</span>
-                  <span>
-                    {r.averageAnswerMs
-                      ? `${(r.averageAnswerMs / 1000).toFixed(1)}s avg`
-                      : "—"}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {(results || []).map((r, idx) => {
+              const medal = r.rank === 1 ? "🏆" : r.rank === 2 ? "🥈" : r.rank === 3 ? "🥉" : `#${r.rank}`;
+              return (
+                <motion.div
+                  key={r.seat}
+                  initial={{ opacity: 0, x: -14 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25, delay: 0.12 + idx * 0.08 }}
+                  className={cn(
+                    "border-2 border-foreground px-3.5 py-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]",
+                    r.rank === 1
+                      ? "bg-terra font-bold text-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                      : "bg-card",
+                  )}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-display text-xl sm:text-2xl w-8 shrink-0 text-center">
+                      {medal}
+                    </span>
+                    <span className="flex-1 font-bold uppercase tracking-tight truncate min-w-0 text-sm sm:text-base">
+                      {r.name}
+                      {r.seat === mySeat && " (you)"}
+                    </span>
+                    <span className="text-sm sm:text-base font-black text-foreground shrink-0">
+                      {r.score} pts
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-1.5 pl-10 font-semibold">
+                    <span>{r.correct} correct</span>
+                    <span>
+                      {r.averageAnswerMs
+                        ? `${(r.averageAnswerMs / 1000).toFixed(1)}s avg`
+                        : "—"}
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
           <div className="flex flex-wrap gap-3 justify-center mt-7">
@@ -779,7 +891,7 @@ export default function Battle() {
               Back to Atlas
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         <FeedbackInvite />
       </div>
@@ -809,7 +921,11 @@ export default function Battle() {
                   : "bg-emerald-500/20 text-emerald-800 dark:text-emerald-300",
               )}
             >
-              {roomLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+              {roomLocked ? (
+                <Lock className="w-3 h-3" />
+              ) : (
+                <Unlock className="w-3 h-3" />
+              )}
               {roomLocked ? "Locked" : "Open"}
             </span>
           </div>
@@ -823,7 +939,11 @@ export default function Battle() {
               className="border-2 border-foreground bg-terra w-11 h-11 inline-flex items-center justify-center hover:-translate-x-0.5 hover:-translate-y-0.5 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               aria-label="Copy code"
             >
-              {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+              {copied ? (
+                <Check className="w-5 h-5" />
+              ) : (
+                <Copy className="w-5 h-5" />
+              )}
             </button>
           </div>
 
@@ -839,7 +959,12 @@ export default function Battle() {
               aria-label="Zoom QR code"
               className="group relative bg-white p-2 border-2 border-foreground cursor-zoom-in transition-transform hover:scale-[1.03] active:scale-[0.98] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             >
-              <QRCodeSVG value={inviteUrl()} size={84} level="M" includeMargin={false} />
+              <QRCodeSVG
+                value={inviteUrl()}
+                size={84}
+                level="M"
+                includeMargin={false}
+              />
               <span className="pointer-events-none absolute inset-0 flex items-end justify-center pb-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="bg-foreground text-background text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5">
                   Zoom
@@ -850,7 +975,8 @@ export default function Battle() {
               onClick={copyInviteLink}
               className="inline-flex items-center justify-center gap-2 border-2 border-foreground bg-card px-4 h-10 text-xs font-bold uppercase tracking-tight shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             >
-              <QrCode className="w-4 h-4" /> {copied ? "Copied!" : "Copy invite link"}
+              <QrCode className="w-4 h-4" />{" "}
+              {copied ? "Copied!" : "Copy invite link"}
             </button>
           </div>
         </div>
@@ -884,7 +1010,11 @@ export default function Battle() {
                     : "bg-card hover:bg-muted text-foreground",
                 )}
               >
-                {roomLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                {roomLocked ? (
+                  <Lock className="w-3.5 h-3.5" />
+                ) : (
+                  <Unlock className="w-3.5 h-3.5" />
+                )}
                 {roomLocked ? "Unlock Room" : "Lock Room"}
               </button>
             )}
@@ -903,7 +1033,9 @@ export default function Battle() {
                 key={p.seat}
                 className={cn(
                   "flex items-center gap-2.5 border-2 border-foreground px-3 py-2.5 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]",
-                  p.ready ? "bg-forest/10 border-l-4 border-l-forest" : "bg-card",
+                  p.ready
+                    ? "bg-forest/10 border-l-4 border-l-forest"
+                    : "bg-card",
                 )}
               >
                 <span className="w-6 h-6 border-2 border-foreground bg-terra inline-flex items-center justify-center text-xs font-bold shrink-0">
@@ -921,7 +1053,9 @@ export default function Battle() {
                   </span>
                 )}
                 {p.seat === mySeat && (
-                  <span className="text-xs text-muted-foreground font-semibold shrink-0">(you)</span>
+                  <span className="text-xs text-muted-foreground font-semibold shrink-0">
+                    (you)
+                  </span>
                 )}
                 <span
                   className={cn(
@@ -929,17 +1063,26 @@ export default function Battle() {
                     p.ready ? "text-forest" : "text-muted-foreground",
                   )}
                 >
-                  {p.ready ? <Check className="w-3.5 h-3.5" /> : <Circle className="w-3 h-3" />}
-                  <span className="hidden xs:inline">{p.ready ? "Ready" : "Not ready"}</span>
+                  {p.ready ? (
+                    <Check className="w-3.5 h-3.5" />
+                  ) : (
+                    <Circle className="w-3 h-3" />
+                  )}
+                  <span className="hidden xs:inline">
+                    {p.ready ? "Ready" : "Not ready"}
+                  </span>
                 </span>
                 {isHost && p.seat !== mySeat && (
                   <button
                     type="button"
-                    onClick={() => roomRef.current?.send({ type: "kick", seat: p.seat })}
+                    onClick={() =>
+                      roomRef.current?.send({ type: "kick", seat: p.seat })
+                    }
                     className="inline-flex items-center gap-1 border border-destructive px-2 py-1 text-[10px] font-bold uppercase text-destructive hover:bg-destructive hover:text-destructive-foreground shrink-0"
                     aria-label={`Remove ${p.name}`}
                   >
-                    <UserMinus className="w-3 h-3" /> <span className="hidden sm:inline">Remove</span>
+                    <UserMinus className="w-3 h-3" />{" "}
+                    <span className="hidden sm:inline">Remove</span>
                   </button>
                 )}
               </li>
@@ -954,7 +1097,10 @@ export default function Battle() {
           </ul>
 
           {notice && (
-            <p role="status" className="mt-3 border border-foreground/30 bg-muted px-3 py-2 text-xs font-bold text-foreground">
+            <p
+              role="status"
+              className="mt-3 border border-foreground/30 bg-muted px-3 py-2 text-xs font-bold text-foreground"
+            >
               {notice}
             </p>
           )}
@@ -974,7 +1120,10 @@ export default function Battle() {
                   disabled={!isHost || !connected}
                   onChange={(e) => {
                     const nextReg = e.target.value;
-                    const maxForReg = Math.max(5, flagsByRegion(nextReg).length);
+                    const maxForReg = Math.max(
+                      5,
+                      flagsByRegion(nextReg).length,
+                    );
                     roomRef.current?.send({
                       type: "configure",
                       region: nextReg,
@@ -983,7 +1132,9 @@ export default function Battle() {
                   }}
                   className="w-full h-10 appearance-none border-2 border-foreground bg-card pl-3 pr-9 text-sm font-medium focus:outline-none disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <option value="World">World · all {flagsByRegion("World").length} flags</option>
+                  <option value="World">
+                    World · all {flagsByRegion("World").length} flags
+                  </option>
                   {PLAYABLE_REGIONS.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.id} · {flagsByRegion(r.id).length} flags
@@ -1001,7 +1152,9 @@ export default function Battle() {
                     <div className="flex items-center justify-between text-xs font-bold uppercase tracking-tight text-muted-foreground">
                       <span>Rounds</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-foreground">{roomRounds} flags</span>
+                        <span className="text-foreground">
+                          {roomRounds} flags
+                        </span>
                         {isHost && (
                           <button
                             type="button"
@@ -1065,7 +1218,8 @@ export default function Battle() {
               </p>
             ) : !allReady ? (
               <p className="text-xs text-muted-foreground text-center font-medium">
-                Waiting for {notReadyCount} player{notReadyCount > 1 ? "s" : ""} to ready up…
+                Waiting for {notReadyCount} player{notReadyCount > 1 ? "s" : ""}{" "}
+                to ready up…
               </p>
             ) : (
               <p className="text-xs text-forest text-center font-bold">
@@ -1089,7 +1243,9 @@ export default function Battle() {
         ) : (
           <div className="space-y-3">
             <button
-              onClick={() => roomRef.current?.send({ type: "ready", ready: !iAmReady })}
+              onClick={() =>
+                roomRef.current?.send({ type: "ready", ready: !iAmReady })
+              }
               disabled={!connected}
               aria-pressed={iAmReady}
               className={cn(
@@ -1100,7 +1256,11 @@ export default function Battle() {
               )}
             >
               <span className="inline-flex items-center gap-2">
-                {iAmReady ? <Check className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                {iAmReady ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
                 {iAmReady ? "Ready — tap to unready" : "I'm ready"}
               </span>
             </button>
@@ -1164,6 +1324,13 @@ export default function Battle() {
   }
 
   // ---- Playing View: Synchronized Round Quiz ----
+  const answeredCount = players.filter((p) => p.hasAnswered).length;
+  const isReveal = roundPhase === "reveal";
+  const timerPercent = Math.max(
+    0,
+    Math.min(100, (timeLeftMs / roundDurationMs) * 100),
+  );
+
   return (
     <div className="mx-auto max-w-5xl px-3 sm:px-4 py-5 sm:py-6">
       <div className="grid lg:grid-cols-[1fr_260px] gap-4 sm:gap-5">
@@ -1172,7 +1339,8 @@ export default function Battle() {
           <div className="flex items-center justify-between mb-3 text-xs sm:text-sm font-bold uppercase tracking-tight flex-wrap gap-2">
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-muted-foreground font-black">
-                Round {Math.min(currentRound + 1, questions.length)} / {questions.length}
+                Round {Math.min(currentRound + 1, questions.length)} /{" "}
+                {questions.length}
               </span>
               <span className="text-foreground font-black">
                 {me?.correct || 0} Correct · {me?.score || 0} Pts
@@ -1200,7 +1368,11 @@ export default function Battle() {
                       ? "border-destructive bg-destructive text-destructive-foreground"
                       : "border-foreground bg-card text-foreground hover:bg-muted",
                   )}
-                  title={confirmEnd ? "Click again to stop match and show results" : "End match early"}
+                  title={
+                    confirmEnd
+                      ? "Click again to stop match and show results"
+                      : "End match early"
+                  }
                 >
                   <Flag className="w-3 h-3" />
                   <span>{confirmEnd ? "End now?" : "End Match"}</span>
@@ -1224,7 +1396,9 @@ export default function Battle() {
                     ? "border-destructive bg-destructive text-destructive-foreground"
                     : "border-foreground/60 bg-card text-muted-foreground hover:text-destructive hover:border-destructive",
                 )}
-                title={confirmExit ? "Click again to exit match" : "Exit battle"}
+                title={
+                  confirmExit ? "Click again to exit match" : "Exit battle"
+                }
               >
                 <LogOut className="w-3 h-3" />
                 <span>{confirmExit ? "Leave?" : "Exit"}</span>
@@ -1240,16 +1414,24 @@ export default function Battle() {
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   <Timer className="w-3.5 h-3.5 text-terra" />
                   {isReveal ? (
-                    <span className="text-forest font-black">Round Complete</span>
+                    <span className="text-forest font-black">
+                      Round Complete
+                    </span>
                   ) : (
                     <span>Time Left</span>
                   )}
                 </span>
-                <span className={cn(
-                  "font-mono font-black",
-                  timeLeftMs < 3000 ? "text-destructive animate-pulse" : "text-foreground"
-                )}>
-                  {isReveal ? "Next flag in 2s" : `${(timeLeftMs / 1000).toFixed(1)}s`}
+                <span
+                  className={cn(
+                    "font-mono font-black",
+                    timeLeftMs < 3000
+                      ? "text-destructive animate-pulse"
+                      : "text-foreground",
+                  )}
+                >
+                  {isReveal
+                    ? "Next flag in 2s"
+                    : `${(timeLeftMs / 1000).toFixed(1)}s`}
                 </span>
               </div>
               <div className="h-2.5 w-full border-2 border-foreground bg-muted overflow-hidden">
@@ -1270,7 +1452,11 @@ export default function Battle() {
             {/* Flag Display */}
             <div className="mx-auto max-w-md aspect-[3/2] border-2 border-foreground bg-muted overflow-hidden shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)]">
               {q ? (
-                <FlagImage code={q.flag} className="w-full h-full object-cover" priority={true} />
+                <FlagImage
+                  code={q.flag}
+                  className="w-full h-full object-cover"
+                  priority={true}
+                />
               ) : null}
             </div>
 
@@ -1284,7 +1470,9 @@ export default function Battle() {
                   </div>
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     {me?.lastPoints > 0 ? (
-                      <span className="text-forest">+{me.lastPoints} Points Earned!</span>
+                      <span className="text-forest">
+                        +{me.lastPoints} Points Earned!
+                      </span>
                     ) : (
                       <span className="text-destructive">Missed this flag</span>
                     )}
@@ -1295,16 +1483,20 @@ export default function Battle() {
                   <p className="text-sm font-bold text-foreground flex items-center justify-center gap-1.5 flex-wrap">
                     <span>Which country does this flag belong to?</span>
                     <span className="hidden sm:inline-flex items-center gap-1 text-xs font-mono bg-muted/60 px-1.5 py-0.5 rounded border border-foreground/15 text-muted-foreground">
-                      Keys <kbd className="font-bold text-foreground">A</kbd>–<kbd className="font-bold text-foreground">D</kbd>
+                      Keys <kbd className="font-bold text-foreground">A</kbd>–
+                      <kbd className="font-bold text-foreground">D</kbd>
                     </span>
                   </p>
                   <p className="text-xs text-muted-foreground font-semibold">
                     {picked ? (
                       <span className="text-terra font-bold">
-                        Answer locked in! Waiting for other players… ({answeredCount}/{players.length})
+                        Answer locked in! Waiting for other players… (
+                        {answeredCount}/{players.length})
                       </span>
                     ) : (
-                      <span>Tap your answer or press A–D before the timer expires</span>
+                      <span>
+                        Tap your answer or press A–D before the timer expires
+                      </span>
                     )}
                   </p>
                 </div>
@@ -1318,17 +1510,21 @@ export default function Battle() {
                 const isCorrect = opt === q.flag;
                 const keyLetter = ["A", "B", "C", "D"][optIdx] || optIdx + 1;
 
-                let buttonStyle = "bg-card hover:-translate-x-0.5 hover:-translate-y-0.5 text-foreground";
+                let buttonStyle =
+                  "bg-card hover:-translate-x-0.5 hover:-translate-y-0.5 text-foreground";
                 if (isReveal) {
                   if (isCorrect) {
-                    buttonStyle = "bg-emerald-500/25 border-emerald-600 dark:border-emerald-400 text-emerald-950 dark:text-emerald-100 font-black";
+                    buttonStyle =
+                      "bg-emerald-500/25 border-emerald-600 dark:border-emerald-400 text-emerald-950 dark:text-emerald-100 font-black";
                   } else if (isPicked && !isCorrect) {
-                    buttonStyle = "bg-destructive/20 border-destructive text-destructive line-through";
+                    buttonStyle =
+                      "bg-destructive/20 border-destructive text-destructive line-through";
                   } else {
                     buttonStyle = "opacity-40 bg-card text-muted-foreground";
                   }
                 } else if (isPicked) {
-                  buttonStyle = "bg-terra text-foreground font-black -translate-x-0.5 -translate-y-0.5";
+                  buttonStyle =
+                    "bg-terra text-foreground font-black -translate-x-0.5 -translate-y-0.5";
                 }
 
                 return (
@@ -1417,10 +1613,16 @@ export default function Battle() {
                       <span
                         className={cn(
                           "text-[10px] font-black uppercase flex items-center gap-1",
-                          p.hasAnswered ? "text-forest" : "text-muted-foreground",
+                          p.hasAnswered
+                            ? "text-forest"
+                            : "text-muted-foreground",
                         )}
                       >
-                        {p.hasAnswered ? <Check className="w-3 h-3" /> : <Circle className="w-2.5 h-2.5" />}
+                        {p.hasAnswered ? (
+                          <Check className="w-3 h-3" />
+                        ) : (
+                          <Circle className="w-2.5 h-2.5" />
+                        )}
                         {p.hasAnswered ? "Answered" : "Thinking"}
                       </span>
                     )}
@@ -1440,18 +1642,5 @@ export default function Battle() {
         </div>
       )}
     </div>
-  );
-  };
-
-  return (
-    <>
-      {renderRoomView()}
-      <BattleChat
-        messages={messages}
-        players={players}
-        mySeat={mySeat}
-        onSendMessage={(text) => roomRef.current?.send({ type: "chat", text })}
-      />
-    </>
   );
 }

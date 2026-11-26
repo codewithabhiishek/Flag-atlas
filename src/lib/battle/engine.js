@@ -282,6 +282,8 @@ export class BattleEngine {
     room.questions = makeQuestions(room.region, room.rounds);
     room.status = "playing";
     room.currentRound = 0;
+    room.matchStartedAt = Date.now();
+    room.matchDurationMs = 0;
 
     for (const p of room.players.values()) {
       Object.assign(p, {
@@ -379,6 +381,9 @@ export class BattleEngine {
     this.clearRoomTimers(room);
     room.status = "finished";
     room.roundPhase = "finished";
+    room.matchDurationMs = room.matchStartedAt
+      ? Math.max(0, Date.now() - room.matchStartedAt)
+      : 0;
 
     const players = [...room.players.values()];
     const results = players
@@ -402,7 +407,11 @@ export class BattleEngine {
 
     room.results = results;
     for (const p of room.players.values()) {
-      this.io.send(p.connId, { type: "finished", results });
+      this.io.send(p.connId, {
+        type: "finished",
+        results,
+        matchDurationMs: room.matchDurationMs,
+      });
     }
     this.broadcast(room);
   }
@@ -513,6 +522,8 @@ export class BattleEngine {
     room.currentRound = 0;
     room.questions = [];
     room.results = [];
+    room.matchStartedAt = 0;
+    room.matchDurationMs = 0;
 
     for (const p of room.players.values()) {
       Object.assign(p, {
@@ -617,6 +628,7 @@ export class BattleEngine {
       currentRound: room.currentRound,
       roundStartedAt: room.roundStartedAt,
       roundDurationMs: room.roundDurationMs,
+      matchDurationMs: room.matchDurationMs || 0,
       questions: room.status === "playing" ? room.questions : [],
       messages: room.messages || [],
       players: [...room.players.values()].map((p) => ({
