@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
+import { getLenis } from "@/lib/gsapScroll";
 
 const getHashId = (hash) => {
   const rawId = hash.slice(1);
@@ -26,6 +27,7 @@ export default function ScrollToTop() {
       return () => window.clearTimeout(timer);
     }
 
+    getLenis()?.scrollTo(0, { immediate: true });
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname, hash, navigationType]);
 

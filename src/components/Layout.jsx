@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, Link } from "react-router-dom";
 import { Moon, Sun, Compass, BarChart3, Layers, Swords, Sparkles, Menu, X, Play, ArrowRight, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useUiClickSounds } from "@/hooks/use-ui-click-sounds";
 import { useGsapScrollProgress } from "@/lib/gsapScroll";
 import { FeedbackButton } from "@/components/FeedbackLauncher";
+import { prefetchRoute } from "@/lib/routePrefetch";
 
 const NAV = [
   { to: "/atlas", label: "Atlas", icon: Compass },
@@ -192,6 +193,9 @@ export default function Layout() {
                   <NavLink
                     key={n.to}
                     to={n.to}
+                    onMouseEnter={() => prefetchRoute(n.to)}
+                    onTouchStart={() => prefetchRoute(n.to)}
+                    onFocus={() => prefetchRoute(n.to)}
                     className={({ isActive }) =>
                       cn(
                         "px-2 sm:px-2.5 h-8 sm:h-8.5 inline-flex items-center gap-1 sm:gap-1.5 border-2 text-xs font-bold uppercase tracking-tight transition-all shrink-0",
@@ -375,6 +379,9 @@ export default function Layout() {
                   <NavLink
                     key={n.to}
                     to={n.to}
+                    onMouseEnter={() => prefetchRoute(n.to)}
+                    onTouchStart={() => prefetchRoute(n.to)}
+                    onFocus={() => prefetchRoute(n.to)}
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) =>
                       cn(
@@ -418,7 +425,15 @@ export default function Layout() {
         </div>
       </header>
       <main className="flex-1">
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="min-h-[50vh] flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-muted border-t-forest rounded-full animate-spin" />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
       <footer className="border-t-2 border-foreground bg-background/80 px-3.5 py-4 text-center backdrop-blur sm:px-8 sm:py-5 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
         <div className="mx-auto flex max-w-xl flex-col items-center gap-1.5 text-muted-foreground">

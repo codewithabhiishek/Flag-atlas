@@ -6,28 +6,33 @@ import PageNotFound from "./lib/PageNotFound";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 import UserNotRegisteredError from "@/components/UserNotRegisteredError";
 import ScrollToTop from "./components/ScrollToTop";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { ProgressProvider } from "@/lib/ProgressContext";
 import Landing from "@/pages/Landing";
+import {
+  ROUTE_IMPORTERS,
+  lazyWithRetry,
+  prefetchPrimaryRoutes,
+} from "@/lib/routePrefetch";
 
-// Code splitting via React.lazy — ensures game modes and auth screens are only loaded when navigated to
-const Home = lazy(() => import("@/pages/Home"));
-const Learn = lazy(() => import("@/pages/Learn"));
-const FlagFragments = lazy(() => import("@/pages/FlagFragments"));
-const SpeedRun = lazy(() => import("@/pages/SpeedRun"));
-const Recall = lazy(() => import("@/pages/Recall"));
-const FlagBuilder = lazy(() => import("@/pages/FlagBuilder"));
-const ModePicker = lazy(() => import("@/pages/ModePicker"));
-const ReviewDeck = lazy(() => import("@/pages/ReviewDeck"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Battle = lazy(() => import("@/pages/Battle"));
-const WorldQuiz = lazy(() => import("@/pages/WorldQuiz"));
-const Login = lazy(() => import("@/pages/Login"));
-const Register = lazy(() => import("@/pages/Register"));
-const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
-const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
+// Code splitting with retry + idle/hover prefetching so navigation never hangs on stale or slow chunks
+const Home = lazyWithRetry(ROUTE_IMPORTERS["/atlas"]);
+const Learn = lazyWithRetry(ROUTE_IMPORTERS["/learn"]);
+const FlagFragments = lazyWithRetry(() => import("@/pages/FlagFragments"));
+const SpeedRun = lazyWithRetry(() => import("@/pages/SpeedRun"));
+const Recall = lazyWithRetry(() => import("@/pages/Recall"));
+const FlagBuilder = lazyWithRetry(() => import("@/pages/FlagBuilder"));
+const ModePicker = lazyWithRetry(ROUTE_IMPORTERS["/play"]);
+const ReviewDeck = lazyWithRetry(ROUTE_IMPORTERS["/review"]);
+const Dashboard = lazyWithRetry(ROUTE_IMPORTERS["/dashboard"]);
+const Battle = lazyWithRetry(ROUTE_IMPORTERS["/battle"]);
+const WorldQuiz = lazyWithRetry(() => import("@/pages/WorldQuiz"));
+const Login = lazyWithRetry(() => import("@/pages/Login"));
+const Register = lazyWithRetry(() => import("@/pages/Register"));
+const ForgotPassword = lazyWithRetry(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("@/pages/ResetPassword"));
+const OAuthConsent = lazyWithRetry(() => import("@/pages/OAuthConsent"));
 
 const RouteFallback = () => (
   <div className="min-h-[50vh] flex items-center justify-center">
@@ -38,6 +43,10 @@ const RouteFallback = () => (
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } =
     useAuth();
+
+  useEffect(() => {
+    prefetchPrimaryRoutes();
+  }, []);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
