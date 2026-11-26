@@ -116,6 +116,8 @@ export default function Battle() {
   }, [actionParam, code]);
 
   const localRoundStartedAtRef = useRef(Date.now());
+  const joinConfigRef = useRef({ name, region, rounds });
+  joinConfigRef.current = { name, region, rounds };
 
   // Record exact local arrival timestamp when a new question round starts to avoid clock skew
   useEffect(() => {
@@ -166,17 +168,41 @@ export default function Battle() {
     if (!code) return;
     let disposed = false;
     let link = null;
+    let pingTimer = null;
+    let reconnectTimer = null;
+    let reconnectAttempts = 0;
     const offMessages = [];
+
+    const clearKeepalive = () => {
+      if (pingTimer != null) {
+        clearInterval(pingTimer);
+        pingTimer = null;
+      }
+      if (reconnectTimer != null) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+    };
 
     const bind = (gameLink) => {
       link = gameLink;
       roomRef.current = {
         send: (message) => link.send(message),
       };
+      if (pingTimer != null) clearInterval(pingTimer);
+      // Keep WebRTC NAT/UDP bindings alive across long-distance connections (e.g., India <-> NZ)
+      pingTimer = window.setInterval(() => {
+        if (!disposed && link?.isOpen) {
+          link.send({ type: "ping" });
+        }
+      }, 4000);
+
       offMessages.push(
         link.onMessage((message) => {
           if (disposed) return;
+          if (message.type === "pong") return;
           if (message.type === "joined") {
+            reconnectAttempts = 0;
             setMySeat(message.seat);
             setConnected(true);
             setConnectionError("");
@@ -253,32 +279,61 @@ export default function Battle() {
         }),
       );
       link.onClose = () => {
-        if (!disposed) {
-          setConnected(false);
-          setMySeat((prev) => {
-            if (prev && !intentionalExitRef.current) {
-              setConnectionError("Lost connection to the room host.");
-              setCode(null);
-              setRoomMode(null);
-            }
-            return null;
-          });
+        if (disposed) return;
+        if (pingTimer != null) {
+          clearInterval(pingTimer);
+          pingTimer = null;
         }
+        setConnected(false);
+
+        if (intentionalExitRef.current) {
+          setMySeat(null);
+          return;
+        }
+
+        // Attempt silent recovery on transient long-distance WebRTC drops before exiting
+        if (roomMode !== "create" && reconnectAttempts < 2) {
+          reconnectAttempts += 1;
+          setNotice(`Connection hiccup — reconnecting (${reconnectAttempts}/2)…`);
+          reconnectTimer = window.setTimeout(() => {
+            if (!disposed) {
+              void connect();
+            }
+          }, 1200);
+          return;
+        }
+
+        setMySeat((prev) => {
+          if (prev && !intentionalExitRef.current) {
+            setConnectionError("Lost connection to the room host.");
+            setCode(null);
+            setRoomMode(null);
+          }
+          return null;
+        });
       };
     };
 
-    const joinMsg = {
-      type: "join",
-      code,
-      name: name.trim().replace(/<[^>]*>?/gm, "").slice(0, 20),
-      create: roomMode === "create",
-      region,
-      rounds,
-    };
-
     async function connect() {
+      const cfg = joinConfigRef.current;
+      const joinMsg = {
+        type: "join",
+        code,
+        name: cfg.name.trim().replace(/<[^>]*>?/gm, "").slice(0, 20),
+        create: roomMode === "create",
+        region: cfg.region,
+        rounds: cfg.rounds,
+      };
+
       if (roomMode === "create") {
-        bind(createPeerHostLink({ code, name: joinMsg.name, region, rounds }));
+        bind(
+          createPeerHostLink({
+            code,
+            name: joinMsg.name,
+            region: cfg.region,
+            rounds: cfg.rounds,
+          }),
+        );
         return;
       }
       try {
@@ -305,11 +360,12 @@ export default function Battle() {
 
     return () => {
       disposed = true;
+      clearKeepalive();
       offMessages.forEach((off) => off());
       link?.close();
       roomRef.current = null;
     };
-  }, [code, name, region, rounds, roomMode]);
+  }, [code, roomMode]);
 
   function answer(opt) {
     if (

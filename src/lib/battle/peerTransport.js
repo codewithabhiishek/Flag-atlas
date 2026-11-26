@@ -109,6 +109,14 @@ export class PeerHostBridge {
         conn.on("error", drop);
       });
 
+      this.peer.on("disconnected", () => {
+        if (!this.closed && this.peer && !this.peer.destroyed) {
+          try {
+            this.peer.reconnect();
+          } catch {}
+        }
+      });
+
       this.peer.on("error", (err) => {
         // Someone else already claimed this room id (double-tab host) —
         // clean up previous peer instance before retrying
@@ -173,7 +181,7 @@ export class PeerHostBridge {
 /* Guest side: dial the host's peer id directly                        */
 /* ------------------------------------------------------------------ */
 
-export function tryPeerGuestLink(roomCode, timeoutMs = 10000) {
+export function tryPeerGuestLink(roomCode, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     const targetId = peerIdForRoom(roomCode);
     let settled = false;
@@ -282,7 +290,8 @@ export function tryPeerGuestLink(roomCode, timeoutMs = 10000) {
           peer?.destroy();
         } catch {}
         reject(err);
-      } else {
+      } else if (!conn || !conn.open) {
+        // Only treat signaling error as fatal if the direct WebRTC data channel is also closed
         link.onClose?.();
       }
     });
