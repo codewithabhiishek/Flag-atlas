@@ -602,81 +602,118 @@ function InteractiveRecallQuiz({
     }
   };
 
+  const maskClue = (raw) => {
+    if (!raw) return "";
+    let out = raw;
+    if (currentCountry.name) {
+      const escaped = currentCountry.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      out = out.replace(new RegExp(`\\b${escaped}\\b`, "gi"), "this country");
+    }
+    return out;
+  };
+
   return (
     <motion.div
       key={`test-${currentCountry.code}`}
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      className="atlas-card p-5 sm:p-7 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center max-w-xl mx-auto space-y-4"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="atlas-card p-5 sm:p-7 border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-5"
     >
-      <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-terra">
-        <HelpCircle className="w-4 h-4" />
-        <span>Recall Check · Can You Identify This Flag?</span>
+      {/* Top Bar: Clear Hierarchy */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b-2 border-foreground/15">
+        <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider text-terra">
+          <HelpCircle className="w-4 h-4 shrink-0" />
+          <span>Recall Check · Identify This Flag</span>
+        </div>
+        <span className="px-2.5 py-1 border-2 border-foreground bg-muted text-[11px] font-bold uppercase tracking-wider text-foreground">
+          {currentCountry.region}
+        </span>
       </div>
 
-      <div className="w-48 aspect-[3/2] mx-auto border-2 border-foreground shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-lg overflow-hidden bg-background">
-        <FlagImage
-          code={currentCountry.code}
-          className="w-full h-full object-cover"
-          fittingType="fill"
-          alt="Mystery Flag"
-        />
+      {/* Balanced 2-Column Layout matching Lesson Card Symmetry */}
+      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-5 sm:gap-7 items-center">
+        {/* Left: Flag Frame */}
+        <div className="w-full max-w-[260px] mx-auto aspect-[3/2] border-2 border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-lg overflow-hidden bg-background">
+          <FlagImage
+            code={currentCountry.code}
+            className="w-full h-full object-cover"
+            fittingType="fill"
+            alt="Mystery Flag"
+          />
+        </div>
+
+        {/* Right: Clue + Symmetric 2x2 Options */}
+        <div className="space-y-4 min-w-0">
+          <div className="border-2 border-foreground/20 bg-background/70 px-3.5 py-2.5 rounded-lg text-left">
+            <p className="text-[10px] font-black uppercase tracking-wider text-terra mb-0.5">
+              💡 Memory Clue
+            </p>
+            <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed m-0">
+              {maskClue(fact.hook)}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {choices.map((c, idx) => {
+              const isTarget = c.code === currentCountry.code;
+              const isUserPick = selected === c.code;
+              const letter = ["A", "B", "C", "D"][idx];
+
+              let btnStyle =
+                "border-2 border-foreground bg-card text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] hover:bg-muted/60 hover:-translate-y-0.5";
+
+              if (answered) {
+                if (isTarget) {
+                  btnStyle =
+                    "border-2 border-emerald-600 bg-emerald-500/20 text-emerald-950 dark:text-emerald-100 font-bold shadow-[2px_2px_0px_0px_rgba(16,185,129,0.9)]";
+                } else if (isUserPick) {
+                  btnStyle =
+                    "border-2 border-destructive bg-destructive/15 text-destructive line-through opacity-80";
+                } else {
+                  btnStyle =
+                    "border-2 border-border/40 text-muted-foreground/40 opacity-35";
+                }
+              }
+
+              return (
+                <button
+                  key={c.code}
+                  type="button"
+                  disabled={answered}
+                  onClick={() => handlePick(c)}
+                  className={cn(
+                    "p-3 rounded-lg text-left transition-all flex items-center justify-between gap-2.5 min-h-[56px] w-full",
+                    btnStyle,
+                  )}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <span className="w-6 h-6 border-2 border-foreground bg-background text-foreground inline-flex items-center justify-center text-[11px] font-black shrink-0">
+                      {letter}
+                    </span>
+                    <div className="min-w-0 flex-1 text-left">
+                      <span className="block text-xs sm:text-sm font-bold leading-tight truncate">
+                        {c.name}
+                      </span>
+                      <span className="block text-[11px] text-muted-foreground leading-tight mt-0.5 truncate">
+                        Cap: {c.capital}
+                      </span>
+                    </div>
+                  </div>
+                  {answered && isTarget && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      <p className="text-xs text-muted-foreground italic px-2">
-        💡 Lesson hint: "{fact.hook.slice(0, 80)}..."
-      </p>
-
-      {/* 4 Choices */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left pt-1">
-        {choices.map((c) => {
-          const isTarget = c.code === currentCountry.code;
-          const isUserPick = selected === c.code;
-
-          let btnStyle =
-            "border-2 border-foreground bg-card text-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,0.85)] hover:bg-muted/60";
-
-          if (answered) {
-            if (isTarget) {
-              btnStyle =
-                "border-2 border-emerald-600 bg-emerald-500/20 text-emerald-950 dark:text-emerald-100 font-bold shadow-[2px_2px_0px_0px_rgba(16,185,129,0.9)]";
-            } else if (isUserPick) {
-              btnStyle =
-                "border-2 border-destructive bg-destructive/15 text-destructive line-through opacity-80";
-            } else {
-              btnStyle =
-                "border-2 border-border/40 text-muted-foreground/40 opacity-35";
-            }
-          }
-
-          return (
-            <button
-              key={c.code}
-              type="button"
-              disabled={answered}
-              onClick={() => handlePick(c)}
-              className={cn(
-                "p-3 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-between min-h-[44px]",
-                btnStyle,
-              )}
-            >
-              <div>
-                <span className="block font-bold">{c.name}</span>
-                <span className="text-[11px] opacity-80">Cap: {c.capital}</span>
-              </div>
-              {answered && isTarget && (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Result feedback */}
-      <div className="pt-2 border-t border-border flex items-center justify-between gap-3">
+      {/* Result Feedback & Action Footer */}
+      <div className="pt-3 border-t-2 border-foreground/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {answered ? (
-          <span className="text-xs font-bold text-foreground text-left">
+          <span className="text-xs sm:text-sm font-bold text-foreground text-left">
             {selected === currentCountry.code ? (
               <span className="text-emerald-700 dark:text-emerald-300">
                 🎉 Spot on! {currentCountry.name} ({currentCountry.capital})
@@ -688,15 +725,15 @@ function InteractiveRecallQuiz({
             )}
           </span>
         ) : (
-          <span className="text-[11px] text-muted-foreground">
-            Pick matching country or reveal the story.
+          <span className="text-xs text-muted-foreground font-medium text-left">
+            Pick the matching country or reveal the full story.
           </span>
         )}
 
         <button
           type="button"
           onClick={onReveal}
-          className="h-10 px-4 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-tight rounded shrink-0 shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] min-h-[40px]"
+          className="h-10 px-4 border-2 border-foreground bg-foreground text-background font-bold text-xs uppercase tracking-tight rounded shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-transform min-h-[40px] w-full sm:w-auto"
         >
           {answered ? "Return to Lesson →" : "Reveal Story →"}
         </button>
