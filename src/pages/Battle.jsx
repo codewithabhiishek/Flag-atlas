@@ -107,6 +107,25 @@ export default function Battle() {
   const intentionalExitRef = useRef(false);
   const celebratedRef = useRef(false);
   const prevStatusRef = useRef("lobby");
+  const noticeTimerRef = useRef(null);
+  const clientIdRef = useRef(null);
+  if (!clientIdRef.current) {
+    try {
+      const existing = sessionStorage.getItem("flagatlas.battleClientId");
+      if (existing) {
+        clientIdRef.current = existing;
+      } else {
+        const generated =
+          typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+            ? crypto.randomUUID()
+            : `p-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        sessionStorage.setItem("flagatlas.battleClientId", generated);
+        clientIdRef.current = generated;
+      }
+    } catch {
+      clientIdRef.current = `p-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+  }
   const joinInputRef = useRef(null);
   const createNameRef = useRef(null);
 
@@ -266,7 +285,8 @@ export default function Battle() {
           }
           if (message.type === "notice") {
             setNotice(message.message);
-            window.setTimeout(() => setNotice(""), 4000);
+            if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+            noticeTimerRef.current = window.setTimeout(() => setNotice(""), 4000);
           }
           if (message.type === "chat" && message.message) {
             setMessages((prev) => {
@@ -367,6 +387,7 @@ export default function Battle() {
         create: roomMode === "create",
         region: cfg.region,
         rounds: cfg.rounds,
+        clientId: clientIdRef.current,
       };
 
       if (roomMode === "create") {

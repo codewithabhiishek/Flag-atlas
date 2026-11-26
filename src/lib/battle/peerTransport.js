@@ -166,6 +166,9 @@ export class PeerHostBridge {
     this.pendingQueues.clear();
     for (const c of this.conns.values()) {
       try {
+        if (c.open) {
+          c.send({ type: "roomClosed", message: "The host left the battle." });
+        }
         c.close();
       } catch {}
     }
@@ -279,6 +282,13 @@ export function tryPeerGuestLink(roomCode, timeoutMs = 15000) {
           reject(err);
         }
       }
+    });
+
+    peer.on("disconnected", () => {
+      if (!settled) return;
+      try {
+        if (!peer.destroyed) peer.reconnect();
+      } catch {}
     });
 
     peer.on("error", (err) => {

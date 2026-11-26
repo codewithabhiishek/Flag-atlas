@@ -170,6 +170,7 @@ export class BattleEngine {
         hostSeat: 1,
         locked: false,
         players: new Map(), // seat -> player
+        disconnectedPlayers: new Map(), // clientId -> player snapshot for mid-match reconnect
         questions: [],
         results: [],
         messages: [],
@@ -181,6 +182,53 @@ export class BattleEngine {
         createdAt: Date.now(),
       };
       this.rooms.set(code, room);
+    }
+
+    const clientId = typeof msg.clientId === "string" && msg.clientId ? msg.clientId : null;
+    if (clientId) {
+      const activeMatch = [...room.players.values()].find((p) => p.clientId === clientId);
+      if (activeMatch) {
+        if (activeMatch.connId && activeMatch.connId !== connId) {
+          this.conns.delete(activeMatch.connId);
+        }
+        activeMatch.connId = connId;
+        this.conns.set(connId, { roomCode: code, seat: activeMatch.seat, lastSeen: Date.now() });
+        this.io.send(connId, { type: "joined", seat: activeMatch.seat });
+        this.broadcast(room);
+        if (room.status === "finished" && room.results?.length) {
+          this.io.send(connId, {
+            type: "finished",
+            results: room.results,
+            matchDurationMs: room.matchDurationMs || 0,
+          });
+        }
+        return;
+      }
+
+      const savedPlayer = room.disconnectedPlayers?.get(clientId);
+      if (savedPlayer) {
+        room.disconnectedPlayers.delete(clientId);
+        const seat = !room.players.has(savedPlayer.seat)
+          ? savedPlayer.seat
+          : SEATS.find((s) => !room.players.has(s));
+        if (seat) {
+          savedPlayer.seat = seat;
+          savedPlayer.connId = connId;
+          room.players.set(seat, savedPlayer);
+          this.conns.set(connId, { roomCode: code, seat, lastSeen: Date.now() });
+          this.io.send(connId, { type: "joined", seat });
+          this.broadcast(room);
+          this.announce(room, `${savedPlayer.name} reconnected.`);
+          if (room.status === "finished" && room.results?.length) {
+            this.io.send(connId, {
+              type: "finished",
+              results: room.results,
+              matchDurationMs: room.matchDurationMs || 0,
+            });
+          }
+          return;
+        }
+      }
     }
 
     if (room.status !== "lobby") {
@@ -210,6 +258,7 @@ export class BattleEngine {
       // Word Rush rule: the host is implicitly always ready.
       ready: Boolean(creating),
       connId,
+      clientId,
     };
 
     room.players.set(seat, player);
@@ -557,6 +606,10 @@ export class BattleEngine {
     if (!room) return;
     const player = room.players.get(conn.seat);
     if (!player) return;
+
+    if (player.clientId && (room.status === "playing" || room.status === "finished")) {
+      room.disconnectedPlayers?.set(player.clientId, { ...player });
+    }
 
     room.players.delete(conn.seat);
 

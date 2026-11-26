@@ -333,3 +333,39 @@ test('All 197 countries have unique codes, valid capitals, and no outdated forme
     assert.ok(!OUTDATED_CAPITALS.has(c.capital), `${c.name} uses outdated capital ${c.capital}`);
   }
 });
+
+test('BattleEngine supports 3+ players and seamless mid-match guest reconnection via clientId', () => {
+  const sentMessages = [];
+  const mockIo = { send: (connId, msg) => sentMessages.push({ connId, msg }) };
+  const engine = new BattleEngine(mockIo);
+  const code = 'RECO';
+
+  engine.handle('h1', { type: 'join', code, name: 'Host', create: true, clientId: 'cid-host' });
+  engine.handle('g1-old', { type: 'join', code, name: 'Player2', clientId: 'cid-p2' });
+  engine.handle('g2', { type: 'join', code, name: 'Player3', clientId: 'cid-p3' });
+
+  engine.handle('g1-old', { type: 'ready', ready: true });
+  engine.handle('g2', { type: 'ready', ready: true });
+  engine.handle('h1', { type: 'start' });
+
+  const room = engine.rooms.get(code);
+  assert.equal(room.status, 'playing');
+  assert.equal(room.players.size, 3);
+
+  // Player 2 answers round 1 correctly, then drops connection
+  const q0 = room.questions[0];
+  engine.handle('g1-old', { type: 'answer', choice: q0.flag });
+  const scoreBeforeDrop = room.players.get(2).score;
+  assert.ok(scoreBeforeDrop >= 100);
+
+  engine.onDisconnect('g1-old');
+  assert.equal(room.players.size, 2);
+
+  // Player 2 reconnects mid-match with a new connId and same clientId
+  engine.handle('g1-new', { type: 'join', code, name: 'Player2', clientId: 'cid-p2' });
+  assert.equal(room.players.size, 3, 'Should restore Player 2 without duplicating');
+  assert.equal(room.players.get(2).score, scoreBeforeDrop, 'Should preserve Player 2 score');
+  assert.equal(room.players.get(2).connId, 'g1-new');
+
+  engine.destroy();
+});
