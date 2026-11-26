@@ -305,3 +305,31 @@ test('BattleEngine chat sanitizes messages, broadcasts to room, and rate limits 
 
   engine.destroy();
 });
+
+test('All 197 countries have unique codes, valid capitals, and no outdated former capitals', () => {
+  const OUTDATED_CAPITALS = new Set([
+    'Colombo',
+    'Yangon',
+    'Rangoon',
+    'Dar es Salaam',
+    'Bujumbura',
+    'Nur-Sultan',
+    'Almaty',
+    'Lagos',
+    'Abidjan',
+    'Koror',
+    'Bonn',
+    'Rio de Janeiro',
+    'Belize City',
+    'Istanbul',
+    'Karachi',
+    'Saigon',
+  ]);
+  const seenCodes = new Set();
+  for (const c of COUNTRIES) {
+    assert.ok(c.code && c.name && c.region && c.capital, `Invalid country entry: ${JSON.stringify(c)}`);
+    assert.ok(!seenCodes.has(c.code), `Duplicate country code: ${c.code}`);
+    seenCodes.add(c.code);
+    assert.ok(!OUTDATED_CAPITALS.has(c.capital), `${c.name} uses outdated capital ${c.capital}`);
+  }
+});

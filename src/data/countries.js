@@ -84,7 +84,7 @@ export const COUNTRIES = [
   { code: "sa", name: "Saudi Arabia", region: "Asia", capital: "Riyadh" },
   { code: "sg", name: "Singapore", region: "Asia", capital: "Singapore" },
   { code: "kr", name: "South Korea", region: "Asia", capital: "Seoul" },
-  { code: "lk", name: "Sri Lanka", region: "Asia", capital: "Colombo" },
+  { code: "lk", name: "Sri Lanka", region: "Asia", capital: "Sri Jayawardenepura Kotte" },
   { code: "sy", name: "Syria", region: "Asia", capital: "Damascus" },
   { code: "tw", name: "Taiwan", region: "Asia", capital: "Taipei" },
   { code: "tj", name: "Tajikistan", region: "Asia", capital: "Dushanbe" },
