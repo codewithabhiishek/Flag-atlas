@@ -369,3 +369,32 @@ test('BattleEngine supports 3+ players and seamless mid-match guest reconnection
 
   engine.destroy();
 });
+
+test('BattleEngine live floating reactions validate emojis, broadcast, and rate limit spam', () => {
+  const sentMessages = [];
+  const mockIo = { send: (connId, msg) => sentMessages.push({ connId, msg }) };
+  const engine = new BattleEngine(mockIo);
+  const code = 'REAC';
+
+  engine.handle('h1', { type: 'join', code, name: 'Host', create: true });
+  engine.handle('g1', { type: 'join', code, name: 'Guest' });
+
+  // Invalid emoji / XSS payload is ignored
+  engine.handle('g1', { type: 'react', emoji: '<script>x</script>' });
+  // Valid reactions (up to 6 per 2s)
+  for (let i = 0; i < 6; i++) {
+    engine.handle('g1', { type: 'react', emoji: '🔥' });
+  }
+  // 7th in same 2s window is rate-limited
+  engine.handle('g1', { type: 'react', emoji: '💀' });
+
+  const reactEvents = sentMessages.filter((m) => {
+    if (!m.msg.__raw) return false;
+    return JSON.parse(m.msg.__raw).type === 'reaction';
+  });
+  // 6 valid reactions * 2 players = 12 delivered events
+  assert.equal(reactEvents.length, 12);
+  assert.equal(JSON.parse(reactEvents[0].msg.__raw).reaction.emoji, '🔥');
+
+  engine.destroy();
+});

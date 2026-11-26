@@ -39,6 +39,7 @@ import {
 } from "@/lib/battle/peerTransport";
 import { FeedbackInvite } from "@/components/FeedbackLauncher";
 import BattleChat from "@/components/BattleChat";
+import { FloatingReactions, ReactionBar } from "@/components/FloatingReactions";
 import { useFlagPrefetch } from "@/hooks/use-flag-prefetch";
 import { playUiSound } from "@/lib/sounds";
 
@@ -84,6 +85,7 @@ export default function Battle() {
   const [players, setPlayers] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [reactions, setReactions] = useState([]);
   const [roomRegion, setRoomRegion] = useState("World");
   const [roomRounds, setRoomRounds] = useState(10);
   const [hostSeat, setHostSeat] = useState(1);
@@ -294,6 +296,21 @@ export default function Battle() {
               const next = [...prev, message.message];
               return next.length > 60 ? next.slice(next.length - 60) : next;
             });
+          }
+          if (message.type === "reaction" && message.reaction) {
+            const item = {
+              ...message.reaction,
+              x: 18 + Math.random() * 64,
+              drift: (Math.random() - 0.5) * 60,
+            };
+            setReactions((prev) => {
+              if (prev.some((r) => r.id === item.id)) return prev;
+              const next = [...prev, item];
+              return next.length > 18 ? next.slice(next.length - 18) : next;
+            });
+            window.setTimeout(() => {
+              setReactions((prev) => prev.filter((r) => r.id !== item.id));
+            }, 2100);
           }
           if (message.type === "state") {
             setStatus(message.status);
@@ -1590,6 +1607,13 @@ export default function Battle() {
                 );
               })}
             </div>
+
+            {/* Live Floating Reaction Bar */}
+            <div className="mt-4 flex justify-center">
+              <ReactionBar
+                onReact={(emoji) => roomRef.current?.send({ type: "react", emoji })}
+              />
+            </div>
           </div>
         </div>
 
@@ -1680,6 +1704,7 @@ export default function Battle() {
   return (
     <div className="pb-14 sm:pb-6">
       {renderRoomView()}
+      <FloatingReactions reactions={reactions} />
       <BattleChat
         messages={messages}
         players={players}

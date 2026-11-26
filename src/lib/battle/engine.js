@@ -19,6 +19,7 @@ const SEATS = [1, 2, 3, 4, 5];
 const ROOM_PURGE_MS = 90_000;
 export const ROUND_DURATION_MS = 12_000;
 export const REVEAL_DURATION_MS = 2_500;
+export const REACTION_EMOJIS = new Set(["🔥", "💀", "🤯", "👑", "⚡"]);
 
 export function sanitizePlayerName(name, seat = 1) {
   if (!name || typeof name !== "string") return `Player ${seat}`;
@@ -127,6 +128,9 @@ export class BattleEngine {
         return;
       case "chat":
         this.actionChat(conn, room, msg);
+        return;
+      case "react":
+        this.actionReact(conn, room, msg);
         return;
       default:
         return;
@@ -399,6 +403,11 @@ export class BattleEngine {
 
     this.broadcast(room);
 
+    // Auto-fire a lightning reaction when someone nails a flag in under 1 second!
+    if (isCorrect && answerMs < 1000) {
+      this.emitReaction(room, player, "⚡");
+    }
+
     // If every connected player has answered, reveal immediately without waiting for timer!
     const activePlayers = [...room.players.values()];
     if (activePlayers.length > 0 && activePlayers.every((p) => p.hasAnswered)) {
@@ -566,6 +575,40 @@ export class BattleEngine {
     for (const p of room.players.values()) {
       this.io.send(p.connId, { __raw: payload });
     }
+  }
+
+  emitReaction(room, player, emoji) {
+    const now = Date.now();
+    room.nextReactSeq = (room.nextReactSeq || 0) + 1;
+    const reaction = {
+      id: `${now}-r${room.nextReactSeq}`,
+      seat: player.seat,
+      playerName: player.name,
+      emoji,
+      timestamp: now,
+    };
+    const payload = JSON.stringify({ type: "reaction", reaction });
+    for (const p of room.players.values()) {
+      this.io.send(p.connId, { __raw: payload });
+    }
+  }
+
+  actionReact(conn, room, msg) {
+    const player = room.players.get(conn.seat);
+    if (!player) return;
+    if (typeof msg.emoji !== "string" || !REACTION_EMOJIS.has(msg.emoji)) return;
+
+    // Rate limit: max 6 reactions per 2 seconds per player
+    const now = Date.now();
+    if (player.reactWindowStart === undefined || now - player.reactWindowStart >= 2000) {
+      player.reactWindowStart = now;
+      player.recentReactCount = 1;
+    } else {
+      player.recentReactCount = (player.recentReactCount || 0) + 1;
+      if (player.recentReactCount > 6) return;
+    }
+
+    this.emitReaction(room, player, msg.emoji);
   }
 
   actionRematch(room) {
