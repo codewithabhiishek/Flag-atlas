@@ -3,12 +3,14 @@
   "short_name": "FlagAtlas",
   "description": "Learn every world flag through a gamified world explorer.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#F4ECD8",
   "theme_color": "#F4ECD8",
   "icons": [
     { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
     { "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
     { "src": "/favicon.ico", "sizes": "64x64 32x32 16x16", "type": "image/x-icon" }
   ]
