@@ -17,53 +17,62 @@ export default function ModePicker() {
   const title = region || "World";
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
-      <Link to="/atlas" className="inline-flex h-10 items-center gap-2 border-2 border-foreground bg-card px-3 text-sm font-bold uppercase tracking-tight hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
-        <ArrowLeft className="h-4 w-4" /> Back to Atlas
+    <main className="mx-auto w-full max-w-4xl px-3 py-3 sm:px-6 sm:py-8">
+      <Link to="/atlas" className="inline-flex h-8 sm:h-10 items-center gap-1.5 sm:gap-2 border-2 border-foreground bg-card px-2.5 sm:px-3 text-xs sm:text-sm font-bold uppercase tracking-tight hover:bg-muted shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
+        <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Back to Atlas
       </Link>
-      <section className="mt-5 border-2 border-foreground bg-card p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-terra">Choose a game</p>
-        <h1 className="mt-2 font-display text-3xl font-bold text-foreground sm:text-4xl">{title}</h1>
-        <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">Every question in the selected game will use flags from {region || "around the world"}.</p>
+      <section className="mt-3 sm:mt-5 border-2 border-foreground bg-card p-3.5 sm:p-7 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-terra">Choose a game</p>
+        <h1 className="mt-1 font-display text-2xl font-bold text-foreground sm:text-4xl">{title}</h1>
+        <p className="mt-1 max-w-xl text-xs text-muted-foreground sm:text-sm">Every question uses flags from {region || "around the world"}.</p>
         
         <Link
           to={`/learn${region ? `?region=${encodeURIComponent(region)}` : ""}`}
-          className="mt-4 flex items-center justify-between gap-4 border-2 border-foreground bg-emerald-500/10 p-3.5 sm:p-4 transition-transform hover:-translate-y-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
+          className="mt-3 flex items-center justify-between gap-2.5 sm:gap-4 border-2 border-foreground bg-emerald-500/10 p-2.5 sm:p-4 transition-transform hover:-translate-y-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
         >
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center border-2 border-foreground bg-emerald-500/20 text-emerald-900 dark:text-emerald-100">
-              <BookOpen className="h-4.5 w-4.5" />
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <span className="inline-flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center border-2 border-foreground bg-emerald-500/20 text-emerald-900 dark:text-emerald-100">
+              <BookOpen className="h-4 w-4" />
             </span>
-            <div>
-              <span className="block font-display text-base font-bold text-foreground">
+            <div className="min-w-0">
+              <span className="block font-display text-sm sm:text-base font-bold text-foreground truncate">
                 Study {region ? region : "All Countries"} First
               </span>
-              <span className="text-xs text-muted-foreground">
-                Flip through flashcards and review capitals at your own pace before playing.
+              <span className="block text-[11px] sm:text-xs text-muted-foreground line-clamp-1 sm:line-clamp-none">
+                Flip through flashcards and capitals at your own pace.
               </span>
             </div>
           </div>
           <ArrowRight className="h-4 w-4 shrink-0 text-foreground" />
         </Link>
         {!region && (
-          <Link to="/play/go-berserk" className="mt-5 flex items-center gap-4 border-2 border-foreground bg-violet-500/10 p-4 transition-transform hover:-translate-y-1">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center border-2 border-foreground bg-violet-500/15"><Globe2 className="h-5 w-5" /></span>
-            <span><span className="block font-display text-xl font-bold text-foreground">Go Berserk</span><span className="mt-0.5 block text-sm text-muted-foreground">One intense, randomized run through all 197 countries — every flag appears exactly once.</span></span>
+          <Link to="/play/go-berserk" className="mt-2.5 sm:mt-3.5 flex items-center justify-between gap-2.5 sm:gap-4 border-2 border-foreground bg-violet-500/10 p-2.5 sm:p-4 transition-transform hover:-translate-y-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <span className="inline-flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center border-2 border-foreground bg-violet-500/15"><Globe2 className="h-4 w-4 sm:h-5 sm:w-5" /></span>
+              <div className="min-w-0">
+                <span className="block font-display text-sm sm:text-xl font-bold text-foreground">Go Berserk</span>
+                <span className="block text-[11px] sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-none">All 197 countries in one randomized run.</span>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-foreground" />
           </Link>
         )}
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-3 sm:mt-5 grid grid-cols-2 gap-2 sm:gap-3">
           {MODES.map((mode) => {
             const unavailable = mode.label === "Builder" && region && !BUILDABLE.some((item) => byCode(item.code)?.region === region);
             const Icon = mode.icon;
             if (unavailable) {
-              return <div key={mode.path} className="border-2 border-border bg-muted p-4 opacity-65 sm:min-h-40 sm:p-5"><Icon className="h-6 w-6" /><h2 className="mt-2.5 font-display text-xl font-bold sm:mt-3">{mode.label}</h2><p className="mt-1 text-sm">No stripe-pattern flags are available for this region yet.</p></div>;
+              return <div key={mode.path} className="border-2 border-border bg-muted p-2.5 sm:p-5 opacity-65 sm:min-h-36"><Icon className="h-4 w-4 sm:h-6 sm:w-6" /><h2 className="mt-1.5 font-display text-sm sm:text-xl font-bold sm:mt-3">{mode.label}</h2><p className="mt-0.5 text-[11px] sm:text-sm leading-snug">Unavailable for this region.</p></div>;
             }
             const destination = `${mode.path}${region ? `?region=${encodeURIComponent(region)}` : ""}`;
-            return <Link key={mode.path} to={destination} className={cn("group flex min-h-0 flex-col border-2 border-foreground p-4 transition-transform hover:-translate-y-1 sm:min-h-40 sm:p-5", mode.accent)}>
-              <Icon className="h-6 w-6" />
-              <h2 className="mt-2.5 font-display text-xl font-bold text-foreground sm:mt-3">{mode.label}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{mode.description}</p>
-              <ArrowRight className="mt-3 h-4 w-4 self-end transition-transform group-hover:translate-x-1 sm:mt-auto" aria-hidden="true" />
+            return <Link key={mode.path} to={destination} className={cn("group flex min-h-0 flex-col border-2 border-foreground p-2.5 sm:p-5 transition-transform hover:-translate-y-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:min-h-36", mode.accent)}>
+              <div className="flex items-center justify-between">
+                <Icon className="h-4 w-4 sm:h-6 sm:w-6" />
+                <ArrowRight className="h-3.5 w-3.5 sm:hidden transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </div>
+              <h2 className="mt-1.5 font-display text-sm sm:text-xl font-bold text-foreground sm:mt-3">{mode.label}</h2>
+              <p className="mt-0.5 text-[11px] sm:text-sm text-muted-foreground leading-snug line-clamp-2 sm:line-clamp-none">{mode.description}</p>
+              <ArrowRight className="hidden sm:block mt-auto pt-2 h-4 w-4 self-end transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>;
           })}
         </div>
